@@ -1,0 +1,197 @@
+<?php
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use App\Models\Bidang;
+use App\Models\Periode;
+use App\Models\Mitra;
+use App\Models\Kegiatan;
+use App\Models\AlokasiHonor;
+use App\Models\Sbml;
+
+class ImportMantraCommand extends Command
+{
+    protected $signature = 'mantra:import {path?}';
+    protected $description = 'Import data MANTRA Excel ke database';
+
+    public function handle()
+    {
+        ini_set('memory_limit', '-1');
+        set_time_limit(900);
+
+        $filePath = $this->argument('path') ?? base_path('1. Input MANTRA (Monitoring Alokasi Pekerjaan Dan Honor Mitra) oleh PJ Kegiatan atau Ketua Tim - Update3.xlsx.xlsx');
+
+        if (!file_exists($filePath)) {
+            $this->error("File tidak ditemukan di path: {$filePath}");
+            return 1;
+        }
+
+        $this->info("Membaca file Excel MANTRA: {$filePath}...");
+        $spreadsheet = IOFactory::load($filePath);
+
+        $bulanMap = [
+            'JANUARI' => ['bulan' => 'Januari', 'angka' => 1],
+            'FEBRUARI' => ['bulan' => 'Februari', 'angka' => 2],
+            'MARET' => ['bulan' => 'Maret', 'angka' => 3],
+            'APRIL' => ['bulan' => 'April', 'angka' => 4],
+            'MEI' => ['bulan' => 'Mei', 'angka' => 5],
+            'JUNI' => ['bulan' => 'Juni', 'angka' => 6],
+            'JULI' => ['bulan' => 'Juli', 'angka' => 7],
+            'AGUSTUS' => ['bulan' => 'Agustus', 'angka' => 8],
+            'SEPTEMBR' => ['bulan' => 'September', 'angka' => 9],
+            'OKTOBER' => ['bulan' => 'Oktober', 'angka' => 10],
+            'NOPEMBER' => ['bulan' => 'November', 'angka' => 11],
+            'DESEMBER' => ['bulan' => 'Desember', 'angka' => 12],
+        ];
+
+        // Ensure default Bidang exist
+        $bidangDistribusi = Bidang::firstOrCreate(['nama' => 'Distribusi']);
+        $bidangNeraca = Bidang::firstOrCreate(['nama' => 'Neraca']);
+        $bidangProduksi = Bidang::firstOrCreate(['nama' => 'Produksi']);
+        $bidangSosial = Bidang::firstOrCreate(['nama' => 'Sosial']);
+        $bidangCadangan = Bidang::firstOrCreate(['nama' => 'Cadangan']);
+
+        $sheets = [];
+        foreach ($spreadsheet->getSheetNames() as $name) {
+            if (isset($bulanMap[$name])) {
+                $sheets[] = $name;
+            }
+        }
+
+        $this->info("Sheet bulanan terdeteksi (" . count($sheets) . "): " . implode(', ', $sheets));
+
+        $totalMitraCount = 0;
+        $totalAlokasiCount = 0;
+
+        DB::beginTransaction();
+
+        try {
+            foreach ($sheets as $sheetName) {
+                $sheet = $spreadsheet->getSheetByName($sheetName);
+                if (!$sheet) continue;
+
+                $this->info("Mengolah Sheet {$sheetName}...");
+
+                $bulanInfo = $bulanMap[$sheetName];
+                $year = 2024;
+
+                $periode = Periode::firstOrCreate([
+                    'tahun' => $year,
+                    'bulan' => $bulanInfo['bulan'],
+                    'bulan_angka' => $bulanInfo['angka'],
+                ]);
+
+                $highestRow = $sheet->getHighestRow();
+
+                for ($row = 7; $row <= $highestRow; $row++) {
+                    $no = trim($sheet->getCell('A' . $row)->getCalculatedValue() ?? '');
+                    if (empty($no) || !is_numeric($no)) continue;
+
+                    $namaMitra = trim($sheet->getCell('B' . $row)->getCalculatedValue() ?? '');
+                    if (empty($namaMitra)) continue;
+
+                    $alamat = trim($sheet->getCell('C' . $row)->getCalculatedValue() ?? '');
+                    $pekerjaan = trim($sheet->getCell('D' . $row)->getCalculatedValue() ?? '');
+                    $kodeAlamat = trim($sheet->getCell('E' . $row)->getCalculatedValue() ?? '');
+                    $jkRaw = trim($sheet->getCell('F' . $row)->getCalculatedValue() ?? '');
+                    $jk = ($jkRaw == '1' || strtolower($jkRaw) == 'l') ? 'L' : (($jkRaw == '2' || strtolower($jkRaw) == 'p') ? 'P' : null);
+
+                    $mitra = Mitra::firstOrCreate(
+                        ['nama' => $namaMitra],
+                        ['alamat' => $alamat, 'pekerjaan' => $pekerjaan, 'kode_alamat' => $kodeAlamat, 'jk' => $jk]
+                    );
+
+                    $totalMitraCount++;
+
+                    // Honor & Kegiatan
+                    $totalHonorRaw = $sheet->getCell('G' . $row)->getCalculatedValue() ?? 0;
+                    $totalHonor = is_numeric($totalHonorRaw) ? floatval($totalHonorRaw) : 0;
+
+                    $namaKegiatanRaw = trim($sheet->getCell('I' . $row)->getCalculatedValue() ?? '');
+                    $makRaw = trim($sheet->getCell('J' . $row)->getCalculatedValue() ?? '');
+
+                    if (!empty($namaKegiatanRaw) && $totalHonor > 0) {
+                        $kegiatanItems = array_filter(array_map('trim', explode(';', $namaKegiatanRaw)));
+                        $makItems = array_filter(array_map('trim', explode(';', $makRaw)));
+
+                        $namaKegiatan = $kegiatanItems[0] ?? $namaKegiatanRaw;
+                        $kodeMak = $makItems[0] ?? null;
+
+                        // Determine Bidang
+                        $targetBidang = $bidangDistribusi;
+                        $honorL = floatval($sheet->getCell('L' . $row)->getCalculatedValue() ?? 0);
+                        $honorM = floatval($sheet->getCell('M' . $row)->getCalculatedValue() ?? 0);
+                        $honorN = floatval($sheet->getCell('N' . $row)->getCalculatedValue() ?? 0);
+                        $honorO = floatval($sheet->getCell('O' . $row)->getCalculatedValue() ?? 0);
+
+                        if ($honorL > 0) $targetBidang = $bidangNeraca;
+                        elseif ($honorM > 0) $targetBidang = $bidangProduksi;
+                        elseif ($honorN > 0) $targetBidang = $bidangSosial;
+                        elseif ($honorO > 0) $targetBidang = $bidangCadangan;
+                        else {
+                            $lowerName = strtolower($namaKegiatan);
+                            if (str_contains($lowerName, 'sosial') || str_contains($lowerName, 'sakernas') || str_contains($lowerName, 'susenas') || str_contains($lowerName, 'podes')) {
+                                $targetBidang = $bidangSosial;
+                            } elseif (str_contains($lowerName, 'produksi') || str_contains($lowerName, 'tani') || str_contains($lowerName, 'industri') || str_contains($lowerName, 'ubih') || str_contains($lowerName, 'kerubin')) {
+                                $targetBidang = $bidangProduksi;
+                            } elseif (str_contains($lowerName, 'neraca') || str_contains($lowerName, 'sktr') || str_contains($lowerName, 'disbun')) {
+                                $targetBidang = $bidangNeraca;
+                            }
+                        }
+
+                        $kegiatan = Kegiatan::firstOrCreate(
+                            ['nama' => $namaKegiatan],
+                            [
+                                'bidang_id' => $targetBidang->id,
+                                'kode_mata_anggaran' => $kodeMak,
+                                'tahun' => '2024',
+                            ]
+                        );
+
+                        // If existing kegiatan was default Distribusi, update to target bidang if more specific
+                        if ($kegiatan->bidang_id == $bidangDistribusi->id && $targetBidang->id != $bidangDistribusi->id) {
+                            $kegiatan->update(['bidang_id' => $targetBidang->id]);
+                        }
+
+                        AlokasiHonor::updateOrCreate(
+                            ['mitra_id' => $mitra->id, 'periode_id' => $periode->id, 'kegiatan_id' => $kegiatan->id],
+                            ['nominal' => $totalHonor]
+                        );
+                        $totalAlokasiCount++;
+                    }
+
+                    // SBML Pencacahan & Pengolahan
+                    $sbmlPencacahan = $sheet->getCell('BO' . $row)->getCalculatedValue() ?? 0;
+                    $sbmlPengolahan = $sheet->getCell('BS' . $row)->getCalculatedValue() ?? 0;
+
+                    $sbmlPencacahanVal = is_numeric($sbmlPencacahan) ? floatval($sbmlPencacahan) : 0;
+                    $sbmlPengolahanVal = is_numeric($sbmlPengolahan) ? floatval($sbmlPengolahan) : 0;
+
+                    if ($sbmlPencacahanVal > 0) {
+                        Sbml::updateOrCreate(
+                            ['mitra_id' => $mitra->id, 'periode_id' => $periode->id, 'jenis' => 'Pencacahan'],
+                            ['nominal' => $sbmlPencacahanVal]
+                        );
+                    }
+                    if ($sbmlPengolahanVal > 0) {
+                        Sbml::updateOrCreate(
+                            ['mitra_id' => $mitra->id, 'periode_id' => $periode->id, 'jenis' => 'Pengolahan'],
+                            ['nominal' => $sbmlPengolahanVal]
+                        );
+                    }
+                }
+            }
+
+            DB::commit();
+            $this->info("Import BERHASIL! {$totalAlokasiCount} data alokasi honor dan mitra berhasil diimport ke seluruh Bidang.");
+            return 0;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $this->error("Gagal mengimpor data: " . $e->getMessage());
+            return 1;
+        }
+    }
+}
