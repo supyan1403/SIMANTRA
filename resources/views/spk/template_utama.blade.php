@@ -9,25 +9,27 @@
         @page { size: 215.9mm 330.2mm; margin: 0; }
         @page landscapePage { size: 330.2mm 215.9mm; margin: 0; }
         
-        body { font-family: 'Bookman Old Style', 'Book Antiqua', Georgia, serif; font-size: 12pt; line-height: 1.45; color: #000; background: #f8fafc; margin: 0; padding: 0; }
+        body { font-family: 'Bookman Old Style', 'Book Antiqua', Georgia, serif; font-size: 12pt; line-height: 1.4; color: #000; background: #f8fafc; margin: 0; padding: 0; }
         
-        .page-portrait { width: 215.9mm; height: 330.2mm; padding: 20mm 17mm 20mm 25.4mm; margin: 15px auto; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 4px; box-sizing: border-box; page-break-after: always; position: relative; overflow: hidden; }
-        .page-landscape { page: landscapePage; width: 330.2mm; height: 215.9mm; padding: 12.5mm 25.4mm 17mm 25.4mm; margin: 15px auto; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 4px; box-sizing: border-box; page-break-after: always; position: relative; overflow: hidden; font-size: 11pt; }
+        .page-portrait { width: 215.9mm; min-height: 330.2mm; padding: 18mm 17mm 18mm 25.4mm; margin: 15px auto; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 4px; box-sizing: border-box; page-break-after: always; position: relative; }
+        .page-landscape { page: landscapePage; width: 330.2mm; min-height: 215.9mm; padding: 12.5mm 25.4mm 17mm 25.4mm; margin: 15px auto; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 4px; box-sizing: border-box; page-break-after: always; position: relative; font-size: 11pt; }
         
         .spk-title { font-size: 12pt; font-weight: bold; text-align: center; text-transform: uppercase; margin-bottom: 2px; }
-        .spk-nomor { text-align: center; font-size: 12pt; font-weight: bold; margin-bottom: 18px; }
-        .pasal-title { font-weight: bold; text-align: center; margin-top: 14px; margin-bottom: 4px; }
+        .spk-nomor { text-align: center; font-size: 12pt; font-weight: bold; margin-bottom: 14px; }
+        .pasal-title { font-weight: bold; text-align: center; margin-top: 10px; margin-bottom: 3px; }
         
+        p { margin-bottom: 8px; text-align: justify; }
+        ol, ul { margin-bottom: 8px; }
+
         table.table-bordered { border-color: #000 !important; }
         table.table-bordered th, table.table-bordered td { border-color: #000 !important; padding: 4px 6px; font-size: 11pt; }
         
-        .ttd-container { position: absolute; bottom: 25mm; left: 25.4mm; right: 17mm; }
-        .ttd-container-landscape { position: absolute; bottom: 20mm; left: 25.4mm; right: 25.4mm; }
+        .ttd-box { margin-top: 25px; }
         
         @media print {
             body { background: white; }
-            .page-portrait { width: 215.9mm; height: 330.2mm; padding: 20mm 17mm 20mm 25.4mm; margin: 0; box-shadow: none; page-break-after: always; }
-            .page-landscape { width: 330.2mm; height: 215.9mm; padding: 12.5mm 25.4mm 17mm 25.4mm; margin: 0; box-shadow: none; page-break-after: always; }
+            .page-portrait { width: 215.9mm; min-height: 330.2mm; padding: 18mm 17mm 18mm 25.4mm; margin: 0; box-shadow: none; page-break-after: always; }
+            .page-landscape { width: 330.2mm; min-height: 215.9mm; padding: 12.5mm 25.4mm 17mm 25.4mm; margin: 0; box-shadow: none; page-break-after: always; }
             .no-print { display: none !important; }
         }
     </style>
@@ -35,12 +37,12 @@
 <body>
 
 <div class="no-print text-center py-3 bg-dark text-white sticky-top">
-    <button onclick="window.print()" class="btn btn-danger font-monospace px-4"><i class="bi bi-printer me-2"></i>CETAK SPK DENGAN BOLD IDENTIK DOCX (BOOKMAN OLD STYLE)</button>
+    <button onclick="window.print()" class="btn btn-danger font-monospace px-4"><i class="bi bi-printer me-2"></i>CETAK SPK DENGAN BOLD SAMA PERSIS ORI DOCX (BOOKMAN OLD STYLE)</button>
     <button onclick="window.close()" class="btn btn-outline-light px-3 ms-2">Tutup</button>
 </div>
 
 <!-- ========================================== -->
-<!-- HALAMAN 1 DARI 4 (PORTRAIT, BOOKMAN OLD STYLE 12PT) -->
+<!-- HALAMAN 1 DARI 4 (PORTRAIT)                 -->
 <!-- ========================================== -->
 <div class="page-portrait">
     <div class="spk-title">PERJANJIAN KERJA PETUGAS PENDATAAN LAPANGAN KEGIATAN SURVEI/SENSUS TAHUN {{ $tahun }} PADA BADAN PUSAT STATISTIK KABUPATEN TASIKMALAYA</div>
@@ -77,7 +79,7 @@
 </div>
 
 <!-- ========================================== -->
-<!-- HALAMAN 2 DARI 4 (PORTRAIT, BOOKMAN OLD STYLE 12PT) -->
+<!-- HALAMAN 2 DARI 4 (PORTRAIT)                 -->
 <!-- ========================================== -->
 <div class="page-portrait">
     <div class="pasal-title mt-0">Pasal 5</div>
@@ -89,69 +91,68 @@
 
     <div class="pasal-title">Pasal 6</div>
     <ol class="ps-3 mb-2">
-        <li class="mb-2">Pembayaran honorarium sebagaimana dimaksud dalam Pasal 5 dilakukan setelah <strong>PIHAK KEDUA</strong> menyelesaikan dan menyerahkan seluruh hasil pekerjaan sebagaimana dimaksud dalam Pasal 2 kepada <strong>PIHAK PERTAMA</strong>.</li>
-        <li>Pembayaran sebagaimana dimaksud pada ayat (1) dilakukan oleh <strong>PIHAK PERTAMA</strong> kepada <strong>PIHAK KEDUA</strong> sesuai dengan ketentuan peraturan perundang-undangan.</li>
+        <li class="mb-2"><strong>Pembayaran honorarium sebagaimana dimaksud dalam Pasal 5 dilakukan setelah PIHAK KEDUA menyelesaikan dan menyerahkan seluruh hasil pekerjaan sebagaimana dimaksud dalam Pasal 2 kepada PIHAK PERTAMA.</strong></li>
+        <li><strong>Pembayaran sebagaimana dimaksud pada ayat (1) dilakukan oleh PIHAK PERTAMA kepada PIHAK KEDUA sesuai dengan ketentuan peraturan perundang-undangan.</strong></li>
     </ol>
 
     <div class="pasal-title">Pasal 7</div>
     <p>Penyerahan hasil pekerjaan lapangan sebagaimana dimaksud dalam Pasal 2 dilakukan secara bertahap dan selambat-lambatnya seluruh hasil pekerjaan lapangan diserahkan sesuai jadwal yang tercantum dalam Lampiran, yang dinyatakan dalam Berita Acara Serah Terima Hasil Pekerjaan yang ditandatangani oleh <strong>PARA PIHAK</strong>.</p>
 
     <div class="pasal-title">Pasal 8</div>
-    <p><strong>PIHAK PERTAMA</strong> dapat memutuskan Perjanjian ini secara sepihak sewaktu-waktu dalam hal <strong>PIHAK KEDUA</strong> tidak dapat melaksanakan kewajibannya sebagaimana dimaksud dalam Pasal 4, termasuk dalam kondisi terindikasi terinfeksi virus <strong>Covid-19</strong>, dengan menerbitkan Surat Pemutusan Perjanjian Kerja.</p>
+    <p><strong>PIHAK PERTAMA</strong> dapat memutuskan Perjanjian ini secara sepihak sewaktu-waktu dalam hal <strong>PIHAK KEDUA</strong> tidak dapat melaksanakan kewajibannya sebagaimana dimaksud dalam Pasal 4, termasuk dalam kondisi terindikasi terinfeksi virus Covid-19, dengan menerbitkan Surat Pemutusan Perjanjian Kerja.</p>
 
     <div class="pasal-title">Pasal 9</div>
     <ol class="ps-3 mb-2">
         <li class="mb-2"><strong>Apabila PIHAK KEDUA mengundurkan diri pada saat/setelah pelaksanaan pekerjaan lapangan dengan tidak menyelesaikan pekerjaan yang menjadi tanggung jawabnya, maka wajib membayar ganti rugi kepada PIHAK PERTAMA sebesar Rp. {{ number_format($totalHonor, 0, ',', '.') }}</strong></li>
-        <li class="mb-2">Dikecualikan tidak membayar ganti rugi sebagaimana dimaksud pada ayat (1) kepada <strong>PIHAK PERTAMA</strong>, apabila <strong>PIHAK KEDUA</strong> meninggal dunia, mengundurkan diri karena sakit dengan keterangan rawat inap, terindikasi terinfeksi virus <strong>Covid-19</strong>, kecelakaan dengan keterangan kepolisian, dan/atau telah diberikan Surat Pemutusan Perjanjian Kerja dari <strong>PIHAK PERTAMA</strong>.</li>
-        <li>Dalam hal terjadi peristiwa sebagaimana dimaksud pada ayat (2), <strong>PIHAK PERTAMA</strong> membayarkan honorarium kepada <strong>PIHAK KEDUA</strong> secara proporsional sesuai pekerjaan yang telah dilaksanakan.</li>
+        <li class="mb-2"><strong>Dikecualikan tidak membayar ganti rugi sebagaimana dimaksud pada ayat (1) kepada PIHAK PERTAMA, apabila PIHAK KEDUA meninggal dunia, mengundurkan diri karena sakit dengan keterangan rawat inap, terindikasi terinfeksi virus Covid-19, kecelakaan dengan keterangan kepolisian, dan/atau telah diberikan Surat Pemutusan Perjanjian Kerja dari PIHAK PERTAMA.</strong></li>
+        <li><strong>Dalam hal terjadi peristiwa sebagaimana dimaksud pada ayat (2), PIHAK PERTAMA membayarkan honorarium kepada PIHAK KEDUA secara proporsional sesuai pekerjaan yang telah dilaksanakan.</strong></li>
     </ol>
 
     <div class="pasal-title">Pasal 10</div>
     <ol class="ps-3 mb-2">
-        <li class="mb-2">Apabila terjadi Keadaan Kahar, yang meliputi bencana alam dan bencana sosial, <strong>PIHAK KEDUA</strong> memberitahukan kepada <strong>PIHAK PERTAMA</strong> dalam waktu paling lambat 7 (tujuh) hari sejak mengetahui atas kejadian Keadaan Kahar dengan menyertakan bukti.</li>
-        <li>Pada saat terjadi Keadaan Kahar, pelaksanaan pekerjaan oleh <strong>PIHAK KEDUA</strong> dihentikan sementara dan dilanjutkan kembali setelah Keadaan Kahar berakhir, namun apabila akibat Keadaan Kahar tidak memungkinkan dilanjutkan/diselesaikannya pelaksanaan pekerjaan, <strong>PIHAK KEDUA</strong> berhak menerima honorarium secara proporsional sesuai pekerjaan yang telah dilaksanakan.</li>
+        <li class="mb-2"><strong>Apabila terjadi Keadaan Kahar, yang meliputi bencana alam dan bencana sosial, PIHAK KEDUA memberitahukan kepada PIHAK PERTAMA dalam waktu paling lambat 7 (tujuh) hari sejak mengetahui atas kejadian Keadaan Kahar dengan menyertakan bukti.</strong></li>
+        <li><strong>Pada saat terjadi Keadaan Kahar, pelaksanaan pekerjaan oleh PIHAK KEDUA dihentikan sementara dan dilanjutkan kembali setelah Keadaan Kahar berakhir, namun apabila akibat Keadaan Kahar tidak memungkinkan dilanjutkan/diselesaikannya pelaksanaan pekerjaan, PIHAK KEDUA berhak menerima honorarium secara proporsional sesuai pekerjaan yang telah dilaksanakan.</strong></li>
     </ol>
 </div>
 
 <!-- ========================================== -->
-<!-- HALAMAN 3 DARI 4 (PORTRAIT, BOOKMAN OLD STYLE 12PT) -->
+<!-- HALAMAN 3 DARI 4 (PORTRAIT)                 -->
 <!-- ========================================== -->
 <div class="page-portrait">
     <div class="pasal-title mt-0">Pasal 11</div>
-    <p>Segala sesuatu yang belum atau tidak cukup diatur dalam Perjanjian ini, dituangkan dalam perjanjian tambahan/addendum dan merupakan bagian tidak terpisahkan dari perjanjian ini.</p>
+    <p>Segala sesuatu yang belum atau tidak cukup diatur dalam Perjanjian ini, dituangkan dalam perjanjian tambahan/<em>addendum</em> dan merupakan bagian tidak terpisahkan dari perjanjian ini.</p>
 
     <div class="pasal-title">Pasal 12</div>
     <ol class="ps-3 mb-3">
         <li class="mb-2"><strong>Segala perselisihan atau perbedaan pendapat yang timbul sebagai akibat adanya Perjanjian ini akan diselesaikan secara musyawarah untuk mufakat.</strong></li>
-        <li>Apabila perselisihan tidak dapat diselesaikan sebagaimana dimaksud pada ayat (1), <strong>PARA PIHAK</strong> sepakat menyelesaikan perselisihan dengan memilih kedudukan/domisili hukum di Panitera Pengadilan Negeri Kabupaten Tasikmalaya.</li>
+        <li><strong>Apabila perselisihan tidak dapat diselesaikan sebagaimana dimaksud pada ayat (1), PARA PIHAK sepakat menyelesaikan perselisihan dengan memilih kedudukan/domisili hukum di Panitera Pengadilan Negeri Kabupaten Tasikmalaya</strong></li>
     </ol>
 
     <p class="mb-4">Demikian Perjanjian ini dibuat dan ditandatangani oleh <strong>PARA PIHAK</strong> dalam 2 (dua) rangkap asli bermeterai cukup, tanpa paksaan dari <strong>PIHAK</strong> manapun dan untuk dilaksanakan oleh <strong>PARA PIHAK</strong>.</p>
 
-    <!-- LEMBAR TTD PASAL HALAMAN 3 -->
-    <div class="ttd-container">
-        <div class="row text-center">
-            <div class="col-6">
-                <p class="mb-1"><strong>PIHAK KEDUA,</strong></p>
-                <div style="border: 1px dashed #777; width: 85px; height: 50px; margin: 10px auto; font-size: 8pt; display: flex; align-items: center; justify-content: center; color: #555;">Materai<br>10.000</div>
-                <p class="mb-0"><strong><u>{{ strtoupper($mitra->nama) }}</u></strong></p>
-                <span class="extra-small text-muted">ID SOBAT: {{ $mitra->id_sobat ?? '-' }}</span>
-            </div>
-            <div class="col-6">
-                <p class="mb-1"><strong>PIHAK PERTAMA,</strong></p>
-                <br><br><br>
-                <p class="mb-0"><strong><u>Dindin Muldiana, S.ST. MP.</u></strong></p>
-                <span class="extra-small text-muted">NIP. 19800101 200212 1 001</span>
-            </div>
+    <!-- LEMBAR TTD PASAL HALAMAN 3 (SAMA PERSIS DOCX ORI) -->
+    <div class="row ttd-box text-center">
+        <div class="col-6">
+            <p class="mb-1"><strong>PIHAK KEDUA,</strong></p>
+            <div style="border: 1px dashed #777; width: 80px; height: 48px; margin: 10px auto; font-size: 8pt; display: flex; align-items: center; justify-content: center; color: #555;">Materai<br>10.000</div>
+            <br>
+            <p class="mb-0"><u>{{ strtoupper($mitra->nama) }}</u></p>
+            <span class="extra-small text-muted">ID SOBAT: {{ $mitra->id_sobat ?? '-' }}</span>
+        </div>
+        <div class="col-6">
+            <p class="mb-1"><strong>PIHAK PERTAMA,</strong></p>
+            <br><br><br><br><br>
+            <p class="mb-0"><u>Dindin Muldiana, S.ST. MP.</u></p>
+            <span class="extra-small text-muted">NIP. 19800101 200212 1 001</span>
         </div>
     </div>
 </div>
 
 <!-- ========================================== -->
-<!-- HALAMAN 4 DARI 4 (LANDSCAPE MENDATAR, BOOKMAN OLD STYLE 11PT) -->
+<!-- HALAMAN 4 DARI 4 (LANDSCAPE MENDATAR)       -->
 <!-- ========================================== -->
 <div class="page-landscape">
-    <div class="text-end extra-small text-muted mb-1">Lampiran: <strong>{{ strtoupper($mitra->nama) }}</strong></div>
+    <div class="text-end extra-small text-muted mb-1">Lampiran: {{ strtoupper($mitra->nama) }}</div>
     <div class="spk-title" style="font-size: 11pt;">PERJANJIAN KERJA PETUGAS PENCACAHAN/PENDATAAN LAPANGAN KEGIATAN SURVEI/SENSUS TAHUN {{ $tahun }} PADA BADAN PUSAT STATISTIK KABUPATEN TASIKMALAYA</div>
     <div class="spk-nomor" style="font-size: 10.5pt;">NOMOR: {{ $nomorDokumen ?? '1001/PPK/SPK/03/' . $tahun }}</div>
 
@@ -219,20 +220,18 @@
         </tfoot>
     </table>
 
-    <div class="ttd-container-landscape">
-        <div class="row text-center">
-            <div class="col-6">
-                <p class="mb-1"><strong>PIHAK KEDUA,</strong></p>
-                <br><br><br>
-                <p class="mb-0"><strong><u>{{ strtoupper($mitra->nama) }}</u></strong></p>
-                <span class="extra-small text-muted">ID SOBAT: {{ $mitra->id_sobat ?? '-' }}</span>
-            </div>
-            <div class="col-6">
-                <p class="mb-1"><strong>PIHAK PERTAMA,</strong></p>
-                <br><br><br>
-                <p class="mb-0"><strong><u>Dindin Muldiana, S.ST. MP.</u></strong></p>
-                <span class="extra-small text-muted">NIP. 19800101 200212 1 001</span>
-            </div>
+    <div class="row ttd-box text-center">
+        <div class="col-6">
+            <p class="mb-1"><strong>PIHAK KEDUA,</strong></p>
+            <br><br><br>
+            <p class="mb-0"><u>{{ strtoupper($mitra->nama) }}</u></p>
+            <span class="extra-small text-muted">ID SOBAT: {{ $mitra->id_sobat ?? '-' }}</span>
+        </div>
+        <div class="col-6">
+            <p class="mb-1"><strong>PIHAK PERTAMA,</strong></p>
+            <br><br><br>
+            <p class="mb-0"><u>Dindin Muldiana, S.ST. MP.</u></p>
+            <span class="extra-small text-muted">NIP. 19800101 200212 1 001</span>
         </div>
     </div>
 </div>
