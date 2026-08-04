@@ -242,20 +242,57 @@ class SpkController extends Controller
         if ($zip->open($tempFile) === true) {
             $xml = $zip->getFromName('word/document.xml');
 
+            $formattedTotalHonor = number_format($totalHonor, 0, ',', '.');
+            $terbilangText = $this->terbilang($totalHonor);
+
+            $item1Nama = isset($items[0]) ? $items[0]->kegiatan->nama : '-';
+            $item1Nominal = isset($items[0]) ? 'Rp ' . number_format($items[0]->nominal, 0, ',', '.') : 'Rp 0';
+            $item1Mak = isset($items[0]) ? ($items[0]->kegiatan->kode_mata_anggaran ?? '054.01.GG.2903.BMA.009.005.A.521213') : '';
+
+            $item2Nama = isset($items[1]) ? $items[1]->kegiatan->nama : '';
+            $item2Nominal = isset($items[1]) ? 'Rp ' . number_format($items[1]->nominal, 0, ',', '.') : 'Rp 0';
+            $item2Mak = isset($items[1]) ? ($items[1]->kegiatan->kode_mata_anggaran ?? '054.01.GG.2903.BMA.009.005.A.521213') : '';
+
             $replacements = [
+                // 1. Clean MERGEFIELD artifact text in Header Lampiran
+                'MERGEFIELD Nama_Petugas LINA KARLINA' => strtoupper($mitra->nama),
+                'MERGEFIELD Nama_Petugas' => '',
+                'MERGEFIELD' => '',
+
+                // 2. Mitra Details
                 'LINA KARLINA' => strtoupper($mitra->nama),
                 '${NAMA_MITRA}' => strtoupper($mitra->nama),
                 '${NAMA}' => strtoupper($mitra->nama),
+
                 'Lainnya/ Belum Bekerja' => $mitra->pekerjaan ?? 'Lainnya/ Belum Bekerja',
                 '${PEKERJAAN}' => $mitra->pekerjaan ?? 'Lainnya/ Belum Bekerja',
+
                 'Kp. Pameungpeuk RT/RW : 24/03 Desa Sukarasa Kec. Salawu' => $mitra->alamat ?? 'Kabupaten Tasikmalaya',
                 '${ALAMAT}' => $mitra->alamat ?? 'Kabupaten Tasikmalaya',
+
+                // 3. Document Numbering
                 '1001/PPK/SPK/03/2024' => $nomorDokumen,
                 '${NOMOR_SPK}' => $nomorDokumen,
-                '1.160.000' => number_format($totalHonor, 0, ',', '.'),
-                '${TOTAL_HONOR}' => number_format($totalHonor, 0, ',', '.'),
-                'Satu Juta Seratus Enam Puluh Ribu Rupiah' => $this->terbilang($totalHonor),
-                '${TERBILANG}' => $this->terbilang($totalHonor),
+
+                // 4. Annex Table Row 1 (Item 1)
+                'pencacahan survei harga kemahalan konstruksi' => $item1Nama,
+                'Rp. 60000,00' => $item1Nominal,
+                'Rp. 900.000, 00' => $item1Nominal,
+                '054.01.GG.2903.BMA.009.005.A.521213' => $item1Mak,
+
+                // 5. Annex Table Row 2 (Item 2)
+                'Pencacahan survei harga konsumen perdesaan (hkd) non pns' => $item2Nama,
+                'Rp. 65000,00' => $item2Nominal,
+                'Rp. 260.000, 00' => $item2Nominal,
+
+                // 6. Totals & Terbilang
+                'Satu Juta Seratus Enam Puluh Ribu Rupiah' => $terbilangText,
+                '${TERBILANG}' => $terbilangText,
+
+                'Rp. 1.160.000, 00' => 'Rp ' . $formattedTotalHonor,
+                'Rp. 1.160.000,00' => 'Rp ' . $formattedTotalHonor,
+                'Rp. 1.160.000' => 'Rp ' . $formattedTotalHonor,
+                '${TOTAL_HONOR}' => 'Rp ' . $formattedTotalHonor,
             ];
 
             foreach ($replacements as $key => $val) {
