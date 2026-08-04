@@ -39,9 +39,11 @@
             <div class="row g-3 align-items-end mb-2">
                 <div class="col-12 col-md-5">
                     <label class="form-label text-primary fw-bold small mb-1">NAMA TEMPLATE DOKUMEN</label>
-                    <select name="template_id" class="form-select border-primary fw-bold">
+                    <select name="template_id" class="form-select border-primary fw-bold" onchange="this.form.submit()">
                         @forelse($templates as $tmpl)
-                            <option value="{{ $tmpl->id }}">{{ $tmpl->nama }}</option>
+                            <option value="{{ $tmpl->id }}" {{ (request('template_id') == $tmpl->id || ($loop->first && !request('template_id'))) ? 'selected' : '' }}>
+                                [{{ strtoupper($tmpl->jenis_dokumen) }}] {{ $tmpl->nama }}
+                            </option>
                         @empty
                             <option value="">Template Baku BPS (Default System)</option>
                         @endforelse
@@ -195,8 +197,8 @@
                             </td>
                             <td class="text-center pe-3">
                                 <div class="btn-group btn-group-sm">
-                                    <a href="{{ route('spk.cetak-utama', array_filter(['mitra' => $spk->mitra_id, 'tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'kegiatan_id' => $kegiatanId, 'nomor_awal' => $nomorAwal + $idx])) }}" target="_blank" class="btn btn-outline-danger fw-bold" title="Cetak / Simpan PDF Dokumen SPK Utama (Presisi 4 Halaman)">
-                                        <i class="bi bi-file-earmark-pdf me-1"></i> Utama
+                                    <a href="{{ route('spk.cetak-utama', array_filter(['mitra' => $spk->mitra_id, 'tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'kegiatan_id' => $kegiatanId, 'nomor_awal' => $nomorAwal + $idx, 'template_id' => request('template_id')])) }}" target="_blank" class="btn btn-outline-danger fw-bold" title="Cetak / Simpan PDF Dokumen">
+                                        <i class="bi bi-file-earmark-pdf me-1"></i> {{ (isset($selectedTemplate) && $selectedTemplate->jenis_dokumen === 'bast') ? 'BAST' : 'Utama' }}
                                     </a>
                                     <a href="{{ route('spk.cetak-lampiran', array_filter(['mitra' => $spk->mitra_id, 'tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'kegiatan_id' => $kegiatanId])) }}" target="_blank" class="btn btn-outline-primary fw-bold" title="Cetak / Simpan PDF Lampiran SPK">
                                         <i class="bi bi-paperclip me-1"></i> Lampiran

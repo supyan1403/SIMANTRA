@@ -80,10 +80,12 @@ class SpkController extends Controller
             ];
         })->values();
 
+        $selectedTemplate = $request->template_id ? DocumentTemplate::find($request->template_id) : null;
+
         return view('spk.index', compact(
             'tahunList', 'tahun', 'monthOptions', 'bulanAwal', 'bulanAkhir',
             'bidangOptions', 'bidangId', 'kegiatanOptions', 'kegiatanId', 'search',
-            'jenisDokumen', 'kategoriKegiatan', 'nomorAwal', 'templates',
+            'jenisDokumen', 'kategoriKegiatan', 'nomorAwal', 'templates', 'selectedTemplate',
             'spkList'
         ));
     }
@@ -95,6 +97,15 @@ class SpkController extends Controller
         $bulanAwal = (int) ($request->bulan_awal ?? 1);
         $bulanAkhir = (int) ($request->bulan_akhir ?? 12);
         $nomorAwal = (int) ($request->nomor_awal ?? 1);
+
+        $templateId = $request->template_id;
+        $jenisDokumen = 'spk';
+        if ($templateId) {
+            $docTmpl = DocumentTemplate::find($templateId);
+            if ($docTmpl && $docTmpl->jenis_dokumen) {
+                $jenisDokumen = $docTmpl->jenis_dokumen;
+            }
+        }
 
         $periodeIds = Periode::where('tahun', $tahun)
             ->where('bulan_angka', '>=', $bulanAwal)
@@ -111,6 +122,18 @@ class SpkController extends Controller
 
         $totalHonor = (float) $items->sum('nominal');
         $periodeLabel = $this->bulanNama[$bulanAwal] . ($bulanAwal !== $bulanAkhir ? ' s.d ' . $this->bulanNama[$bulanAkhir] : '') . ' ' . $tahun;
+        
+        if ($jenisDokumen === 'bast') {
+            $nomorDokumen = sprintf("B-%04d/BPS/3206/BAST/%02d/%s", $nomorAwal, $bulanAwal, $tahun);
+            $batchList = collect([(object)[
+                'mitra' => $mitra,
+                'nomor_dokumen' => $nomorDokumen,
+                'items' => $items,
+                'total_honor' => $totalHonor,
+            ]]);
+            return view('spk.template_bast', compact('batchList', 'tahun', 'periodeLabel'));
+        }
+
         $nomorDokumen = sprintf("B-%04d/BPS/3206/SPK/%02d/%s", $nomorAwal, $bulanAwal, $tahun);
 
         return view('spk.template_utama', compact('mitra', 'items', 'totalHonor', 'tahun', 'periodeLabel', 'nomorDokumen'));
@@ -149,7 +172,15 @@ class SpkController extends Controller
             return redirect()->back()->with('error', 'Pilih minimal 1 mitra untuk dicetak secara massal.');
         }
 
+        $templateId = $request->template_id;
         $jenisDokumen = $request->jenis_dokumen ?? 'spk'; // spk or bast
+        if ($templateId) {
+            $docTmpl = DocumentTemplate::find($templateId);
+            if ($docTmpl && $docTmpl->jenis_dokumen) {
+                $jenisDokumen = $docTmpl->jenis_dokumen;
+            }
+        }
+
         $kategoriKegiatan = $request->kategori_kegiatan ?? 'umum';
         $tahun = $request->tahun ?? date('Y');
         $bulanAwal = (int) ($request->bulan_awal ?? 1);
