@@ -132,21 +132,22 @@
     <p class="mb-4">Demikian Perjanjian ini dibuat dan ditandatangani oleh <strong>PARA PIHAK</strong> dalam 2 (dua) rangkap asli bermeterai cukup, tanpa paksaan dari <strong>PIHAK</strong> manapun dan untuk dilaksanakan oleh <strong>PARA PIHAK</strong>.</p>
 
     <!-- LEMBAR TTD PASAL HALAMAN 3 -->
-    <div class="row ttd-box text-center">
-        <div class="col-6">
-            <p class="mb-1"><strong>PIHAK KEDUA,</strong></p>
-            <div style="border: 1px dashed #777; width: 80px; height: 48px; margin: 10px auto; font-size: 8pt; display: flex; align-items: center; justify-content: center; color: #555;">Materai<br>10.000</div>
-            <br>
-            <p class="mb-0"><u>{{ strtoupper($mitra->nama) }}</u></p>
-            <span class="extra-small text-muted">ID SOBAT: {{ $mitra->id_sobat ?? '-' }}</span>
-        </div>
-        <div class="col-6">
-            <p class="mb-1"><strong>PIHAK PERTAMA,</strong></p>
-            <br><br><br><br><br>
-            <p class="mb-0"><u>Dindin Muldiana, S.ST. MP.</u></p>
-            <span class="extra-small text-muted">NIP. 19800101 200212 1 001</span>
-        </div>
-    </div>
+    <table style="width: 100%; border: none; margin-top: 35px; border-collapse: collapse;">
+        <tr valign="top">
+            <td style="width: 50%; text-align: center; border: none; padding: 0;">
+                <p style="margin: 0 0 6px 0;"><strong>PIHAK KEDUA,</strong></p>
+                <div style="border: 1px dashed #777; width: 80px; height: 48px; margin: 0 auto 12px auto; font-size: 8pt; display: flex; align-items: center; justify-content: center; color: #555;">Materai<br>10.000</div>
+                <p style="margin: 0; font-weight: normal;"><u>{{ strtoupper($mitra->nama) }}</u></p>
+                <div style="font-size: 9pt; color: #555; margin-top: 2px;">ID SOBAT: {{ $mitra->id_sobat ?? '-' }}</div>
+            </td>
+            <td style="width: 50%; text-align: center; border: none; padding: 0;">
+                <p style="margin: 0 0 6px 0;"><strong>PIHAK PERTAMA,</strong></p>
+                <div style="height: 66px;"></div>
+                <p style="margin: 0; font-weight: normal;"><u>Dindin Muldiana, S.ST. MP.</u></p>
+                <div style="font-size: 9pt; color: #555; margin-top: 2px;">NIP. 19800101 200212 1 001</div>
+            </td>
+        </tr>
+    </table>
 </div>
 
 <!-- ========================================== -->
@@ -221,20 +222,22 @@
         </tfoot>
     </table>
 
-    <div class="row ttd-box text-center">
-        <div class="col-6">
-            <p class="mb-1"><strong>PIHAK KEDUA,</strong></p>
-            <br><br><br>
-            <p class="mb-0"><u>{{ strtoupper($mitra->nama) }}</u></p>
-            <span class="extra-small text-muted">ID SOBAT: {{ $mitra->id_sobat ?? '-' }}</span>
-        </div>
-        <div class="col-6">
-            <p class="mb-1"><strong>PIHAK PERTAMA,</strong></p>
-            <br><br><br>
-            <p class="mb-0"><u>Dindin Muldiana, S.ST. MP.</u></p>
-            <span class="extra-small text-muted">NIP. 19800101 200212 1 001</span>
-        </div>
-    </div>
+    <table style="width: 100%; border: none; margin-top: 20px; border-collapse: collapse;">
+        <tr valign="top">
+            <td style="width: 50%; text-align: center; border: none; padding: 0;">
+                <p style="margin: 0 0 6px 0;"><strong>PIHAK KEDUA,</strong></p>
+                <div style="height: 55px;"></div>
+                <p style="margin: 0; font-weight: normal;"><u>{{ strtoupper($mitra->nama) }}</u></p>
+                <div style="font-size: 9pt; color: #555; margin-top: 2px;">ID SOBAT: {{ $mitra->id_sobat ?? '-' }}</div>
+            </td>
+            <td style="width: 50%; text-align: center; border: none; padding: 0;">
+                <p style="margin: 0 0 6px 0;"><strong>PIHAK PERTAMA,</strong></p>
+                <div style="height: 55px;"></div>
+                <p style="margin: 0; font-weight: normal;"><u>Dindin Muldiana, S.ST. MP.</u></p>
+                <div style="font-size: 9pt; color: #555; margin-top: 2px;">NIP. 19800101 200212 1 001</div>
+            </td>
+        </tr>
+    </table>
 </div>
 
 </body>
