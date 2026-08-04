@@ -6,9 +6,17 @@
         <h2 class="page-title"><i class="bi bi-people-fill text-primary me-2"></i>Data Mitra</h2>
         <p class="page-subtitle">Daftar {{ number_format($mitras->total()) }} mitra statistik BPS terdaftar dalam sistem SIMANTRA</p>
     </div>
-    <a href="{{ route('mitra.create') }}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
-        <i class="bi bi-person-plus-fill"></i> Tambah Mitra Baru
-    </a>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{{ route('mitra.import.template') }}" class="btn btn-outline-success d-flex align-items-center gap-2 shadow-sm">
+            <i class="bi bi-download"></i> Download Template
+        </a>
+        <a href="{{ route('mitra.import.index') }}" class="btn btn-success d-flex align-items-center gap-2 shadow-sm">
+            <i class="bi bi-cloud-arrow-up-fill"></i> Upload Template
+        </a>
+        <a href="{{ route('mitra.create') }}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
+            <i class="bi bi-person-plus-fill"></i> Tambah Mitra Baru
+        </a>
+    </div>
 </div>
 
 <!-- Filter Panel Matching Monitoring Style -->
@@ -57,11 +65,13 @@
                 <thead>
                     <tr>
                         <th class="text-center ps-3" style="width: 50px;">NO</th>
-                        <th style="width: 210px;">NAMA MITRA</th>
+                        <th style="width: 130px;">ID SOBAT</th>
+                        <th style="width: 190px;">NAMA MITRA</th>
+                        <th style="width: 150px;">NO. HP</th>
                         <th>ALAMAT DETAIL</th>
-                        <th class="text-center" style="width: 120px;">KODE ALAMAT</th>
-                        <th style="width: 170px;">PEKERJAAN</th>
-                        <th class="text-center" style="width: 120px;">JENIS KELAMIN</th>
+                        <th class="text-center" style="width: 110px;">KODE ALAMAT</th>
+                        <th style="width: 160px;">PEKERJAAN</th>
+                        <th class="text-center" style="width: 115px;">JENIS KELAMIN</th>
                         <th class="text-center pe-3" style="width: 130px;">AKSI</th>
                     </tr>
                 </thead>
@@ -69,6 +79,7 @@
                     @forelse($mitras as $i => $m)
                     <tr>
                         <td class="text-center ps-3 text-muted fw-semibold">{{ $mitras->firstItem() + $i }}</td>
+                        <td class="text-center"><code class="bg-light px-2 py-0.5 rounded text-dark small">{{ $m->id_sobat ?? '-' }}</code></td>
                         <td>
                             <div class="d-flex align-items-center gap-2">
                                 <div class="avatar-circle bg-primary bg-opacity-10 text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px; font-size: 0.725rem;">
@@ -77,6 +88,7 @@
                                 <span class="fw-bold text-dark text-wrap" style="white-space: normal; word-break: break-word;">{{ $m->nama }}</span>
                             </div>
                         </td>
+                        <td class="text-slate-600 small">{{ $m->no_hp ?? '-' }}</td>
                         <td class="text-slate-600 small" style="white-space: normal; word-break: break-word;">{{ $m->alamat ?? '-' }}</td>
                         <td class="text-center"><code class="bg-light px-2 py-0.5 rounded text-dark small">{{ $m->kode_alamat ?? '-' }}</code></td>
                         <td><span class="text-slate-700 small" style="white-space: normal; word-break: break-word;">{{ $m->pekerjaan ?? 'Mitra' }}</span></td>
@@ -105,7 +117,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-5">
+                        <td colspan="9" class="text-center text-muted py-5">
                             <i class="bi bi-people fs-1 text-muted d-block mb-2"></i>
                             @if(request()->hasAny(['jk', 'pekerjaan', 'search']))
                                 Tidak ada data mitra cocok dengan filter pencarian

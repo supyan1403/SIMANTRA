@@ -6,11 +6,21 @@
         <h2 class="page-title"><i class="bi bi-journal-bookmark-fill text-primary me-2"></i>Data Mata Anggaran</h2>
         <p class="page-subtitle">Kelola data mata anggaran kegiatan statistik, kode MAK, volume, harga satuan, dan pagu anggaran per tim kerja</p>
     </div>
-    @if(auth()->user()?->role === 'admin')
-    <a href="{{ route('kegiatan.create') }}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
-        <i class="bi bi-plus-circle-fill"></i> Tambah Mata Anggaran
-    </a>
-    @endif
+@if(auth()->user()?->role === 'admin' || auth()->user()?->role === 'operator')
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{{ route('kegiatan.import.template') }}" class="btn btn-outline-success d-flex align-items-center gap-2 shadow-sm">
+            <i class="bi bi-download"></i> Download Template
+        </a>
+        <a href="{{ route('kegiatan.import.index') }}" class="btn btn-success d-flex align-items-center gap-2 shadow-sm">
+            <i class="bi bi-cloud-arrow-up-fill"></i> Upload Template
+        </a>
+    </div>
+@endif
+@if(auth()->user()?->role === 'admin')
+<a href="{{ route('kegiatan.create') }}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
+    <i class="bi bi-plus-circle-fill"></i> Tambah Mata Anggaran
+</a>
+@endif
 </div>
 
 <!-- Search & Filter Card -->
@@ -104,7 +114,16 @@
                             @endif
                         </td>
                         <td>
-                            @if($kegiatan->tgl_mulai || $kegiatan->tgl_selesai)
+                            @if($kegiatan->jadwal->isNotEmpty())
+                                @php
+                                    $bulanNama = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+                                    $jadwalBulan = $kegiatan->jadwal->pluck('bulan_angka')->map(fn($b) => $bulanNama[$b - 1]);
+                                    $jr = $kegiatan->jadwal->sortBy('bulan_angka');
+                                    $first = $bulanNama[$jr->first()->bulan_angka - 1];
+                                    $last = $bulanNama[$jr->last()->bulan_angka - 1];
+                                @endphp
+                                <span class="badge badge-soft-info" title="{{ $jadwalBulan->implode(', ') }}"><i class="bi bi-calendar-event me-1"></i>{{ $first == $last ? $first : $first . ' - ' . $last }} {{ $kegiatan->tahun ?? '' }}</span>
+                            @elseif($kegiatan->tgl_mulai || $kegiatan->tgl_selesai)
                                 <span class="text-muted small"><i class="bi bi-calendar-range me-1 text-primary"></i>{{ $kegiatan->tgl_mulai ? date('d/m/Y', strtotime($kegiatan->tgl_mulai)) : '-' }} s/d {{ $kegiatan->tgl_selesai ? date('d/m/Y', strtotime($kegiatan->tgl_selesai)) : '-' }}</span>
                             @else
                                 @php

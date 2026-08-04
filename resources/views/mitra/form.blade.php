@@ -24,6 +24,20 @@
                         @method('PUT')
                     @endif
 
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="id_sobat" class="form-label fw-bold">ID Sobat / ID Mitra</label>
+                            <input type="text" class="form-control @error('id_sobat') is-invalid @enderror" id="id_sobat" name="id_sobat" value="{{ old('id_sobat', $mitra->id_sobat ?? '') }}" placeholder="Kode ID mitra (unik, untuk SKP)">
+                            <div class="form-text">Kode unik mitra. Dipakai untuk pencetakan SKP nanti.</div>
+                            @error('id_sobat') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label for="no_hp" class="form-label fw-bold">Nomor HP</label>
+                            <input type="text" class="form-control @error('no_hp') is-invalid @enderror" id="no_hp" name="no_hp" value="{{ old('no_hp', $mitra->no_hp ?? '') }}" placeholder="Contoh: 081234567890">
+                            @error('no_hp') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                    </div>
+
                     <div class="mb-4">
                         <label for="nama" class="form-label fw-bold">Nama Lengkap Mitra <span class="text-danger">*</span></label>
                         <input type="text" class="form-control @error('nama') is-invalid @enderror" id="nama" name="nama" value="{{ old('nama', $mitra->nama ?? '') }}" placeholder="Masukkan nama lengkap mitra..." required>

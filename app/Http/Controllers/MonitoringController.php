@@ -7,6 +7,7 @@ use App\Models\Periode;
 use App\Models\AlokasiHonor;
 use App\Models\Bidang;
 use App\Models\Kegiatan;
+use App\Support\SbmlHelper;
 use Illuminate\Http\Request;
 
 class MonitoringController extends Controller
@@ -38,7 +39,19 @@ class MonitoringController extends Controller
 
         $alokasis = $query->orderBy('created_at', 'desc')->paginate(20)->onEachSide(1);
 
-        return view('monitoring.index', compact('alokasis', 'periodes', 'bidangs', 'tahunList'));
+        // ===== Peringatan SBML: akumulasi honor per mitra per periode =====
+        $sbmlWarnings = [];
+        foreach ($alokasis as $a) {
+            $key = $a->mitra_id . '-' . $a->periode_id;
+            if (!isset($sbmlWarnings[$key])) {
+                $evaluated = SbmlHelper::evaluate($a->mitra_id, $a->periode_id);
+                if ($evaluated['exceeded']) {
+                    $sbmlWarnings[$key] = $evaluated;
+                }
+            }
+        }
+
+        return view('monitoring.index', compact('alokasis', 'periodes', 'bidangs', 'tahunList', 'sbmlWarnings'));
     }
 
     public function create()
@@ -75,7 +88,7 @@ class MonitoringController extends Controller
 
         $mitra = Mitra::find($validated['mitra_id']);
         $periode = Periode::find($validated['periode_id']);
-        $sbmlLimit = \App\Models\Sbml::where('mitra_id', $mitra->id)->where('periode_id', $periode->id)->value('nominal') ?? 4500000;
+        $sbmlLimit = SbmlHelper::limitFor($mitra->id, $periode->id);
 
         if ($totalHonorBulan > $sbmlLimit) {
             $formattedTotal = 'Rp ' . number_format($totalHonorBulan, 0, ',', '.');
@@ -123,7 +136,7 @@ class MonitoringController extends Controller
 
         $mitra = Mitra::find($validated['mitra_id']);
         $periode = Periode::find($validated['periode_id']);
-        $sbmlLimit = \App\Models\Sbml::where('mitra_id', $mitra->id)->where('periode_id', $periode->id)->value('nominal') ?? 4500000;
+        $sbmlLimit = SbmlHelper::limitFor($mitra->id, $periode->id);
 
         if ($totalHonorBulan > $sbmlLimit) {
             $formattedTotal = 'Rp ' . number_format($totalHonorBulan, 0, ',', '.');
@@ -165,7 +178,7 @@ class MonitoringController extends Controller
         $existingTotal = floatval($query->sum('nominal'));
         $newTotal = $existingTotal + $nominal;
 
-        $sbmlLimit = \App\Models\Sbml::where('mitra_id', $mitraId)->where('periode_id', $periodeId)->value('nominal') ?? 4500000;
+        $sbmlLimit = SbmlHelper::limitFor($mitraId, $periodeId);
         $exceeded = $newTotal > $sbmlLimit;
 
         $availableMitras = [];
@@ -174,7 +187,7 @@ class MonitoringController extends Controller
             $allMitras = Mitra::where('id', '!=', $mitraId)->orderBy('nama')->get();
             foreach ($allMitras as $m) {
                 $mTotal = floatval(AlokasiHonor::where('mitra_id', $m->id)->where('periode_id', $periodeId)->sum('nominal'));
-                $mLimit = \App\Models\Sbml::where('mitra_id', $m->id)->where('periode_id', $periodeId)->value('nominal') ?? 4500000;
+                $mLimit = SbmlHelper::limitFor($m->id, $periodeId);
                 $remainingQuota = max(0, $mLimit - $mTotal);
                 
                 if ($mTotal < $mLimit) {

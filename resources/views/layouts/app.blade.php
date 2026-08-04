@@ -589,6 +589,11 @@
             </a>
 
             @if(auth()->user()?->role === 'admin')
+            <a href="{{ route('master-sbml.index') }}" class="sidebar-link {{ request()->routeIs('master-sbml.*') ? 'active' : '' }}" title="Master Batas Honor (SBML)">
+                <i class="bi bi-piggy-bank-fill"></i>
+                <span class="nav-text">Master SBML</span>
+            </a>
+
             <a href="{{ route('pengaturan.index') }}" class="sidebar-link {{ request()->routeIs('pengaturan.*') ? 'active' : '' }}" title="Pengaturan User">
                 <i class="bi bi-gear-fill"></i>
                 <span class="nav-text">Pengaturan User</span>

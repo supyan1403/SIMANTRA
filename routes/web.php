@@ -9,6 +9,7 @@ use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\PeriodeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RekapController;
+use App\Http\Controllers\SbmlMasterController;
 use Illuminate\Support\Facades\Route;
 
 // Redirect Root / directly to Login page first
@@ -18,10 +19,19 @@ Route::get('/', function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/mitra-options', [DashboardController::class, 'mitraOptions'])->name('dashboard.mitra-options');
 
     Route::resource('mitra', MitraController::class);
+    Route::get('/import-mitra', [MitraController::class, 'importIndex'])->name('mitra.import.index');
+    Route::get('/import-mitra/template', [MitraController::class, 'importTemplate'])->name('mitra.import.template');
+    Route::post('/import-mitra/preview', [MitraController::class, 'importPreview'])->name('mitra.import.preview');
+    Route::post('/import-mitra/process', [MitraController::class, 'importProcess'])->name('mitra.import.process');
     Route::get('/kegiatan/by-bidang/{bidangId}', [KegiatanController::class, 'byBidang'])->name('kegiatan.by-bidang');
     Route::resource('kegiatan', KegiatanController::class);
+    Route::get('/import-kegiatan', [KegiatanController::class, 'importIndex'])->name('kegiatan.import.index');
+    Route::get('/import-kegiatan/template', [KegiatanController::class, 'importTemplate'])->name('kegiatan.import.template');
+    Route::post('/import-kegiatan/preview', [KegiatanController::class, 'importPreview'])->name('kegiatan.import.preview');
+    Route::post('/import-kegiatan/process', [KegiatanController::class, 'importProcess'])->name('kegiatan.import.process');
     Route::resource('periode', PeriodeController::class);
     Route::get('/monitoring/check-limit', [MonitoringController::class, 'checkLimit'])->name('monitoring.check-limit');
     Route::resource('monitoring', MonitoringController::class);
@@ -37,6 +47,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['admin'])->group(function () {
         Route::post('pengaturan/{user}/reset-password', [PengaturanController::class, 'resetPassword'])->name('pengaturan.reset-password');
         Route::resource('pengaturan', PengaturanController::class)->parameters(['pengaturan' => 'user']);
+        Route::resource('master-sbml', SbmlMasterController::class)->parameters(['master-sbml' => 'sbmlMaster'])->except(['show']);
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

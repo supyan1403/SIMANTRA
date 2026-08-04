@@ -16,4 +16,5 @@ class Kegiatan extends Model {
     ];
     public function bidang() { return $this->belongsTo(Bidang::class); }
     public function alokasiHonors() { return $this->hasMany(AlokasiHonor::class); }
+    public function jadwal() { return $this->hasMany(KegiatanJadwal::class)->orderBy('bulan_angka'); }
 }

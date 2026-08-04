@@ -70,11 +70,20 @@
                 </thead>
                 <tbody>
                     @forelse($alokasis as $i => $a)
-                    <tr>
+                    @php
+                        $sbmlKey = $a->mitra_id . '-' . $a->periode_id;
+                        $sbmlWarn = $sbmlWarnings[$sbmlKey] ?? null;
+                    @endphp
+                    <tr class="{{ $sbmlWarn ? 'table-danger' : '' }}">
                         <td class="ps-3 text-muted fw-semibold">{{ $alokasis->firstItem() + $i }}</td>
                         <td>
                             <div class="fw-bold text-dark" style="white-space: normal; word-break: break-word;">{{ $a->mitra->nama ?? '-' }}</div>
                             <span class="text-muted small">{{ $a->mitra->pekerjaan ?? 'Mitra' }}</span>
+                            @if($sbmlWarn)
+                                <span class="badge badge-soft-danger d-block mt-1" style="font-size: 0.7rem;">
+                                    <i class="bi bi-exclamation-triangle-fill"></i> Total {{ number_format($sbmlWarn['total'], 0, ',', '.') }} &gt; batas {{ number_format($sbmlWarn['limit'], 0, ',', '.') }}
+                                </span>
+                            @endif
                         </td>
                         <td>
                             <span class="badge badge-soft-primary"><i class="bi bi-calendar-event me-1"></i>{{ $a->periode->bulan ?? '' }} {{ $a->periode->tahun ?? '' }}</span>
@@ -83,8 +92,11 @@
                         <td>
                             <span class="badge badge-soft-info"><i class="bi bi-diagram-3 me-1"></i>{{ $a->kegiatan->bidang->nama ?? '-' }}</span>
                         </td>
-                        <td class="text-end fw-extrabold text-success fs-6">
+                        <td class="text-end fw-extrabold fs-6 {{ $sbmlWarn ? 'text-danger' : 'text-success' }}">
                             Rp {{ number_format($a->nominal, 0, ',', '.') }}
+                            @if($sbmlWarn)
+                                <span class="d-block text-danger small fw-bold">Kelebihan Rp {{ number_format($sbmlWarn['excess'], 0, ',', '.') }}</span>
+                            @endif
                         </td>
                         <td class="text-end pe-3">
                             <div class="d-inline-flex gap-1">
