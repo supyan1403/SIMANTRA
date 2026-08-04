@@ -89,12 +89,15 @@
                 </select>
             </div>
             @endif
-            <div class="col-12 col-md-2">
-                <label class="form-label text-muted small fw-bold mb-1">CARI MITRA</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0 px-2"><i class="bi bi-person-search text-muted"></i></span>
-                    <input type="text" name="search_mitra" class="form-control border-start-0 ps-0" placeholder="Ketik nama / ID..." value="{{ $searchMitra ?? '' }}">
-                </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label text-muted small fw-bold mb-1">CARI MITRA (LIVE)</label>
+                <select name="mitra_id" id="selectMitraSearch" class="form-select">
+                    @if($mitraProfile)
+                        <option value="{{ $mitraProfile->id }}" selected>{{ $mitraProfile->nama }}{{ $mitraProfile->id_sobat ? ' (' . $mitraProfile->id_sobat . ')' : '' }}</option>
+                    @else
+                        <option value="">Ketik nama / ID Mitra...</option>
+                    @endif
+                </select>
             </div>
             <div class="col-12 col-md-1 d-flex gap-1">
                 <button type="submit" class="btn btn-primary w-100" title="Filter"><i class="bi bi-search"></i></button>
@@ -514,5 +517,37 @@
         document.addEventListener('DOMContentLoaded', initDashboardCharts);
     }
 })();
+
+// Select2 AJAX Live Search Mitra
+$(document).ready(function() {
+    if ($.fn.select2) {
+        $('#selectMitraSearch').select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Ketik nama / ID Mitra...',
+            allowClear: true,
+            width: '100%',
+            ajax: {
+                url: "{{ route('dashboard.mitra-options') }}",
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        q: params.term,
+                        kegiatan_id: $('select[name="kegiatan_id"]').val()
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.results
+                    };
+                },
+                cache: true
+            },
+            minimumInputLength: 1
+        }).on('select2:select select2:clear', function () {
+            $(this).closest('form').submit();
+        });
+    }
+});
 </script>
 @endpush
