@@ -3,8 +3,8 @@
 @section('content')
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
-        <h4 class="fw-bold text-dark mb-1"><i class="bi bi-file-earmark-pdf-fill text-danger me-2"></i>Modul Cetak SPK & BAST Multi-Petugas</h4>
-        <p class="text-muted small mb-0">Cetak Surat Perjanjian Kerja (SPK) & Berita Acara Serah Terima (BAST) Kolektif Mitra BPS</p>
+        <h4 class="fw-bold text-dark mb-1"><i class="bi bi-file-earmark-pdf-fill text-danger me-2"></i>Modul Cetak SPK Multi-Petugas</h4>
+        <p class="text-muted small mb-0">Cetak Surat Perjanjian Kerja (SPK) Kolektif Mitra BPS</p>
     </div>
     <a href="{{ route('spk.templates.index') }}" class="btn btn-outline-primary fw-bold shadow-sm">
         <i class="bi bi-folder-symlink-fill me-1"></i> Kelola Template Dokumen
@@ -26,6 +26,7 @@
     <input type="hidden" name="tahun" value="{{ $tahun }}">
     <input type="hidden" name="bulan_awal" value="{{ $bulanAwal }}">
     <input type="hidden" name="bulan_akhir" value="{{ $bulanAkhir }}">
+    <input type="hidden" name="jenis_dokumen" value="spk">
     @if($bidangId)<input type="hidden" name="bidang_id" value="{{ $bidangId }}">@endif
     @if($kegiatanId)<input type="hidden" name="kegiatan_id" value="{{ $kegiatanId }}">@endif
 
@@ -36,28 +37,21 @@
         <div class="card-body p-3">
             <!-- Row 1: Document Parameters with Template Name Dropdown -->
             <div class="row g-3 align-items-end mb-2">
-                <div class="col-12 col-md-3">
+                <div class="col-12 col-md-5">
                     <label class="form-label text-primary fw-bold small mb-1">NAMA TEMPLATE DOKUMEN</label>
                     <select name="template_id" class="form-select border-primary fw-bold">
-                        <option value="">(Baku BPS) Template SPK / BAST Standar 2024</option>
+                        <option value="">(Baku BPS) Template SPK Standar 2024</option>
                         @foreach($templates as $tmpl)
-                            <option value="{{ $tmpl->id }}">{{ $tmpl->nama }} ({{ strtoupper($tmpl->jenis_dokumen) }})</option>
+                            <option value="{{ $tmpl->id }}">{{ $tmpl->nama }}</option>
                         @endforeach
                     </select>
                 </div>
-                <div class="col-12 col-md-3">
-                    <label class="form-label text-primary fw-bold small mb-1">JENIS DOKUMEN</label>
-                    <select name="jenis_dokumen" class="form-select border-primary" id="selectJenisDokumen">
-                        <option value="spk" {{ $jenisDokumen === 'spk' ? 'selected' : '' }}>Surat Perjanjian Kerja (SPK)</option>
-                        <option value="bast" {{ $jenisDokumen === 'bast' ? 'selected' : '' }}>Berita Acara Serah Terima (BAST)</option>
-                    </select>
-                </div>
-                <div class="col-12 col-md-3">
+                <div class="col-12 col-md-4">
                     <label class="form-label text-primary fw-bold small mb-1">KATEGORI KEGIATAN</label>
                     <select name="kategori_kegiatan" class="form-select border-primary">
+                        <option value="umum" {{ $kategoriKegiatan === 'umum' ? 'selected' : '' }}>Umum / Rutin</option>
                         <option value="sensus" {{ $kategoriKegiatan === 'sensus' ? 'selected' : '' }}>Kegiatan Sensus (Sensus Pertanian/Ekonomi/dsb)</option>
                         <option value="survei" {{ $kategoriKegiatan === 'survei' ? 'selected' : '' }}>Kegiatan Survei (Survei Bulanan/Triwulanan)</option>
-                        <option value="umum" {{ $kategoriKegiatan === 'umum' ? 'selected' : '' }}>Umum / Rutin</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-3">
