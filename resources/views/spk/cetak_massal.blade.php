@@ -65,7 +65,7 @@
         <tr valign="top">
             <td>2.</td>
             <td><strong>{{ strtoupper($b->mitra->nama) }}</strong></td>
-            <td>: {{ $b->mitra->pekerjaan ?? 'Lainnya/ Belum Bekerja' }}, berkedudukan di {{ $b->mitra->alamat ?? 'Kabupaten Tasikmalaya' }}, bertindak untuk dan atas nama diri sendiri, selanjutnya disebut <strong>PIHAK KEDUA</strong>.</td>
+            <td>: {{ $b->mitra->pekerjaan_clean }}, berkedudukan di {{ $b->mitra->alamat_clean }}, bertindak untuk dan atas nama diri sendiri, selanjutnya disebut <strong>PIHAK KEDUA</strong>.</td>
         </tr>
     </table>
 

@@ -256,8 +256,8 @@ class SpkController extends Controller
             $item2Sat = isset($items[1]) ? 'dokumen' : '';
             $item2Periode = isset($items[1]) ? $periodeLabel : '';
 
-            $pekerjaanVal = ($mitra->pekerjaan && !str_starts_with($mitra->pekerjaan, '=')) ? $mitra->pekerjaan : 'Lainnya/ Belum Bekerja';
-            $alamatVal = ($mitra->alamat && !str_starts_with($mitra->alamat, '=')) ? $mitra->alamat : 'Kabupaten Tasikmalaya';
+            $pekerjaanVal = $mitra->pekerjaan_clean;
+            $alamatVal = $mitra->alamat_clean;
 
             $replacements = [
                 // 1. Clean MERGEFIELD artifact text in Header Lampiran
