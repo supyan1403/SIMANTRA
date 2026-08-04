@@ -69,7 +69,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-6 col-md-2">
+            <div class="col-12 col-md-3">
                 <label class="form-label text-muted small fw-bold mb-1">KEGIATAN</label>
                 <select name="kegiatan_id" class="form-select" onchange="this.form.submit()">
                     <option value="">Semua Kegiatan</option>
@@ -79,7 +79,7 @@
                 </select>
             </div>
             @else
-            <div class="col-6 col-md-2">
+            <div class="col-12 col-md-5">
                 <label class="form-label text-muted small fw-bold mb-1">KEGIATAN</label>
                 <select name="kegiatan_id" class="form-select" onchange="this.form.submit()">
                     <option value="">Semua Kegiatan</option>
@@ -89,15 +89,6 @@
                 </select>
             </div>
             @endif
-            <div class="col-12 col-md-2">
-                <label class="form-label text-muted small fw-bold mb-1">MITRA</label>
-                <select name="mitra_id" class="form-select" onchange="this.form.submit()">
-                    <option value="">Semua Mitra</option>
-                    @foreach($mitraOptions as $mo)
-                        <option value="{{ $mo->id }}" {{ $mitraId == $mo->id ? 'selected' : '' }}>{{ $mo->nama }}{{ $mo->id_sobat ? ' (' . $mo->id_sobat . ')' : '' }}</option>
-                    @endforeach
-                </select>
-            </div>
             <div class="col-12 col-md-1 d-flex gap-1">
                 <button type="submit" class="btn btn-primary w-100"><i class="bi bi-filter"></i></button>
                 <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary" title="Reset"><i class="bi bi-arrow-counterclockwise"></i></a>

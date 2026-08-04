@@ -90,6 +90,44 @@ class ImportController extends Controller
         
         DB::beginTransaction();
         try {
+            // Auto-extract DB Mitra sheet if present (read SOBAT ID & No Telp)
+            foreach ($spreadsheet->getSheetNames() as $sName) {
+                if (str_contains(strtoupper($sName), 'DB MITRA') || (str_contains(strtoupper($sName), 'MITRA') && !str_contains(strtoupper($sName), 'JANUARI'))) {
+                    $mitraSheet = $spreadsheet->getSheetByName($sName);
+                    if ($mitraSheet) {
+                        $mHighestRow = $mitraSheet->getHighestRow();
+                        for ($mr = 3; $mr <= $mHighestRow; $mr++) {
+                            $mNama = trim((string)$mitraSheet->getCell('B' . $mr)->getValue());
+                            if (empty($mNama) || $mNama === 'Nama') continue;
+
+                            $mAlamat = trim((string)$mitraSheet->getCell('C' . $mr)->getValue());
+                            $mPekerjaan = trim((string)$mitraSheet->getCell('E' . $mr)->getValue());
+                            $mNoHp = trim((string)$mitraSheet->getCell('Y' . $mr)->getValue());
+                            $mSobatId = trim((string)$mitraSheet->getCell('AJ' . $mr)->getValue());
+
+                            $existingMitra = \App\Models\Mitra::where('nama', $mNama)->first();
+                            if ($existingMitra) {
+                                $existingMitra->update(array_filter([
+                                    'id_sobat' => $mSobatId ?: $existingMitra->id_sobat,
+                                    'no_hp' => $mNoHp ?: $existingMitra->no_hp,
+                                    'alamat' => $mAlamat ?: $existingMitra->alamat,
+                                    'pekerjaan' => $mPekerjaan ?: $existingMitra->pekerjaan,
+                                ]));
+                            } else {
+                                \App\Models\Mitra::create([
+                                    'nama' => $mNama,
+                                    'id_sobat' => $mSobatId ?: null,
+                                    'no_hp' => $mNoHp ?: null,
+                                    'alamat' => $mAlamat ?: null,
+                                    'pekerjaan' => $mPekerjaan ?: null,
+                                ]);
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+
             foreach ($selectedSheets as $sheetName) {
                 $sheet = $spreadsheet->getSheetByName($sheetName);
                 if (!$sheet) continue;

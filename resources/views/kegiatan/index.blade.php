@@ -6,21 +6,21 @@
         <h2 class="page-title"><i class="bi bi-journal-bookmark-fill text-primary me-2"></i>Data Mata Anggaran</h2>
         <p class="page-subtitle">Kelola data mata anggaran kegiatan statistik, kode MAK, volume, harga satuan, dan pagu anggaran per tim kerja</p>
     </div>
-@if(auth()->user()?->role === 'admin' || auth()->user()?->role === 'operator')
-    <div class="d-flex gap-2 flex-wrap">
-        <a href="{{ route('kegiatan.import.template') }}" class="btn btn-outline-success d-flex align-items-center gap-2 shadow-sm">
-            <i class="bi bi-download"></i> Download Template
-        </a>
-        <a href="{{ route('kegiatan.import.index') }}" class="btn btn-success d-flex align-items-center gap-2 shadow-sm">
-            <i class="bi bi-cloud-arrow-up-fill"></i> Upload Template
-        </a>
+    <div class="d-flex align-items-center gap-2 flex-shrink-0 text-nowrap">
+        @if(auth()->user()?->role === 'admin' || auth()->user()?->role === 'operator')
+            <a href="{{ route('kegiatan.import.template') }}" class="btn btn-outline-success d-flex align-items-center gap-2 shadow-sm text-nowrap">
+                <i class="bi bi-download"></i> Download Template
+            </a>
+            <a href="{{ route('kegiatan.import.index') }}" class="btn btn-success d-flex align-items-center gap-2 shadow-sm text-nowrap">
+                <i class="bi bi-cloud-arrow-up-fill"></i> Upload Template
+            </a>
+        @endif
+        @if(auth()->user()?->role === 'admin')
+            <a href="{{ route('kegiatan.create') }}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm text-nowrap">
+                <i class="bi bi-plus-circle-fill"></i> Tambah Mata Anggaran
+            </a>
+        @endif
     </div>
-@endif
-@if(auth()->user()?->role === 'admin')
-<a href="{{ route('kegiatan.create') }}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
-    <i class="bi bi-plus-circle-fill"></i> Tambah Mata Anggaran
-</a>
-@endif
 </div>
 
 <!-- Search & Filter Card -->

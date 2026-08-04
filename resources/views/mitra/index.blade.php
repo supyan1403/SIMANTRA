@@ -6,14 +6,14 @@
         <h2 class="page-title"><i class="bi bi-people-fill text-primary me-2"></i>Data Mitra</h2>
         <p class="page-subtitle">Daftar {{ number_format($mitras->total()) }} mitra statistik BPS terdaftar dalam sistem SIMANTRA</p>
     </div>
-    <div class="d-flex gap-2 flex-wrap">
-        <a href="{{ route('mitra.import.template') }}" class="btn btn-outline-success d-flex align-items-center gap-2 shadow-sm">
+    <div class="d-flex align-items-center gap-2 flex-shrink-0 text-nowrap">
+        <a href="{{ route('mitra.import.template') }}" class="btn btn-outline-success d-flex align-items-center gap-2 shadow-sm text-nowrap">
             <i class="bi bi-download"></i> Download Template
         </a>
-        <a href="{{ route('mitra.import.index') }}" class="btn btn-success d-flex align-items-center gap-2 shadow-sm">
+        <a href="{{ route('mitra.import.index') }}" class="btn btn-success d-flex align-items-center gap-2 shadow-sm text-nowrap">
             <i class="bi bi-cloud-arrow-up-fill"></i> Upload Template
         </a>
-        <a href="{{ route('mitra.create') }}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
+        <a href="{{ route('mitra.create') }}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm text-nowrap">
             <i class="bi bi-person-plus-fill"></i> Tambah Mitra Baru
         </a>
     </div>
