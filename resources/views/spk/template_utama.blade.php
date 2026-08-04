@@ -3,26 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPK Presisi DOCX (Bookman Old Style) - {{ $mitra->nama }}</title>
+    <title>SPK Presisi - {{ $mitra->nama }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         @page { size: 215.9mm 330.2mm; margin: 0; }
         @page landscapePage { size: 330.2mm 215.9mm; margin: 0; }
         
-        body { font-family: 'Bookman Old Style', 'Book Antiqua', Georgia, serif; font-size: 12pt; line-height: 1.4; color: #000; background: #f8fafc; margin: 0; padding: 0; }
+        body { font-family: 'Bookman Old Style', 'Book Antiqua', Georgia, serif; font-size: 11pt; line-height: 1.45; color: #000; background: #f8fafc; margin: 0; padding: 0; }
         
         .page-portrait { width: 215.9mm; min-height: 330.2mm; padding: 18mm 17mm 18mm 25.4mm; margin: 15px auto; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 4px; box-sizing: border-box; page-break-after: always; position: relative; }
         .page-landscape { page: landscapePage; width: 330.2mm; min-height: 215.9mm; padding: 12.5mm 25.4mm 17mm 25.4mm; margin: 15px auto; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 4px; box-sizing: border-box; page-break-after: always; position: relative; font-size: 11pt; }
         
-        .spk-title { font-size: 12pt; font-weight: bold; text-align: center; text-transform: uppercase; margin-bottom: 2px; }
-        .spk-nomor { text-align: center; font-size: 12pt; font-weight: bold; margin-bottom: 14px; }
+        .spk-title { font-size: 11.5pt; font-weight: bold; text-align: center; text-transform: uppercase; margin-bottom: 2px; }
+        .spk-nomor { text-align: center; font-size: 11pt; font-weight: bold; margin-bottom: 14px; }
         .pasal-title { font-weight: bold; text-align: center; margin-top: 10px; margin-bottom: 3px; }
         
-        p { margin-bottom: 8px; text-align: justify; }
-        ol, ul { margin-bottom: 8px; }
+        p { margin-bottom: 8px; text-align: justify; font-weight: normal; }
+        ol, ul { margin-bottom: 8px; font-weight: normal; }
+        li { margin-bottom: 4px; text-align: justify; font-weight: normal; }
 
         table.table-bordered { border-color: #000 !important; }
-        table.table-bordered th, table.table-bordered td { border-color: #000 !important; padding: 4px 6px; font-size: 11pt; }
+        table.table-bordered th, table.table-bordered td { border-color: #000 !important; padding: 4px 6px; font-size: 10pt; }
         
         .ttd-box { margin-top: 25px; }
         
@@ -37,7 +38,7 @@
 <body>
 
 <div class="no-print text-center py-3 bg-dark text-white sticky-top">
-    <button onclick="window.print()" class="btn btn-danger font-monospace px-4"><i class="bi bi-printer me-2"></i>CETAK SPK DENGAN BOLD SAMA PERSIS ORI DOCX (BOOKMAN OLD STYLE)</button>
+    <button onclick="window.print()" class="btn btn-danger font-monospace px-4"><i class="bi bi-printer me-2"></i>CETAK SPK (TEKS NORMAL RAPI, HANYA ISTILAH/PASAL/NOMINAL BOLD)</button>
     <button onclick="window.close()" class="btn btn-outline-light px-3 ms-2">Tutup</button>
 </div>
 
@@ -50,7 +51,7 @@
 
     <p class="mb-2">Pada hari ini, bertempat di Tasikmalaya, yang bertanda tangan di bawah ini:</p>
 
-    <table class="ms-2 mb-3" style="width: 100%; font-size: 12pt;">
+    <table class="ms-2 mb-3" style="width: 100%; font-size: 11pt;">
         <tr valign="top">
             <td style="width: 25px;">1.</td>
             <td style="width: 175px;"><strong>Dindin Muldiana, S.ST. MP.</strong></td>
@@ -72,7 +73,7 @@
     <p>Ruang lingkup pekerjaan dalam Perjanjian ini mengacu pada wilayah kerja dan beban kerja sebagaimana tertuang dalam lampiran Perjanjian. Pedoman Petugas Pendataan Lapangan Wilayah Kegiatan Survei/Sensus Tahun {{ $tahun }} pada Badan Pusat Statistik Kabupaten Tasikmalaya, dan ketentuan-ketentuan yang ditetapkan oleh <strong>PIHAK PERTAMA</strong>.</p>
 
     <div class="pasal-title">Pasal 3</div>
-    <p><strong>Jangka Waktu Perjanjian terhitung sejak periode {{ $periodeLabel }}.</strong></p>
+    <p>Jangka Waktu Perjanjian terhitung sejak periode <strong>{{ $periodeLabel }}</strong>.</p>
 
     <div class="pasal-title">Pasal 4</div>
     <p><strong>PIHAK KEDUA</strong> berkewajiban melaksanakan seluruh pekerjaan yang diberikan oleh <strong>PIHAK PERTAMA</strong> sampai selesai, sesuai ruang lingkup pekerjaan sebagaimana dimaksud dalam Pasal 2, dengan menerapkan protokol kesehatan pencegahan Covid-19 yang berlaku di wilayah kerja masing-masing.</p>
@@ -84,15 +85,15 @@
 <div class="page-portrait">
     <div class="pasal-title mt-0">Pasal 5</div>
     <ol class="ps-3 mb-2">
-        <li class="mb-2"><strong>PIHAK KEDUA berhak untuk mendapatkan honorarium petugas dari PIHAK PERTAMA sebesar Rp. {{ number_format($totalHonor, 0, ',', '.') }} untuk pekerjaan sebagaimana dimaksud dalam Pasal 2, termasuk biaya pajak, bea materai, pulsa dan kuota internet untuk komunikasi, dan jasa pelayanan keuangan.</strong></li>
-        <li class="mb-2"><strong>Selain mendapatkan honorarium sebagaimana dimaksud pada ayat (1), PIHAK KEDUA berhak mendapatkan asuransi petugas (khusus sensus) dari PIHAK PERTAMA.</strong></li>
-        <li><strong>PIHAK KEDUA tidak diberikan honorarium tambahan apabila melakukan kunjungan di luar jadwal atau terdapat tambahan waktu pelaksanaan pekerjaan lapangan.</strong></li>
+        <li class="mb-2"><strong>PIHAK KEDUA</strong> berhak untuk mendapatkan honorarium petugas dari <strong>PIHAK PERTAMA</strong> sebesar <strong>Rp {{ number_format($totalHonor, 0, ',', '.') }}</strong> untuk pekerjaan sebagaimana dimaksud dalam Pasal 2, termasuk biaya pajak, bea materai, pulsa dan kuota internet untuk komunikasi, dan jasa pelayanan keuangan.</li>
+        <li class="mb-2">Selain mendapatkan honorarium sebagaimana dimaksud pada ayat (1), <strong>PIHAK KEDUA</strong> berhak mendapatkan asuransi petugas (khusus sensus) dari <strong>PIHAK PERTAMA</strong>.</li>
+        <li><strong>PIHAK KEDUA</strong> tidak diberikan honorarium tambahan apabila melakukan kunjungan di luar jadwal atau terdapat tambahan waktu pelaksanaan pekerjaan lapangan.</li>
     </ol>
 
     <div class="pasal-title">Pasal 6</div>
     <ol class="ps-3 mb-2">
-        <li class="mb-2"><strong>Pembayaran honorarium sebagaimana dimaksud dalam Pasal 5 dilakukan setelah PIHAK KEDUA menyelesaikan dan menyerahkan seluruh hasil pekerjaan sebagaimana dimaksud dalam Pasal 2 kepada PIHAK PERTAMA.</strong></li>
-        <li><strong>Pembayaran sebagaimana dimaksud pada ayat (1) dilakukan oleh PIHAK PERTAMA kepada PIHAK KEDUA sesuai dengan ketentuan peraturan perundang-undangan.</strong></li>
+        <li class="mb-2">Pembayaran honorarium sebagaimana dimaksud dalam Pasal 5 dilakukan setelah <strong>PIHAK KEDUA</strong> menyelesaikan dan menyerahkan seluruh hasil pekerjaan sebagaimana dimaksud dalam Pasal 2 kepada <strong>PIHAK PERTAMA</strong>.</li>
+        <li>Pembayaran sebagaimana dimaksud pada ayat (1) dilakukan oleh <strong>PIHAK PERTAMA</strong> kepada <strong>PIHAK KEDUA</strong> sesuai dengan ketentuan peraturan perundang-undangan.</li>
     </ol>
 
     <div class="pasal-title">Pasal 7</div>
@@ -103,15 +104,15 @@
 
     <div class="pasal-title">Pasal 9</div>
     <ol class="ps-3 mb-2">
-        <li class="mb-2"><strong>Apabila PIHAK KEDUA mengundurkan diri pada saat/setelah pelaksanaan pekerjaan lapangan dengan tidak menyelesaikan pekerjaan yang menjadi tanggung jawabnya, maka wajib membayar ganti rugi kepada PIHAK PERTAMA sebesar Rp. {{ number_format($totalHonor, 0, ',', '.') }}</strong></li>
-        <li class="mb-2"><strong>Dikecualikan tidak membayar ganti rugi sebagaimana dimaksud pada ayat (1) kepada PIHAK PERTAMA, apabila PIHAK KEDUA meninggal dunia, mengundurkan diri karena sakit dengan keterangan rawat inap, terindikasi terinfeksi virus Covid-19, kecelakaan dengan keterangan kepolisian, dan/atau telah diberikan Surat Pemutusan Perjanjian Kerja dari PIHAK PERTAMA.</strong></li>
-        <li><strong>Dalam hal terjadi peristiwa sebagaimana dimaksud pada ayat (2), PIHAK PERTAMA membayarkan honorarium kepada PIHAK KEDUA secara proporsional sesuai pekerjaan yang telah dilaksanakan.</strong></li>
+        <li class="mb-2">Apabila <strong>PIHAK KEDUA</strong> mengundurkan diri pada saat/setelah pelaksanaan pekerjaan lapangan dengan tidak menyelesaikan pekerjaan yang menjadi tanggung jawabnya, maka wajib membayar ganti rugi kepada <strong>PIHAK PERTAMA</strong> sebesar <strong>Rp {{ number_format($totalHonor, 0, ',', '.') }}</strong>.</li>
+        <li class="mb-2">Dikecualikan tidak membayar ganti rugi sebagaimana dimaksud pada ayat (1) kepada <strong>PIHAK PERTAMA</strong>, apabila <strong>PIHAK KEDUA</strong> meninggal dunia, mengundurkan diri karena sakit dengan keterangan rawat inap, terindikasi terinfeksi virus Covid-19, kecelakaan dengan keterangan kepolisian, dan/atau telah diberikan Surat Pemutusan Perjanjian Kerja dari <strong>PIHAK PERTAMA</strong>.</li>
+        <li>Dalam hal terjadi peristiwa sebagaimana dimaksud pada ayat (2), <strong>PIHAK PERTAMA</strong> membayarkan honorarium kepada <strong>PIHAK KEDUA</strong> secara proporsional sesuai pekerjaan yang telah dilaksanakan.</li>
     </ol>
 
     <div class="pasal-title">Pasal 10</div>
     <ol class="ps-3 mb-2">
-        <li class="mb-2"><strong>Apabila terjadi Keadaan Kahar, yang meliputi bencana alam dan bencana sosial, PIHAK KEDUA memberitahukan kepada PIHAK PERTAMA dalam waktu paling lambat 7 (tujuh) hari sejak mengetahui atas kejadian Keadaan Kahar dengan menyertakan bukti.</strong></li>
-        <li><strong>Pada saat terjadi Keadaan Kahar, pelaksanaan pekerjaan oleh PIHAK KEDUA dihentikan sementara dan dilanjutkan kembali setelah Keadaan Kahar berakhir, namun apabila akibat Keadaan Kahar tidak memungkinkan dilanjutkan/diselesaikannya pelaksanaan pekerjaan, PIHAK KEDUA berhak menerima honorarium secara proporsional sesuai pekerjaan yang telah dilaksanakan.</strong></li>
+        <li class="mb-2">Apabila terjadi Keadaan Kahar, yang meliputi bencana alam dan bencana sosial, <strong>PIHAK KEDUA</strong> memberitahukan kepada <strong>PIHAK PERTAMA</strong> dalam waktu paling lambat 7 (tujuh) hari sejak mengetahui atas kejadian Keadaan Kahar dengan menyertakan bukti.</li>
+        <li>Pada saat terjadi Keadaan Kahar, pelaksanaan pekerjaan oleh <strong>PIHAK KEDUA</strong> dihentikan sementara dan dilanjutkan kembali setelah Keadaan Kahar berakhir, namun apabila akibat Keadaan Kahar tidak memungkinkan dilanjutkan/diselesaikannya pelaksanaan pekerjaan, <strong>PIHAK KEDUA</strong> berhak menerima honorarium secara proporsional sesuai pekerjaan yang telah dilaksanakan.</li>
     </ol>
 </div>
 
@@ -124,13 +125,13 @@
 
     <div class="pasal-title">Pasal 12</div>
     <ol class="ps-3 mb-3">
-        <li class="mb-2"><strong>Segala perselisihan atau perbedaan pendapat yang timbul sebagai akibat adanya Perjanjian ini akan diselesaikan secara musyawarah untuk mufakat.</strong></li>
-        <li><strong>Apabila perselisihan tidak dapat diselesaikan sebagaimana dimaksud pada ayat (1), PARA PIHAK sepakat menyelesaikan perselisihan dengan memilih kedudukan/domisili hukum di Panitera Pengadilan Negeri Kabupaten Tasikmalaya</strong></li>
+        <li class="mb-2">Segala perselisihan atau perbedaan pendapat yang timbul sebagai akibat adanya Perjanjian ini akan diselesaikan secara musyawarah untuk mufakat.</li>
+        <li>Apabila perselisihan tidak dapat diselesaikan sebagaimana dimaksud pada ayat (1), <strong>PARA PIHAK</strong> sepakat menyelesaikan perselisihan dengan memilih kedudukan/domisili hukum di Panitera Pengadilan Negeri Kabupaten Tasikmalaya.</li>
     </ol>
 
     <p class="mb-4">Demikian Perjanjian ini dibuat dan ditandatangani oleh <strong>PARA PIHAK</strong> dalam 2 (dua) rangkap asli bermeterai cukup, tanpa paksaan dari <strong>PIHAK</strong> manapun dan untuk dilaksanakan oleh <strong>PARA PIHAK</strong>.</p>
 
-    <!-- LEMBAR TTD PASAL HALAMAN 3 (SAMA PERSIS DOCX ORI) -->
+    <!-- LEMBAR TTD PASAL HALAMAN 3 -->
     <div class="row ttd-box text-center">
         <div class="col-6">
             <p class="mb-1"><strong>PIHAK KEDUA,</strong></p>
