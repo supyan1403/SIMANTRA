@@ -27,6 +27,10 @@
         
         .ttd-box { margin-top: 25px; }
         
+        .ttd-table { width: 100%; border: none !important; margin-top: 30px; border-collapse: collapse; }
+        .ttd-table td { width: 50%; text-align: center !important; border: none !important; padding: 0 !important; vertical-align: top; }
+        .ttd-table p { text-align: center !important; margin: 0 0 8px 0 !important; font-weight: normal; }
+        
         @media print {
             body { background: white; }
             .page-portrait { width: 215.9mm; min-height: 330.2mm; padding: 18mm 17mm 18mm 25.4mm; margin: 0; box-shadow: none; page-break-after: always; }
@@ -133,17 +137,17 @@
     <p class="mb-4">Demikian Perjanjian ini dibuat dan ditandatangani oleh <strong>PARA PIHAK</strong> dalam 2 (dua) rangkap asli bermeterai cukup, tanpa paksaan dari <strong>PIHAK</strong> manapun dan untuk dilaksanakan oleh <strong>PARA PIHAK</strong>.</p>
 
     <!-- LEMBAR TTD PASAL HALAMAN 3 -->
-    <table style="width: 100%; border: none; margin-top: 35px; border-collapse: collapse;">
+    <table class="ttd-table">
         <tr valign="top">
-            <td style="width: 50%; text-align: center; border: none; padding: 0;">
-                <p style="margin: 0 0 8px 0;"><strong>PIHAK KEDUA,</strong></p>
-                <div style="border: 1px dashed #777; width: 80px; height: 48px; margin: 0 auto 15px auto; font-size: 8pt; display: flex; align-items: center; justify-content: center; color: #555;">Materai<br>10.000</div>
-                <p style="margin: 0; font-weight: normal;"><u>{{ strtoupper($b->mitra->nama) }}</u></p>
+            <td>
+                <p><strong>PIHAK KEDUA,</strong></p>
+                <div style="border: 1px dashed #777; width: 80px; height: 48px; margin: 0 auto 15px auto; font-size: 8pt; display: flex; align-items: center; justify-content: center; color: #555; text-align: center;">Materai<br>10.000</div>
+                <p><u>{{ strtoupper($b->mitra->nama) }}</u></p>
             </td>
-            <td style="width: 50%; text-align: center; border: none; padding: 0;">
-                <p style="margin: 0 0 8px 0;"><strong>PIHAK PERTAMA,</strong></p>
+            <td>
+                <p><strong>PIHAK PERTAMA,</strong></p>
                 <div style="height: 73px;"></div>
-                <p style="margin: 0; font-weight: normal;"><u>Dindin Muldiana, S.ST. MP.</u></p>
+                <p><u>Dindin Muldiana, S.ST. MP.</u></p>
             </td>
         </tr>
     </table>
@@ -221,17 +225,17 @@
         </tfoot>
     </table>
 
-    <table style="width: 100%; border: none; margin-top: 20px; border-collapse: collapse;">
+    <table class="ttd-table" style="margin-top: 20px;">
         <tr valign="top">
-            <td style="width: 50%; text-align: center; border: none; padding: 0;">
-                <p style="margin: 0 0 8px 0;"><strong>PIHAK KEDUA,</strong></p>
+            <td>
+                <p><strong>PIHAK KEDUA,</strong></p>
                 <div style="height: 60px;"></div>
-                <p style="margin: 0; font-weight: normal;"><u>{{ strtoupper($b->mitra->nama) }}</u></p>
+                <p><u>{{ strtoupper($b->mitra->nama) }}</u></p>
             </td>
-            <td style="width: 50%; text-align: center; border: none; padding: 0;">
-                <p style="margin: 0 0 8px 0;"><strong>PIHAK PERTAMA,</strong></p>
+            <td>
+                <p><strong>PIHAK PERTAMA,</strong></p>
                 <div style="height: 60px;"></div>
-                <p style="margin: 0; font-weight: normal;"><u>Dindin Muldiana, S.ST. MP.</u></p>
+                <p><u>Dindin Muldiana, S.ST. MP.</u></p>
             </td>
         </tr>
     </table>
