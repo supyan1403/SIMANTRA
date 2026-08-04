@@ -254,19 +254,19 @@ class SpkController extends Controller
         $periodeLabel = $this->bulanNama[$bulanAwal] . ($bulanAwal !== $bulanAkhir ? ' s.d ' . $this->bulanNama[$bulanAkhir] : '') . ' ' . $tahun;
         $nomorDokumen = sprintf("1001/PPK/SPK/%02d/%s", $bulanAwal, $tahun);
 
-        $templatePath = base_path('File SPK (Sumber -2).docx');
-        if ($templateId) {
-            $docTmpl = DocumentTemplate::find($templateId);
-            if ($docTmpl && $docTmpl->file_path && Storage::disk('public')->exists($docTmpl->file_path)) {
-                $templatePath = Storage::disk('public')->path($docTmpl->file_path);
-            }
+        $docTmpl = $templateId ? DocumentTemplate::find($templateId) : null;
+        $isBast = ($docTmpl && $docTmpl->jenis_dokumen === 'bast') || ($request->jenis_dokumen === 'bast');
+
+        $templatePath = $isBast ? base_path('BAST PETUGAS (Sumber -2).docx') : base_path('File SPK (Sumber -2).docx');
+        if ($docTmpl && $docTmpl->file_path && Storage::disk('public')->exists($docTmpl->file_path)) {
+            $templatePath = Storage::disk('public')->path($docTmpl->file_path);
         }
 
         if (!file_exists($templatePath)) {
             return redirect()->back()->with('error', 'Berkas template DOCX rujukan tidak ditemukan.');
         }
 
-        $tempFile = sys_get_temp_dir() . '/spk_' . time() . '_' . $mitra->id . '.docx';
+        $tempFile = sys_get_temp_dir() . '/' . ($isBast ? 'bast_' : 'spk_') . time() . '_' . $mitra->id . '.docx';
         copy($templatePath, $tempFile);
 
         $zip = new \ZipArchive();
@@ -297,6 +297,7 @@ class SpkController extends Controller
                 'MERGEFIELD' => '',
 
                 // 2. Mitra Details
+                'Nur Azizah Muyassaroh, S.ST' => strtoupper($mitra->nama),
                 'LINA KARLINA' => strtoupper($mitra->nama),
                 '${NAMA_MITRA}' => strtoupper($mitra->nama),
                 '${NAMA}' => strtoupper($mitra->nama),
@@ -307,9 +308,11 @@ class SpkController extends Controller
                 'Kp. Pameungpeuk RT/RW : 24/03 Desa Sukarasa Kec. Salawu' => $alamatVal,
                 '${ALAMAT}' => $alamatVal,
 
-                // 3. Document Numbering
+                // 3. Document Numbering & Year
+                'EGIATAN SURVEI/SENSUS TAHUN 2023' => 'EGIATAN SURVEI/SENSUS TAHUN ' . $tahun,
                 '1001/PPK/SPK/03/2024' => $nomorDokumen,
                 '${NOMOR_SPK}' => $nomorDokumen,
+                '${NOMOR_BAST}' => $nomorDokumen,
 
                 // 4. Annex Table Row 1 (Item 1)
                 'pencacahan survei harga kemahalan konstruksi' => $item1Nama,

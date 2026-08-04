@@ -39,10 +39,10 @@
             <div class="row g-3 align-items-end mb-2">
                 <div class="col-12 col-md-5">
                     <label class="form-label text-primary fw-bold small mb-1">NAMA TEMPLATE DOKUMEN</label>
-                    <select name="template_id" class="form-select border-primary fw-bold" onchange="this.form.submit()">
+                    <select name="template_id" class="form-select border-primary fw-bold">
                         @forelse($templates as $tmpl)
                             <option value="{{ $tmpl->id }}" {{ (request('template_id') == $tmpl->id || ($loop->first && !request('template_id'))) ? 'selected' : '' }}>
-                                [{{ strtoupper($tmpl->jenis_dokumen) }}] {{ $tmpl->nama }}
+                                {{ $tmpl->nama }}
                             </option>
                         @empty
                             <option value="">Template Baku BPS (Default System)</option>
