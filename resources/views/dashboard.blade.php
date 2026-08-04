@@ -237,7 +237,7 @@
 <!-- ========================================== -->
 <!-- PANEL PENCARIAN & BEBAN KERJA MITRA        -->
 <!-- ========================================== -->
-<div class="card border-0 shadow-sm mb-4">
+<div class="card border-0 shadow-sm mb-4" id="mitra-section">
     <div class="card-header bg-white border-bottom py-3">
         <div class="d-flex align-items-center justify-content-between mb-3">
             <div>
@@ -245,11 +245,11 @@
                 <p class="text-muted small mb-0">Sesuaikan filter kegiatan/periode di bawah ini dan pilih nama mitra untuk melihat alokasi honornya</p>
             </div>
             @if($mitraProfile || $mKegiatanId || $mBidangId)
-                <a href="{{ route('dashboard', array_filter(['tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'bidang_id' => $bidangId, 'kegiatan_id' => $kegiatanId])) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3" title="Reset Filter Mitra"><i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filter Mitra</a>
+                <a href="{{ route('dashboard', array_filter(['tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'bidang_id' => $bidangId, 'kegiatan_id' => $kegiatanId])) }}#mitra-section" class="btn btn-sm btn-outline-secondary rounded-pill px-3" title="Reset Filter Mitra"><i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filter Mitra</a>
             @endif
         </div>
         
-        <form method="GET" action="{{ route('dashboard') }}" id="searchMitraForm">
+        <form method="GET" action="{{ route('dashboard') }}#mitra-section" id="searchMitraForm">
             <!-- Pass top macro params -->
             <input type="hidden" name="tahun" value="{{ $tahun }}">
             <input type="hidden" name="bulan_awal" value="{{ $bulanAwal }}">
@@ -261,7 +261,7 @@
             <div class="row g-2 align-items-end mb-3">
                 <div class="col-6 col-md-2">
                     <label class="form-label text-muted small fw-bold mb-1">TAHUN</label>
-                    <select name="m_tahun" class="form-select" onchange="this.form.submit()">
+                    <select name="m_tahun" class="form-select" onchange="this.form.action='{{ route('dashboard') }}#mitra-section'; this.form.submit()">
                         @foreach($tahunList as $t)
                             <option value="{{ $t }}" {{ $t == $mTahun ? 'selected' : '' }}>{{ $t }}</option>
                         @endforeach
@@ -269,7 +269,7 @@
                 </div>
                 <div class="col-6 col-md-2">
                     <label class="form-label text-muted small fw-bold mb-1">BULAN AWAL</label>
-                    <select name="m_bulan_awal" class="form-select" onchange="this.form.submit()">
+                    <select name="m_bulan_awal" class="form-select" onchange="this.form.action='{{ route('dashboard') }}#mitra-section'; this.form.submit()">
                         @foreach($monthOptions as $angka => $nm)
                             <option value="{{ $angka }}" {{ $mBulanAwal == $angka ? 'selected' : '' }}>{{ $nm }}</option>
                         @endforeach
@@ -277,7 +277,7 @@
                 </div>
                 <div class="col-6 col-md-2">
                     <label class="form-label text-muted small fw-bold mb-1">BULAN AKHIR</label>
-                    <select name="m_bulan_akhir" class="form-select" onchange="this.form.submit()">
+                    <select name="m_bulan_akhir" class="form-select" onchange="this.form.action='{{ route('dashboard') }}#mitra-section'; this.form.submit()">
                         @foreach($monthOptions as $angka => $nm)
                             <option value="{{ $angka }}" {{ $mBulanAkhir == $angka ? 'selected' : '' }}>{{ $nm }}</option>
                         @endforeach
@@ -286,7 +286,7 @@
                 @if(!$isOperatorScoped)
                 <div class="col-6 col-md-3">
                     <label class="form-label text-muted small fw-bold mb-1">BIDANG</label>
-                    <select name="m_bidang_id" class="form-select" onchange="this.form.submit()">
+                    <select name="m_bidang_id" class="form-select" onchange="this.form.action='{{ route('dashboard') }}#mitra-section'; this.form.submit()">
                         <option value="">Semua Bidang</option>
                         @foreach($bidangOptions as $b)
                             <option value="{{ $b->id }}" {{ $mBidangId == $b->id ? 'selected' : '' }}>{{ $b->nama }}</option>
@@ -295,7 +295,7 @@
                 </div>
                 <div class="col-12 col-md-3">
                     <label class="form-label text-muted small fw-bold mb-1">KEGIATAN</label>
-                    <select name="m_kegiatan_id" class="form-select" onchange="this.form.submit()">
+                    <select name="m_kegiatan_id" class="form-select" onchange="this.form.action='{{ route('dashboard') }}#mitra-section'; this.form.submit()">
                         <option value="">Semua Kegiatan</option>
                         @foreach($mKegiatanOptions as $k)
                             <option value="{{ $k->id }}" {{ $mKegiatanId == $k->id ? 'selected' : '' }}>{{ $k->nama }}</option>
@@ -305,7 +305,7 @@
                 @else
                 <div class="col-12 col-md-6">
                     <label class="form-label text-muted small fw-bold mb-1">KEGIATAN</label>
-                    <select name="m_kegiatan_id" class="form-select" onchange="this.form.submit()">
+                    <select name="m_kegiatan_id" class="form-select" onchange="this.form.action='{{ route('dashboard') }}#mitra-section'; this.form.submit()">
                         <option value="">Semua Kegiatan</option>
                         @foreach($mKegiatanOptions as $k)
                             <option value="{{ $k->id }}" {{ $mKegiatanId == $k->id ? 'selected' : '' }}>{{ $k->nama }}</option>
@@ -320,7 +320,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <label class="form-label text-primary fw-bold small mb-0"><i class="bi bi-person-search me-1"></i> CARI NAMA / ID SOBAT MITRA (LIVE SEARCH)</label>
                     @if($mitraProfile)
-                        <a href="{{ route('dashboard', array_filter(['tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'bidang_id' => $bidangId, 'kegiatan_id' => $kegiatanId, 'm_tahun' => $mTahun, 'm_bulan_awal' => $mBulanAwal, 'm_bulan_akhir' => $mBulanAkhir, 'm_bidang_id' => $mBidangId, 'm_kegiatan_id' => $mKegiatanId])) }}" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-bold d-inline-flex align-items-center gap-1 shadow-sm" title="Hapus Mitra Terpilih">
+                        <a href="{{ route('dashboard', array_filter(['tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'bidang_id' => $bidangId, 'kegiatan_id' => $kegiatanId, 'm_tahun' => $mTahun, 'm_bulan_awal' => $mBulanAwal, 'm_bulan_akhir' => $mBulanAkhir, 'm_bidang_id' => $mBidangId, 'm_kegiatan_id' => $mKegiatanId])) }}#mitra-section" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-bold d-inline-flex align-items-center gap-1 shadow-sm" title="Hapus Mitra Terpilih">
                             <i class="bi bi-x-circle-fill"></i> Reset Pencarian Mitra
                         </a>
                     @endif
@@ -564,6 +564,16 @@
 
 // Select2 AJAX Live Search Mitra
 $(document).ready(function() {
+    // Auto-scroll smooth ke #mitra-section jika hash URL terdeteksi atau mitra dipilih
+    if (window.location.hash === '#mitra-section' || window.location.search.includes('mitra_id=') || window.location.search.includes('m_')) {
+        setTimeout(function() {
+            const el = document.getElementById('mitra-section');
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 200);
+    }
+
     if ($.fn.select2) {
         $('#selectMitraSearch').select2({
             theme: 'bootstrap-5',
@@ -577,7 +587,7 @@ $(document).ready(function() {
                 data: function (params) {
                     return {
                         q: params.term,
-                        kegiatan_id: $('select[name="kegiatan_id"]').val()
+                        kegiatan_id: $('select[name="m_kegiatan_id"]').val() || $('select[name="kegiatan_id"]').val()
                     };
                 },
                 processResults: function (data) {
@@ -589,7 +599,9 @@ $(document).ready(function() {
             },
             minimumInputLength: 1
         }).on('select2:select select2:clear', function () {
-            $(this).closest('form').submit();
+            var form = $(this).closest('form');
+            form.attr('action', "{{ route('dashboard') }}#mitra-section");
+            form.submit();
         });
     }
 });
