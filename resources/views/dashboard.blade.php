@@ -35,9 +35,9 @@
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body p-3">
         <form method="GET" action="{{ route('dashboard') }}" class="row g-2 align-items-end">
-            <div class="col-6 col-md-2">
+            <div class="col-6 col-md-1">
                 <label class="form-label text-muted small fw-bold mb-1">TAHUN</label>
-                <select name="tahun" class="form-select" onchange="this.form.submit()">
+                <select name="tahun" class="form-select px-2" onchange="this.form.submit()">
                     @foreach($tahunList as $t)
                         <option value="{{ $t }}" {{ $t == $tahun ? 'selected' : '' }}>{{ $t }}</option>
                     @endforeach
@@ -45,7 +45,7 @@
             </div>
             <div class="col-6 col-md-2">
                 <label class="form-label text-muted small fw-bold mb-1">BULAN AWAL</label>
-                <select name="bulan_awal" class="form-select" onchange="this.form.submit()">
+                <select name="bulan_awal" class="form-select px-2" onchange="this.form.submit()">
                     @foreach($monthOptions as $angka => $nm)
                         <option value="{{ $angka }}" {{ $bulanAwal == $angka ? 'selected' : '' }}>{{ $nm }}</option>
                     @endforeach
@@ -53,7 +53,7 @@
             </div>
             <div class="col-6 col-md-2">
                 <label class="form-label text-muted small fw-bold mb-1">BULAN AKHIR</label>
-                <select name="bulan_akhir" class="form-select" onchange="this.form.submit()">
+                <select name="bulan_akhir" class="form-select px-2" onchange="this.form.submit()">
                     @foreach($monthOptions as $angka => $nm)
                         <option value="{{ $angka }}" {{ $bulanAkhir == $angka ? 'selected' : '' }}>{{ $nm }}</option>
                     @endforeach
@@ -62,16 +62,16 @@
             @if(!$isOperatorScoped)
             <div class="col-6 col-md-2">
                 <label class="form-label text-muted small fw-bold mb-1">BIDANG</label>
-                <select name="bidang_id" class="form-select" onchange="this.form.submit()">
+                <select name="bidang_id" class="form-select px-2" onchange="this.form.submit()">
                     <option value="">Semua Bidang</option>
                     @foreach($bidangOptions as $b)
                         <option value="{{ $b->id }}" {{ $bidangId == $b->id ? 'selected' : '' }}>{{ $b->nama }}</option>
                     @endforeach
                 </select>
             </div>
-            <div class="col-12 col-md-3">
+            <div class="col-12 col-md-2">
                 <label class="form-label text-muted small fw-bold mb-1">KEGIATAN</label>
-                <select name="kegiatan_id" class="form-select" onchange="this.form.submit()">
+                <select name="kegiatan_id" class="form-select px-2" onchange="this.form.submit()">
                     <option value="">Semua Kegiatan</option>
                     @foreach($kegiatanOptions as $k)
                         <option value="{{ $k->id }}" {{ $kegiatanId == $k->id ? 'selected' : '' }}>{{ $k->nama }}</option>
@@ -79,9 +79,9 @@
                 </select>
             </div>
             @else
-            <div class="col-12 col-md-5">
+            <div class="col-12 col-md-4">
                 <label class="form-label text-muted small fw-bold mb-1">KEGIATAN</label>
-                <select name="kegiatan_id" class="form-select" onchange="this.form.submit()">
+                <select name="kegiatan_id" class="form-select px-2" onchange="this.form.submit()">
                     <option value="">Semua Kegiatan</option>
                     @foreach($kegiatanOptions as $k)
                         <option value="{{ $k->id }}" {{ $kegiatanId == $k->id ? 'selected' : '' }}>{{ $k->nama }}</option>
@@ -89,8 +89,15 @@
                 </select>
             </div>
             @endif
+            <div class="col-12 col-md-2">
+                <label class="form-label text-muted small fw-bold mb-1">CARI MITRA</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 px-2"><i class="bi bi-person-search text-muted"></i></span>
+                    <input type="text" name="search_mitra" class="form-control border-start-0 ps-0" placeholder="Ketik nama / ID..." value="{{ $searchMitra ?? '' }}">
+                </div>
+            </div>
             <div class="col-12 col-md-1 d-flex gap-1">
-                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-filter"></i></button>
+                <button type="submit" class="btn btn-primary w-100" title="Filter"><i class="bi bi-search"></i></button>
                 <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary" title="Reset"><i class="bi bi-arrow-counterclockwise"></i></a>
             </div>
         </form>

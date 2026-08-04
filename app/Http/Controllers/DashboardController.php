@@ -49,6 +49,16 @@ class DashboardController extends Controller
 
         $kegiatanId = $request->kegiatan_id ?: null;
         $mitraId = $request->mitra_id ?: null;
+        $searchMitra = trim($request->search_mitra ?? '');
+
+        if ($searchMitra !== '' && !$mitraId) {
+            $foundMitra = Mitra::where('nama', 'like', "%{$searchMitra}%")
+                ->orWhere('id_sobat', 'like', "%{$searchMitra}%")
+                ->first();
+            if ($foundMitra) {
+                $mitraId = $foundMitra->id;
+            }
+        }
 
         // Periode dalam rentang
         $periodeInRange = Periode::where('tahun', $tahun)
@@ -166,7 +176,7 @@ class DashboardController extends Controller
             'bidangOptions', 'bidangId', 'kegiatanOptions', 'kegiatanId', 'mitraId',
             'paguMataAnggaran', 'realisasiHonor', 'sisaAnggaran', 'paguSBML',
             'totalTransaksi', 'totalMitra', 'totalOperator',
-            'mitraOptions',
+            'mitraOptions', 'searchMitra',
             'honorPerBulan', 'honorPerBidang',
             'latestTransaksis',
             'mitraProfile', 'workloadKegiatans', 'workloadMonths', 'estimasiHonor'
