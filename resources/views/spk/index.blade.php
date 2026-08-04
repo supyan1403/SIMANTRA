@@ -34,8 +34,17 @@
             <h6 class="fw-bold text-dark mb-0"><i class="bi bi-sliders text-primary me-2"></i>Pengaturan Dokumen & Penomoran BPS</h6>
         </div>
         <div class="card-body p-3">
-            <!-- Row 1: Document Parameters -->
-            <div class="row g-3 align-items-end mb-3">
+            <!-- Row 1: Document Parameters with Template Name Dropdown -->
+            <div class="row g-3 align-items-end mb-2">
+                <div class="col-12 col-md-3">
+                    <label class="form-label text-primary fw-bold small mb-1">NAMA TEMPLATE DOKUMEN</label>
+                    <select name="template_id" class="form-select border-primary fw-bold">
+                        <option value="">(Baku BPS) Template SPK / BAST Standar 2024</option>
+                        @foreach($templates as $tmpl)
+                            <option value="{{ $tmpl->id }}">{{ $tmpl->nama }} ({{ strtoupper($tmpl->jenis_dokumen) }})</option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="col-12 col-md-3">
                     <label class="form-label text-primary fw-bold small mb-1">JENIS DOKUMEN</label>
                     <select name="jenis_dokumen" class="form-select border-primary" id="selectJenisDokumen">
@@ -53,10 +62,13 @@
                 </div>
                 <div class="col-12 col-md-3">
                     <label class="form-label text-primary fw-bold small mb-1">NOMOR URUT AWAL DOKUMEN</label>
-                    <input type="number" name="nomor_awal" class="form-select border-primary fw-bold" value="{{ $nomorAwal }}" min="1" placeholder="Contoh: 1 / 150">
+                    <input type="number" name="nomor_awal" class="form-select border-primary fw-bold" value="{{ $nomorAwal }}" min="1" placeholder="Contoh: 1 / 1001">
                 </div>
-                <div class="col-12 col-md-3">
-                    <button type="submit" class="btn btn-danger w-100 fw-bold shadow-sm py-2">
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-12 text-end">
+                    <button type="submit" class="btn btn-danger fw-bold shadow-sm px-4 py-2">
                         <i class="bi bi-printer-fill me-1"></i> CETAK MASSAL MITRA TERPILIH
                     </button>
                 </div>

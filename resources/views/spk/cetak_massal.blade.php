@@ -23,7 +23,6 @@
         
         .ttd-container { position: absolute; bottom: 25mm; left: 25.4mm; right: 17mm; }
         .ttd-container-landscape { position: absolute; bottom: 20mm; left: 25.4mm; right: 25.4mm; }
-        .page-footer-num { position: absolute; bottom: 10mm; right: 17mm; font-size: 9.5pt; color: #555; }
         
         @media print {
             body { background: white; }
@@ -66,18 +65,16 @@
     <p class="mb-3">bahwa <strong>PIHAK PERTAMA</strong> dan <strong>PIHAK KEDUA</strong> yang secara bersama-sama disebut <strong>PARA PIHAK</strong>, sepakat untuk mengikatkan diri dalam Perjanjian Kerja Petugas Pendataan Lapangan Kegiatan Survei/Sensus Tahun {{ $tahun }} pada Badan Pusat Statistik Kabupaten Tasikmalaya, yang selanjutnya disebut Perjanjian, dengan ketentuan-ketentuan sebagai berikut:</p>
 
     <div class="pasal-title">Pasal 1</div>
-    <p>PIHAK PERTAMA memberikan pekerjaan kepada PIHAK KEDUA dan PIHAK KEDUA menerima pekerjaan dari PIHAK PERTAMA sebagai Petugas Pendataan Lapangan Kegiatan Survei/Sensus Tahun {{ $tahun }} pada Badan Pusat Statistik Kabupaten Tasikmalaya, dengan lingkup pekerjaan yang ditetapkan oleh PIHAK PERTAMA.</p>
+    <p><strong>PIHAK PERTAMA</strong> memberikan pekerjaan kepada <strong>PIHAK KEDUA</strong> dan <strong>PIHAK KEDUA</strong> menerima pekerjaan dari <strong>PIHAK PERTAMA</strong> sebagai Petugas Pendataan Lapangan Kegiatan Survei/Sensus Tahun {{ $tahun }} pada Badan Pusat Statistik Kabupaten Tasikmalaya, dengan lingkup pekerjaan yang ditetapkan oleh <strong>PIHAK PERTAMA</strong>.</p>
 
     <div class="pasal-title">Pasal 2</div>
-    <p>Ruang lingkup pekerjaan dalam Perjanjian ini mengacu pada wilayah kerja dan beban kerja sebagaimana tertuang dalam lampiran Perjanjian. Pedoman Petugas Pendataan Lapangan Wilayah Kegiatan Survei/Sensus Tahun {{ $tahun }} pada Badan Pusat Statistik Kabupaten Tasikmalaya, dan ketentuan-ketentuan yang ditetapkan oleh PIHAK PERTAMA.</p>
+    <p>Ruang lingkup pekerjaan dalam Perjanjian ini mengacu pada wilayah kerja dan beban kerja sebagaimana tertuang dalam lampiran Perjanjian. Pedoman Petugas Pendataan Lapangan Wilayah Kegiatan Survei/Sensus Tahun {{ $tahun }} pada Badan Pusat Statistik Kabupaten Tasikmalaya, dan ketentuan-ketentuan yang ditetapkan oleh <strong>PIHAK PERTAMA</strong>.</p>
 
     <div class="pasal-title">Pasal 3</div>
-    <p>Jangka Waktu Perjanjian terhitung sejak periode <strong>{{ $periodeLabel }}</strong>.</p>
+    <p><strong>Jangka Waktu Perjanjian terhitung sejak periode {{ $periodeLabel }}.</strong></p>
 
     <div class="pasal-title">Pasal 4</div>
-    <p>PIHAK KEDUA berkewajiban melaksanakan seluruh pekerjaan yang diberikan oleh PIHAK PERTAMA sampai selesai, sesuai ruang lingkup pekerjaan sebagaimana dimaksud dalam Pasal 2, dengan menerapkan protokol kesehatan pencegahan Covid-19 yang berlaku di wilayah kerja masing-masing.</p>
-
-    <div class="page-footer-num">Halaman 1 dari 4 (Mitra: {{ $b->mitra->nama }})</div>
+    <p><strong>PIHAK KEDUA</strong> berkewajiban melaksanakan seluruh pekerjaan yang diberikan oleh <strong>PIHAK PERTAMA</strong> sampai selesai, sesuai ruang lingkup pekerjaan sebagaimana dimaksud dalam Pasal 2, dengan menerapkan protokol kesehatan pencegahan Covid-19 yang berlaku di wilayah kerja masing-masing.</p>
 </div>
 
 <!-- ========================================== -->
@@ -86,37 +83,35 @@
 <div class="page-portrait">
     <div class="pasal-title mt-0">Pasal 5</div>
     <ol class="ps-3 mb-2">
-        <li class="mb-2">PIHAK KEDUA berhak untuk mendapatkan honorarium petugas dari PIHAK PERTAMA sebesar <strong>Rp {{ number_format($b->total_honor, 0, ',', '.') }}</strong> untuk pekerjaan sebagaimana dimaksud dalam Pasal 2, termasuk biaya pajak, bea materai, pulsa dan kuota internet untuk komunikasi, dan jasa pelayanan keuangan.</li>
-        <li class="mb-2">Selain mendapatkan honorarium sebagaimana dimaksud pada ayat (1), PIHAK KEDUA berhak mendapatkan asuransi petugas (khusus sensus) dari PIHAK PERTAMA.</li>
-        <li>PIHAK KEDUA tidak diberikan honorarium tambahan apabila melakukan kunjungan di luar jadwal atau terdapat tambahan waktu pelaksanaan pekerjaan lapangan.</li>
+        <li class="mb-2"><strong>PIHAK KEDUA berhak untuk mendapatkan honorarium petugas dari PIHAK PERTAMA sebesar Rp. {{ number_format($b->total_honor, 0, ',', '.') }} untuk pekerjaan sebagaimana dimaksud dalam Pasal 2, termasuk biaya pajak, bea materai, pulsa dan kuota internet untuk komunikasi, dan jasa pelayanan keuangan.</strong></li>
+        <li class="mb-2"><strong>Selain mendapatkan honorarium sebagaimana dimaksud pada ayat (1), PIHAK KEDUA berhak mendapatkan asuransi petugas (khusus sensus) dari PIHAK PERTAMA.</strong></li>
+        <li><strong>PIHAK KEDUA tidak diberikan honorarium tambahan apabila melakukan kunjungan di luar jadwal atau terdapat tambahan waktu pelaksanaan pekerjaan lapangan.</strong></li>
     </ol>
 
     <div class="pasal-title">Pasal 6</div>
     <ol class="ps-3 mb-2">
-        <li class="mb-2">Pembayaran honorarium sebagaimana dimaksud dalam Pasal 5 dilakukan setelah PIHAK KEDUA menyelesaikan dan menyerahkan seluruh hasil pekerjaan sebagaimana dimaksud dalam Pasal 2 kepada PIHAK PERTAMA.</li>
-        <li>Pembayaran sebagaimana dimaksud pada ayat (1) dilakukan oleh PIHAK PERTAMA kepada PIHAK KEDUA sesuai dengan ketentuan peraturan perundang-undangan.</li>
+        <li class="mb-2">Pembayaran honorarium sebagaimana dimaksud dalam Pasal 5 dilakukan setelah <strong>PIHAK KEDUA</strong> menyelesaikan dan menyerahkan seluruh hasil pekerjaan sebagaimana dimaksud dalam Pasal 2 kepada <strong>PIHAK PERTAMA</strong>.</li>
+        <li>Pembayaran sebagaimana dimaksud pada ayat (1) dilakukan oleh <strong>PIHAK PERTAMA</strong> kepada <strong>PIHAK KEDUA</strong> sesuai dengan ketentuan peraturan perundang-undangan.</li>
     </ol>
 
     <div class="pasal-title">Pasal 7</div>
-    <p>Penyerahan hasil pekerjaan lapangan sebagaimana dimaksud dalam Pasal 2 dilakukan secara bertahap dan selambat-lambatnya seluruh hasil pekerjaan lapangan diserahkan sesuai jadwal yang tercantum dalam Lampiran, yang dinyatakan dalam Berita Acara Serah Terima Hasil Pekerjaan yang ditandatangani oleh PARA PIHAK.</p>
+    <p>Penyerahan hasil pekerjaan lapangan sebagaimana dimaksud dalam Pasal 2 dilakukan secara bertahap dan selambat-lambatnya seluruh hasil pekerjaan lapangan diserahkan sesuai jadwal yang tercantum dalam Lampiran, yang dinyatakan dalam Berita Acara Serah Terima Hasil Pekerjaan yang ditandatangani oleh <strong>PARA PIHAK</strong>.</p>
 
     <div class="pasal-title">Pasal 8</div>
-    <p>PIHAK PERTAMA dapat memutuskan Perjanjian ini secara sepihak sewaktu-waktu dalam hal PIHAK KEDUA tidak dapat melaksanakan kewajibannya sebagaimana dimaksud dalam Pasal 4, termasuk dalam kondisi terindikasi terinfeksi virus Covid-19, dengan menerbitkan Surat Pemutusan Perjanjian Kerja.</p>
+    <p><strong>PIHAK PERTAMA</strong> dapat memutuskan Perjanjian ini secara sepihak sewaktu-waktu dalam hal <strong>PIHAK KEDUA</strong> tidak dapat melaksanakan kewajibannya sebagaimana dimaksud dalam Pasal 4, termasuk dalam kondisi terindikasi terinfeksi virus <strong>Covid-19</strong>, dengan menerbitkan Surat Pemutusan Perjanjian Kerja.</p>
 
     <div class="pasal-title">Pasal 9</div>
     <ol class="ps-3 mb-2">
-        <li class="mb-2">Apabila PIHAK KEDUA mengundurkan diri pada saat/setelah pelaksanaan pekerjaan lapangan dengan tidak menyelesaikan pekerjaan yang menjadi tanggung jawabnya, maka wajib membayar ganti rugi kepada PIHAK PERTAMA sebesar <strong>Rp {{ number_format($b->total_honor, 0, ',', '.') }}</strong>.</li>
-        <li class="mb-2">Dikecualikan tidak membayar ganti rugi sebagaimana dimaksud pada ayat (1) kepada PIHAK PERTAMA, apabila PIHAK KEDUA meninggal dunia, mengundurkan diri karena sakit dengan keterangan rawat inap, terindikasi terinfeksi virus Covid-19, kecelakaan dengan keterangan kepolisian, dan/atau telah diberikan Surat Pemutusan Perjanjian Kerja dari PIHAK PERTAMA.</li>
-        <li>Dalam hal terjadi peristiwa sebagaimana dimaksud pada ayat (2), PIHAK PERTAMA membayarkan honorarium kepada PIHAK KEDUA secara proporsional sesuai pekerjaan yang telah dilaksanakan.</li>
+        <li class="mb-2"><strong>Apabila PIHAK KEDUA mengundurkan diri pada saat/setelah pelaksanaan pekerjaan lapangan dengan tidak menyelesaikan pekerjaan yang menjadi tanggung jawabnya, maka wajib membayar ganti rugi kepada PIHAK PERTAMA sebesar Rp. {{ number_format($b->total_honor, 0, ',', '.') }}</strong></li>
+        <li class="mb-2">Dikecualikan tidak membayar ganti rugi sebagaimana dimaksud pada ayat (1) kepada <strong>PIHAK PERTAMA</strong>, apabila <strong>PIHAK KEDUA</strong> meninggal dunia, mengundurkan diri karena sakit dengan keterangan rawat inap, terindikasi terinfeksi virus <strong>Covid-19</strong>, kecelakaan dengan keterangan kepolisian, dan/atau telah diberikan Surat Pemutusan Perjanjian Kerja dari <strong>PIHAK PERTAMA</strong>.</li>
+        <li>Dalam hal terjadi peristiwa sebagaimana dimaksud pada ayat (2), <strong>PIHAK PERTAMA</strong> membayarkan honorarium kepada <strong>PIHAK KEDUA</strong> secara proporsional sesuai pekerjaan yang telah dilaksanakan.</li>
     </ol>
 
     <div class="pasal-title">Pasal 10</div>
     <ol class="ps-3 mb-2">
-        <li class="mb-2">Apabila terjadi Keadaan Kahar, yang meliputi bencana alam dan bencana sosial, PIHAK KEDUA memberitahukan kepada PIHAK PERTAMA dalam waktu paling lambat 7 (tujuh) hari sejak mengetahui atas kejadian Keadaan Kahar dengan menyertakan bukti.</li>
-        <li>Pada saat terjadi Keadaan Kahar, pelaksanaan pekerjaan oleh PIHAK KEDUA dihentikan sementara dan dilanjutkan kembali setelah Keadaan Kahar berakhir, namun apabila akibat Keadaan Kahar tidak memungkinkan dilanjutkan/diselesaikannya pelaksanaan pekerjaan, PIHAK KEDUA berhak menerima honorarium secara proporsional sesuai pekerjaan yang telah dilaksanakan.</li>
+        <li class="mb-2">Apabila terjadi Keadaan Kahar, yang meliputi bencana alam dan bencana sosial, <strong>PIHAK KEDUA</strong> memberitahukan kepada <strong>PIHAK PERTAMA</strong> dalam waktu paling lambat 7 (tujuh) hari sejak mengetahui atas kejadian Keadaan Kahar dengan menyertakan bukti.</li>
+        <li>Pada saat terjadi Keadaan Kahar, pelaksanaan pekerjaan oleh <strong>PIHAK KEDUA</strong> dihentikan sementara dan dilanjutkan kembali setelah Keadaan Kahar berakhir, namun apabila akibat Keadaan Kahar tidak memungkinkan dilanjutkan/diselesaikannya pelaksanaan pekerjaan, <strong>PIHAK KEDUA</strong> berhak menerima honorarium secara proporsional sesuai pekerjaan yang telah dilaksanakan.</li>
     </ol>
-
-    <div class="page-footer-num">Halaman 2 dari 4 (Mitra: {{ $b->mitra->nama }})</div>
 </div>
 
 <!-- ========================================== -->
@@ -128,38 +123,36 @@
 
     <div class="pasal-title">Pasal 12</div>
     <ol class="ps-3 mb-3">
-        <li class="mb-2">Segala perselisihan atau perbedaan pendapat yang timbul sebagai akibat adanya Perjanjian ini akan diselesaikan secara musyawarah untuk mufakat.</li>
-        <li>Apabila perselisihan tidak dapat diselesaikan sebagaimana dimaksud pada ayat (1), PARA PIHAK sepakat menyelesaikan perselisihan dengan memilih kedudukan/domisili hukum di Panitera Pengadilan Negeri Kabupaten Tasikmalaya.</li>
+        <li class="mb-2"><strong>Segala perselisihan atau perbedaan pendapat yang timbul sebagai akibat adanya Perjanjian ini akan diselesaikan secara musyawarah untuk mufakat.</strong></li>
+        <li>Apabila perselisihan tidak dapat diselesaikan sebagaimana dimaksud pada ayat (1), <strong>PARA PIHAK</strong> sepakat menyelesaikan perselisihan dengan memilih kedudukan/domisili hukum di Panitera Pengadilan Negeri Kabupaten Tasikmalaya.</li>
     </ol>
 
-    <p class="mb-4">Demikian Perjanjian ini dibuat dan ditandatangani oleh PARA PIHAK dalam 2 (dua) rangkap asli bermeterai cukup, tanpa paksaan dari PIHAK manapun dan untuk dilaksanakan oleh PARA PIHAK.</p>
+    <p class="mb-4">Demikian Perjanjian ini dibuat dan ditandatangani oleh <strong>PARA PIHAK</strong> dalam 2 (dua) rangkap asli bermeterai cukup, tanpa paksaan dari <strong>PIHAK</strong> manapun dan untuk dilaksanakan oleh <strong>PARA PIHAK</strong>.</p>
 
     <!-- LEMBAR TTD PASAL HALAMAN 3 -->
     <div class="ttd-container">
         <div class="row text-center">
             <div class="col-6">
-                <p class="mb-1">PIHAK KEDUA,</p>
+                <p class="mb-1"><strong>PIHAK KEDUA,</strong></p>
                 <div style="border: 1px dashed #777; width: 85px; height: 50px; margin: 10px auto; font-size: 8pt; display: flex; align-items: center; justify-content: center; color: #555;">Materai<br>10.000</div>
                 <p class="mb-0"><strong><u>{{ strtoupper($b->mitra->nama) }}</u></strong></p>
                 <span class="extra-small text-muted">ID SOBAT: {{ $b->mitra->id_sobat ?? '-' }}</span>
             </div>
             <div class="col-6">
-                <p class="mb-1">PIHAK PERTAMA,</p>
+                <p class="mb-1"><strong>PIHAK PERTAMA,</strong></p>
                 <br><br><br>
                 <p class="mb-0"><strong><u>Dindin Muldiana, S.ST. MP.</u></strong></p>
                 <span class="extra-small text-muted">NIP. 19800101 200212 1 001</span>
             </div>
         </div>
     </div>
-
-    <div class="page-footer-num">Halaman 3 dari 4 (Mitra: {{ $b->mitra->nama }})</div>
 </div>
 
 <!-- ========================================== -->
 <!-- HALAMAN 4 DARI 4 (LANDSCAPE MENDATAR, BOOKMAN OLD STYLE 11PT) -->
 <!-- ========================================== -->
 <div class="page-landscape">
-    <div class="text-end extra-small text-muted mb-1">Lampiran: {{ strtoupper($b->mitra->nama) }}</div>
+    <div class="text-end extra-small text-muted mb-1">Lampiran: <strong>{{ strtoupper($b->mitra->nama) }}</strong></div>
     <div class="spk-title" style="font-size: 11pt;">PERJANJIAN KERJA PETUGAS PENCACAHAN/PENDATAAN LAPANGAN KEGIATAN SURVEI/SENSUS TAHUN {{ $tahun }} PADA BADAN PUSAT STATISTIK KABUPATEN TASIKMALAYA</div>
     <div class="spk-nomor" style="font-size: 10.5pt;">NOMOR: {{ $b->nomor_dokumen }}</div>
 
@@ -230,21 +223,19 @@
     <div class="ttd-container-landscape">
         <div class="row text-center">
             <div class="col-6">
-                <p class="mb-1">PIHAK KEDUA,</p>
+                <p class="mb-1"><strong>PIHAK KEDUA,</strong></p>
                 <br><br><br>
                 <p class="mb-0"><strong><u>{{ strtoupper($b->mitra->nama) }}</u></strong></p>
                 <span class="extra-small text-muted">ID SOBAT: {{ $b->mitra->id_sobat ?? '-' }}</span>
             </div>
             <div class="col-6">
-                <p class="mb-1">PIHAK PERTAMA,</p>
+                <p class="mb-1"><strong>PIHAK PERTAMA,</strong></p>
                 <br><br><br>
                 <p class="mb-0"><strong><u>Dindin Muldiana, S.ST. MP.</u></strong></p>
                 <span class="extra-small text-muted">NIP. 19800101 200212 1 001</span>
             </div>
         </div>
     </div>
-
-    <div class="page-footer-num">Halaman 4 dari 4 (Lampiran Landscape)</div>
 </div>
 @endforeach
 
