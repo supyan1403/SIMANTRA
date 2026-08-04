@@ -317,47 +317,47 @@
 
             <!-- Row 2: Prominent Full-Width Live Search Input -->
             <div class="bg-light p-3 rounded-3 border">
-                <label class="form-label text-primary fw-bold small mb-1"><i class="bi bi-person-search me-1"></i> CARI NAMA / ID SOBAT MITRA (LIVE SEARCH)</label>
-                <div class="input-group">
-                    <select name="mitra_id" id="selectMitraSearch" class="form-select">
-                        @if($mitraProfile)
-                            <option value="{{ $mitraProfile->id }}" selected>{{ $mitraProfile->nama }}{{ $mitraProfile->id_sobat ? ' (' . $mitraProfile->id_sobat . ')' : '' }}</option>
-                        @else
-                            <option value="">Ketik nama atau ID Sobat Mitra (contoh: ADE SONI, 3206...)</option>
-                        @endif
-                    </select>
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <label class="form-label text-primary fw-bold small mb-0"><i class="bi bi-person-search me-1"></i> CARI NAMA / ID SOBAT MITRA (LIVE SEARCH)</label>
                     @if($mitraProfile)
-                        <a href="{{ route('dashboard', array_filter(['tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'bidang_id' => $bidangId, 'kegiatan_id' => $kegiatanId, 'm_tahun' => $mTahun, 'm_bulan_awal' => $mBulanAwal, 'm_bulan_akhir' => $mBulanAkhir, 'm_bidang_id' => $mBidangId, 'm_kegiatan_id' => $mKegiatanId])) }}" class="btn btn-outline-secondary px-3" title="Hapus Mitra Terpilih"><i class="bi bi-x-lg me-1"></i> Reset Mitra</a>
+                        <a href="{{ route('dashboard', array_filter(['tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'bidang_id' => $bidangId, 'kegiatan_id' => $kegiatanId, 'm_tahun' => $mTahun, 'm_bulan_awal' => $mBulanAwal, 'm_bulan_akhir' => $mBulanAkhir, 'm_bidang_id' => $mBidangId, 'm_kegiatan_id' => $mKegiatanId])) }}" class="text-danger small text-decoration-none fw-bold" title="Hapus Mitra Terpilih"><i class="bi bi-x-circle-fill me-1"></i>Reset Mitra</a>
                     @endif
                 </div>
+                <select name="mitra_id" id="selectMitraSearch" class="form-select">
+                    @if($mitraProfile)
+                        <option value="{{ $mitraProfile->id }}" selected>{{ $mitraProfile->nama }}{{ $mitraProfile->id_sobat ? ' (' . $mitraProfile->id_sobat . ')' : '' }}</option>
+                    @else
+                        <option value="">Ketik nama atau ID Sobat Mitra (contoh: ADE SONI, 3206...)</option>
+                    @endif
+                </select>
             </div>
         </form>
     </div>
     <div class="card-body p-4">
         @if($mitraProfile)
-            <div class="row g-3 mb-4">
+            <div class="row g-3 mb-4 align-items-stretch">
                 <div class="col-md-3">
-                    <div class="border p-3 rounded-3">
-                        <div class="text-muted small">ID Sobat</div>
-                        <div class="fw-bold text-dark">{{ $mitraProfile->id_sobat ?? '-' }}</div>
+                    <div class="border p-3 rounded-3 h-100 d-flex flex-column justify-content-center bg-white shadow-sm">
+                        <div class="text-muted small text-uppercase fw-bold mb-1">ID Sobat</div>
+                        <div class="fw-extrabold text-dark fs-6">{{ $mitraProfile->id_sobat ?? '-' }}</div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="border p-3 rounded-3">
-                        <div class="text-muted small">No. HP</div>
-                        <div class="fw-bold text-dark">{{ $mitraProfile->no_hp ?? '-' }}</div>
+                    <div class="border p-3 rounded-3 h-100 d-flex flex-column justify-content-center bg-white shadow-sm">
+                        <div class="text-muted small text-uppercase fw-bold mb-1">No. HP</div>
+                        <div class="fw-extrabold text-dark fs-6">{{ $mitraProfile->no_hp ?? '-' }}</div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="border p-3 rounded-3">
-                        <div class="text-muted small">Bidang / Tim</div>
-                        <div class="fw-bold text-dark">{{ $user->role === 'admin' ? ($workloadKegiatans->first()?->kegiatan->bidang->nama ?? '-') : ($user->bidang->nama ?? '-') }}</div>
+                    <div class="border p-3 rounded-3 h-100 d-flex flex-column justify-content-center bg-white shadow-sm">
+                        <div class="text-muted small text-uppercase fw-bold mb-1">Bidang / Tim</div>
+                        <div class="fw-extrabold text-dark fs-6 text-truncate" title="{{ $user->role === 'admin' ? ($workloadKegiatans->first()?->kegiatan->bidang->nama ?? '-') : ($user->bidang->nama ?? '-') }}">{{ $user->role === 'admin' ? ($workloadKegiatans->first()?->kegiatan->bidang->nama ?? '-') : ($user->bidang->nama ?? '-') }}</div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="border p-3 rounded-3 bg-success bg-opacity-10 border-success border-opacity-25">
-                        <div class="text-muted small">Estimasi Total Honor</div>
-                        <div class="fw-extrabold text-success fs-5">Rp {{ number_format($estimasiHonor, 0, ',', '.') }}</div>
+                    <div class="border p-3 rounded-3 h-100 d-flex flex-column justify-content-center bg-success bg-opacity-10 border-success border-opacity-25 shadow-sm">
+                        <div class="text-muted small text-uppercase fw-bold mb-1">Estimasi Total Honor</div>
+                        <div class="fw-extrabold text-success fs-6">Rp {{ number_format($estimasiHonor, 0, ',', '.') }}</div>
                     </div>
                 </div>
             </div>
