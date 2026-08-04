@@ -30,7 +30,6 @@ class ImportMantraCommand extends Command
         }
 
         $this->info("Membaca file Excel MANTRA: {$filePath}...");
-        \PhpOffice\PhpSpreadsheet\Calculation\Calculation::getInstance()->disableCalculationEngine();
         $reader = IOFactory::createReaderForFile($filePath);
         $reader->setReadDataOnly(true);
         $spreadsheet = $reader->load($filePath);

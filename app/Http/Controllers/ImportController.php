@@ -27,7 +27,6 @@ class ImportController extends Controller
         $file->move($importsDir, $filename);
         $fullPath = $importsDir . DIRECTORY_SEPARATOR . $filename;
 
-        \PhpOffice\PhpSpreadsheet\Calculation\Calculation::getInstance()->disableCalculationEngine();
         $reader = IOFactory::createReaderForFile($fullPath);
         $reader->setReadDataOnly(true);
         $spreadsheet = $reader->load($fullPath);
@@ -83,7 +82,6 @@ class ImportController extends Controller
             $bidangMap[strtolower($b)] = $allBidang[$b] ?? \App\Models\Bidang::create(['nama' => $b])->id;
         }
         
-        \PhpOffice\PhpSpreadsheet\Calculation\Calculation::getInstance()->disableCalculationEngine();
         $reader = IOFactory::createReaderForFile($fullPath);
         $reader->setReadDataOnly(true);
         $spreadsheet = $reader->load($fullPath);
