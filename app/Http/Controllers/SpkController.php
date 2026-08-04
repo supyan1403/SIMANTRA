@@ -80,12 +80,13 @@ class SpkController extends Controller
             ];
         })->values();
 
-        $selectedTemplate = $request->template_id ? DocumentTemplate::find($request->template_id) : null;
+        $selectedTemplate = $request->template_id ? DocumentTemplate::find($request->template_id) : ($templates->first() ?? null);
+        $currentTemplateId = $selectedTemplate ? $selectedTemplate->id : null;
 
         return view('spk.index', compact(
             'tahunList', 'tahun', 'monthOptions', 'bulanAwal', 'bulanAkhir',
             'bidangOptions', 'bidangId', 'kegiatanOptions', 'kegiatanId', 'search',
-            'jenisDokumen', 'kategoriKegiatan', 'nomorAwal', 'templates', 'selectedTemplate',
+            'jenisDokumen', 'kategoriKegiatan', 'nomorAwal', 'templates', 'selectedTemplate', 'currentTemplateId',
             'spkList'
         ));
     }

@@ -26,7 +26,8 @@
     <input type="hidden" name="tahun" value="{{ $tahun }}">
     <input type="hidden" name="bulan_awal" value="{{ $bulanAwal }}">
     <input type="hidden" name="bulan_akhir" value="{{ $bulanAkhir }}">
-    <input type="hidden" name="jenis_dokumen" value="spk">
+    <input type="hidden" name="jenis_dokumen" value="{{ $selectedTemplate->jenis_dokumen ?? 'spk' }}">
+    <input type="hidden" name="template_id" value="{{ $currentTemplateId }}">
     @if($bidangId)<input type="hidden" name="bidang_id" value="{{ $bidangId }}">@endif
     @if($kegiatanId)<input type="hidden" name="kegiatan_id" value="{{ $kegiatanId }}">@endif
 
@@ -39,10 +40,10 @@
             <div class="row g-3 align-items-end mb-2">
                 <div class="col-12 col-md-5">
                     <label class="form-label text-primary fw-bold small mb-1">NAMA TEMPLATE DOKUMEN</label>
-                    <select name="template_id" class="form-select border-primary fw-bold">
+                    <select name="template_id_select" class="form-select border-primary fw-bold" onchange="document.getElementById('filterTemplateId').value=this.value; document.getElementById('getFilterForm').submit();">
                         @forelse($templates as $tmpl)
-                            <option value="{{ $tmpl->id }}" {{ (request('template_id') == $tmpl->id || ($loop->first && !request('template_id'))) ? 'selected' : '' }}>
-                                {{ $tmpl->nama }}
+                            <option value="{{ $tmpl->id }}" {{ $currentTemplateId == $tmpl->id ? 'selected' : '' }}>
+                                [{{ strtoupper($tmpl->jenis_dokumen) }}] {{ $tmpl->nama }}
                             </option>
                         @empty
                             <option value="">Template Baku BPS (Default System)</option>
@@ -77,7 +78,8 @@
 <!-- Filter Pencarian Tabel -->
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body p-3">
-        <form method="GET" action="{{ route('spk.index') }}" class="row g-2 align-items-end">
+        <form method="GET" action="{{ route('spk.index') }}" id="getFilterForm" class="row g-2 align-items-end">
+            <input type="hidden" name="template_id" value="{{ $currentTemplateId }}" id="filterTemplateId">
             <div class="col-6 col-md-1">
                 <label class="form-label text-muted small fw-bold mb-1">TAHUN</label>
                 <select name="tahun" class="form-select px-2" onchange="this.form.submit()">
@@ -197,7 +199,7 @@
                             </td>
                             <td class="text-center pe-3">
                                 <div class="btn-group btn-group-sm">
-                                    <a href="{{ route('spk.cetak-utama', array_filter(['mitra' => $spk->mitra_id, 'tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'kegiatan_id' => $kegiatanId, 'nomor_awal' => $nomorAwal + $idx, 'template_id' => request('template_id')])) }}" target="_blank" class="btn btn-outline-danger fw-bold" title="Cetak / Simpan PDF Dokumen">
+                                    <a href="{{ route('spk.cetak-utama', array_filter(['mitra' => $spk->mitra_id, 'tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'kegiatan_id' => $kegiatanId, 'nomor_awal' => $nomorAwal + $idx, 'template_id' => $currentTemplateId])) }}" target="_blank" class="btn btn-outline-danger fw-bold" title="Cetak / Simpan PDF Dokumen">
                                         <i class="bi bi-file-earmark-pdf me-1"></i> {{ (isset($selectedTemplate) && $selectedTemplate->jenis_dokumen === 'bast') ? 'BAST' : 'Utama' }}
                                     </a>
                                     <a href="{{ route('spk.cetak-lampiran', array_filter(['mitra' => $spk->mitra_id, 'tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'kegiatan_id' => $kegiatanId])) }}" target="_blank" class="btn btn-outline-primary fw-bold" title="Cetak / Simpan PDF Lampiran SPK">
