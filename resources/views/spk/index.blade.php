@@ -40,10 +40,11 @@
                 <div class="col-12 col-md-5">
                     <label class="form-label text-primary fw-bold small mb-1">NAMA TEMPLATE DOKUMEN</label>
                     <select name="template_id" class="form-select border-primary fw-bold">
-                        <option value="">Template Utama BPS (Default System)</option>
-                        @foreach($templates as $tmpl)
+                        @forelse($templates as $tmpl)
                             <option value="{{ $tmpl->id }}">{{ $tmpl->nama }}</option>
-                        @endforeach
+                        @empty
+                            <option value="">Template Baku BPS (Default System)</option>
+                        @endforelse
                     </select>
                 </div>
                 <div class="col-12 col-md-4">
