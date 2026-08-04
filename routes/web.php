@@ -39,10 +39,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/rekap', [RekapController::class, 'index'])->name('rekap.index');
     Route::get('/rekap/export', [RekapController::class, 'export'])->name('rekap.export');
 
-    // Modul Cetak SPK
+    // Modul Cetak SPK & BAST
     Route::get('/spk', [\App\Http\Controllers\SpkController::class, 'index'])->name('spk.index');
+    Route::post('/spk/cetak-massal', [\App\Http\Controllers\SpkController::class, 'cetakMassal'])->name('spk.cetak-massal');
     Route::get('/spk/{mitra}/cetak-utama', [\App\Http\Controllers\SpkController::class, 'cetakUtama'])->name('spk.cetak-utama');
     Route::get('/spk/{mitra}/cetak-lampiran', [\App\Http\Controllers\SpkController::class, 'cetakLampiran'])->name('spk.cetak-lampiran');
+    Route::get('/spk-templates', [\App\Http\Controllers\SpkController::class, 'templateIndex'])->name('spk.templates.index');
+    Route::post('/spk-templates', [\App\Http\Controllers\SpkController::class, 'templateStore'])->name('spk.templates.store');
+    Route::delete('/spk-templates/{id}', [\App\Http\Controllers\SpkController::class, 'templateDestroy'])->name('spk.templates.destroy');
 
     Route::get('/import', [ImportController::class, 'index'])->name('import.index');
     Route::post('/import/preview', [ImportController::class, 'preview'])->name('import.preview');
