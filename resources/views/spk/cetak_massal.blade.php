@@ -3,22 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cetak Massal SPK Multi-Petugas ({{ $batchList->count() }} Mitra - Presisi 4 Halaman Per Mitra)</title>
+    <title>Cetak Massal SPK Multi-Petugas (Presisi Bookman Old Style & Landscape Lampiran)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        @page { size: A4; margin: 0; }
-        body { font-family: 'Times New Roman', Times, serif; font-size: 11pt; line-height: 1.45; color: #000; background: #f8fafc; margin: 0; padding: 0; }
-        .page { width: 210mm; height: 297mm; padding: 20mm 20mm 20mm 25mm; margin: 15px auto; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 4px; box-sizing: border-box; page-break-after: always; position: relative; overflow: hidden; }
-        .spk-title { font-size: 11.5pt; font-weight: bold; text-align: center; text-transform: uppercase; margin-bottom: 2px; }
-        .spk-nomor { text-align: center; font-size: 11pt; font-weight: bold; margin-bottom: 18px; }
+        @page { size: 215.9mm 330.2mm; margin: 0; }
+        @page landscapePage { size: 330.2mm 215.9mm; margin: 0; }
+        
+        body { font-family: 'Bookman Old Style', 'Book Antiqua', Georgia, serif; font-size: 12pt; line-height: 1.45; color: #000; background: #f8fafc; margin: 0; padding: 0; }
+        
+        .page-portrait { width: 215.9mm; height: 330.2mm; padding: 20mm 17mm 20mm 25.4mm; margin: 15px auto; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 4px; box-sizing: border-box; page-break-after: always; position: relative; overflow: hidden; }
+        .page-landscape { page: landscapePage; width: 330.2mm; height: 215.9mm; padding: 12.5mm 25.4mm 17mm 25.4mm; margin: 15px auto; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 4px; box-sizing: border-box; page-break-after: always; position: relative; overflow: hidden; font-size: 11pt; }
+        
+        .spk-title { font-size: 12pt; font-weight: bold; text-align: center; text-transform: uppercase; margin-bottom: 2px; }
+        .spk-nomor { text-align: center; font-size: 12pt; font-weight: bold; margin-bottom: 18px; }
         .pasal-title { font-weight: bold; text-align: center; margin-top: 14px; margin-bottom: 4px; }
+        
         table.table-bordered { border-color: #000 !important; }
-        table.table-bordered th, table.table-bordered td { border-color: #000 !important; padding: 4px 6px; font-size: 9.5pt; }
-        .ttd-container { position: absolute; bottom: 25mm; left: 25mm; right: 20mm; }
-        .page-footer-num { position: absolute; bottom: 10mm; right: 20mm; font-size: 9pt; color: #555; }
+        table.table-bordered th, table.table-bordered td { border-color: #000 !important; padding: 4px 6px; font-size: 11pt; }
+        
+        .ttd-container { position: absolute; bottom: 25mm; left: 25.4mm; right: 17mm; }
+        .ttd-container-landscape { position: absolute; bottom: 20mm; left: 25.4mm; right: 25.4mm; }
+        .page-footer-num { position: absolute; bottom: 10mm; right: 17mm; font-size: 9.5pt; color: #555; }
+        
         @media print {
             body { background: white; }
-            .page { width: 100%; height: 297mm; padding: 20mm 20mm 20mm 25mm; margin: 0; box-shadow: none; page-break-after: always; }
+            .page-portrait { width: 215.9mm; height: 330.2mm; padding: 20mm 17mm 20mm 25.4mm; margin: 0; box-shadow: none; page-break-after: always; }
+            .page-landscape { width: 330.2mm; height: 215.9mm; padding: 12.5mm 25.4mm 17mm 25.4mm; margin: 0; box-shadow: none; page-break-after: always; }
             .no-print { display: none !important; }
         }
     </style>
@@ -26,24 +36,24 @@
 <body>
 
 <div class="no-print text-center py-3 bg-dark text-white sticky-top">
-    <button onclick="window.print()" class="btn btn-danger font-monospace px-4"><i class="bi bi-printer me-2"></i>CETAK SEMUA SPK MULTI-PETUGAS (PRESISI 4 HALAMAN / MITRA)</button>
+    <button onclick="window.print()" class="btn btn-danger font-monospace px-4"><i class="bi bi-printer me-2"></i>CETAK SEMUA SPK MULTI-PETUGAS (PRESISI IDENTIK DOCX BPS)</button>
     <button onclick="window.close()" class="btn btn-outline-light px-3 ms-2">Tutup</button>
 </div>
 
 @foreach($batchList as $b)
 <!-- ========================================== -->
-<!-- HALAMAN 1 DARI 4: JUDUL, PIHAK 1&2, PASAL 1-4 -->
+<!-- HALAMAN 1 DARI 4 (PORTRAIT, BOOKMAN OLD STYLE 12PT) -->
 <!-- ========================================== -->
-<div class="page">
+<div class="page-portrait">
     <div class="spk-title">PERJANJIAN KERJA PETUGAS PENDATAAN LAPANGAN KEGIATAN SURVEI/SENSUS TAHUN {{ $tahun }} PADA BADAN PUSAT STATISTIK KABUPATEN TASIKMALAYA</div>
     <div class="spk-nomor">NOMOR: {{ $b->nomor_dokumen }}</div>
 
     <p class="mb-2">Pada hari ini, bertempat di Tasikmalaya, yang bertanda tangan di bawah ini:</p>
 
-    <table class="ms-2 mb-3" style="width: 100%;">
+    <table class="ms-2 mb-3" style="width: 100%; font-size: 12pt;">
         <tr valign="top">
             <td style="width: 25px;">1.</td>
-            <td style="width: 170px;"><strong>Dindin Muldiana, S.ST. MP.</strong></td>
+            <td style="width: 175px;"><strong>Dindin Muldiana, S.ST. MP.</strong></td>
             <td>: Pejabat Pembuat Komitmen Badan Pusat Statistik Kabupaten Tasikmalaya; berkedudukan di Jl. Raya Timur Singaparna KM4 Cintaraja Tasikmalaya, bertindak untuk dan atas nama Badan Pusat Statistik Kabupaten Tasikmalaya, selanjutnya disebut sebagai <strong>PIHAK PERTAMA</strong>.</td>
         </tr>
         <tr valign="top">
@@ -71,9 +81,9 @@
 </div>
 
 <!-- ========================================== -->
-<!-- HALAMAN 2 DARI 4: PASAL 5 S.D. PASAL 10     -->
+<!-- HALAMAN 2 DARI 4 (PORTRAIT, BOOKMAN OLD STYLE 12PT) -->
 <!-- ========================================== -->
-<div class="page">
+<div class="page-portrait">
     <div class="pasal-title mt-0">Pasal 5</div>
     <ol class="ps-3 mb-2">
         <li class="mb-2">PIHAK KEDUA berhak untuk mendapatkan honorarium petugas dari PIHAK PERTAMA sebesar <strong>Rp {{ number_format($b->total_honor, 0, ',', '.') }}</strong> untuk pekerjaan sebagaimana dimaksud dalam Pasal 2, termasuk biaya pajak, bea materai, pulsa dan kuota internet untuk komunikasi, dan jasa pelayanan keuangan.</li>
@@ -110,9 +120,9 @@
 </div>
 
 <!-- ========================================== -->
-<!-- HALAMAN 3 DARI 4: PASAL 11-12 & TTD SPK     -->
+<!-- HALAMAN 3 DARI 4 (PORTRAIT, BOOKMAN OLD STYLE 12PT) -->
 <!-- ========================================== -->
-<div class="page">
+<div class="page-portrait">
     <div class="pasal-title mt-0">Pasal 11</div>
     <p>Segala sesuatu yang belum atau tidak cukup diatur dalam Perjanjian ini, dituangkan dalam perjanjian tambahan/addendum dan merupakan bagian tidak terpisahkan dari perjanjian ini.</p>
 
@@ -146,31 +156,31 @@
 </div>
 
 <!-- ========================================== -->
-<!-- HALAMAN 4 DARI 4: LAMPIRAN TABEL & TTD     -->
+<!-- HALAMAN 4 DARI 4 (LANDSCAPE MENDATAR, BOOKMAN OLD STYLE 11PT) -->
 <!-- ========================================== -->
-<div class="page">
-    <div class="text-end extra-small text-muted mb-2">Lampiran: {{ strtoupper($b->mitra->nama) }}</div>
+<div class="page-landscape">
+    <div class="text-end extra-small text-muted mb-1">Lampiran: {{ strtoupper($b->mitra->nama) }}</div>
     <div class="spk-title" style="font-size: 11pt;">PERJANJIAN KERJA PETUGAS PENCACAHAN/PENDATAAN LAPANGAN KEGIATAN SURVEI/SENSUS TAHUN {{ $tahun }} PADA BADAN PUSAT STATISTIK KABUPATEN TASIKMALAYA</div>
-    <div class="spk-nomor" style="font-size: 10pt;">NOMOR: {{ $b->nomor_dokumen }}</div>
+    <div class="spk-nomor" style="font-size: 10.5pt;">NOMOR: {{ $b->nomor_dokumen }}</div>
 
-    <div class="fw-bold mb-3 small text-center">DAFTAR URAIAN TUGAS, JANGKA WAKTU, NILAI PERJANJIAN, DAN BEBAN ANGGARAN</div>
+    <div class="fw-bold mb-2 small text-center">DAFTAR URAIAN TUGAS, JANGKA WAKTU, NILAI PERJANJIAN, DAN BEBAN ANGGARAN</div>
 
     <table class="table table-bordered align-middle text-center mb-3">
         <thead class="table-light">
             <tr>
-                <th rowspan="2" style="width: 30px;">No</th>
+                <th rowspan="2" style="width: 35px;">No</th>
                 <th rowspan="2">Uraian Tugas</th>
-                <th rowspan="2">Jangka Waktu</th>
+                <th rowspan="2" style="width: 140px;">Jangka Waktu</th>
                 <th colspan="2">Target Pekerjaan</th>
-                <th rowspan="2" style="width: 95px;">Harga Satuan</th>
-                <th rowspan="2" style="width: 105px;">Nilai Perjanjian</th>
-                <th rowspan="2" style="width: 140px;">Beban Anggaran (MAK)</th>
+                <th rowspan="2" style="width: 130px;">Harga Satuan</th>
+                <th rowspan="2" style="width: 140px;">Nilai Perjanjian</th>
+                <th rowspan="2" style="width: 250px;">Beban Anggaran (MAK)</th>
             </tr>
             <tr>
-                <th style="width: 50px;">Volume</th>
-                <th style="width: 60px;">Satuan</th>
+                <th style="width: 60px;">Volume</th>
+                <th style="width: 70px;">Satuan</th>
             </tr>
-            <tr style="font-size: 8pt; background: #f1f5f9;">
+            <tr style="font-size: 8.5pt; background: #f1f5f9;">
                 <td>(1)</td>
                 <td>(2)</td>
                 <td>(3)</td>
@@ -191,10 +201,10 @@
                     <td>Dokumen</td>
                     <td class="text-end">Rp {{ number_format($item->nominal, 0, ',', '.') }}</td>
                     <td class="text-end fw-bold">Rp {{ number_format($item->nominal, 0, ',', '.') }}</td>
-                    <td class="font-monospace extra-small">{{ $item->kegiatan->kode_mata_anggaran ?? '054.01.GG.2903' }}</td>
+                    <td class="font-monospace extra-small">{{ $item->kegiatan->kode_mata_anggaran ?? '054.01.GG.2903.BMA.009.005.A.521213' }}</td>
                 </tr>
             @endforeach
-            {{-- Fill empty rows up to 8 rows to match Word docx template --}}
+            {{-- Fill empty rows up to 8 rows matching DOCX template --}}
             @for($i = count($b->items) + 1; $i <= 8; $i++)
                 <tr>
                     <td>{{ $i }}</td>
@@ -217,7 +227,7 @@
         </tfoot>
     </table>
 
-    <div class="ttd-container">
+    <div class="ttd-container-landscape">
         <div class="row text-center">
             <div class="col-6">
                 <p class="mb-1">PIHAK KEDUA,</p>
@@ -234,7 +244,7 @@
         </div>
     </div>
 
-    <div class="page-footer-num">Halaman 4 dari 4 (Mitra: {{ $b->mitra->nama }})</div>
+    <div class="page-footer-num">Halaman 4 dari 4 (Lampiran Landscape)</div>
 </div>
 @endforeach
 
