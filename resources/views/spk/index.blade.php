@@ -40,7 +40,7 @@
                 <div class="col-12 col-md-5">
                     <label class="form-label text-primary fw-bold small mb-1">NAMA TEMPLATE DOKUMEN</label>
                     <select name="template_id" class="form-select border-primary fw-bold">
-                        <option value="">(Baku BPS) Template SPK Standar 2024</option>
+                        <option value="">Template Utama BPS (Default System)</option>
                         @foreach($templates as $tmpl)
                             <option value="{{ $tmpl->id }}">{{ $tmpl->nama }}</option>
                         @endforeach
