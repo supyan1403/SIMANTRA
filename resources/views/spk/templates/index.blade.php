@@ -109,11 +109,64 @@
                                         @if($tmpl->file_path)
                                             <a href="{{ asset('storage/' . $tmpl->file_path) }}" target="_blank" class="btn btn-sm btn-outline-info p-1 me-1" title="Unduh Berkas"><i class="bi bi-download"></i></a>
                                         @endif
+                                        <button type="button" class="btn btn-sm btn-outline-primary p-1 me-1" data-bs-toggle="modal" data-bs-target="#editTemplateModal{{ $tmpl->id }}" title="Edit Template">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
                                         <form method="POST" action="{{ route('spk.templates.destroy', $tmpl->id) }}" class="d-inline" onsubmit="return confirm('Hapus template ini?')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-outline-danger p-1" title="Hapus"><i class="bi bi-trash"></i></button>
                                         </form>
+
+                                        <!-- MODAL EDIT TEMPLATE -->
+                                        <div class="modal fade text-start" id="editTemplateModal{{ $tmpl->id }}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <form method="POST" action="{{ route('spk.templates.update', $tmpl->id) }}" enctype="multipart/form-data">
+                                                        @csrf
+                                                        @method('PUT')
+                                                        <div class="modal-header">
+                                                            <h6 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2 text-primary"></i>Edit Template Dokumen</h6>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="mb-3">
+                                                                <label class="form-label text-muted small fw-bold mb-1">NAMA TEMPLATE</label>
+                                                                <input type="text" name="nama" class="form-control" value="{{ $tmpl->nama }}" required>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label text-muted small fw-bold mb-1">JENIS DOKUMEN</label>
+                                                                <select name="jenis_dokumen" class="form-select" required>
+                                                                    <option value="spk" {{ $tmpl->jenis_dokumen === 'spk' ? 'selected' : '' }}>SPK (Surat Perjanjian Kerja)</option>
+                                                                    <option value="bast" {{ $tmpl->jenis_dokumen === 'bast' ? 'selected' : '' }}>BAST (Berita Acara Serah Terima)</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label text-muted small fw-bold mb-1">KATEGORI KEGIATAN</label>
+                                                                <select name="kategori_kegiatan" class="form-select" required>
+                                                                    <option value="sensus" {{ $tmpl->kategori_kegiatan === 'sensus' ? 'selected' : '' }}>Kegiatan Sensus</option>
+                                                                    <option value="survei" {{ $tmpl->kategori_kegiatan === 'survei' ? 'selected' : '' }}>Kegiatan Survei</option>
+                                                                    <option value="umum" {{ $tmpl->kategori_kegiatan === 'umum' ? 'selected' : '' }}>Umum / Rutin</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label text-muted small fw-bold mb-1">GANTI FILE TEMPLATE (OPSIONAL)</label>
+                                                                <input type="file" name="file_template" class="form-control" accept=".docx,.doc,.pdf,.txt">
+                                                                <span class="extra-small text-muted">Biarkan kosong jika tidak ingin mengubah berkas file template.</span>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label text-muted small fw-bold mb-1">DESKRIPSI / CATATAN</label>
+                                                                <textarea name="deskripsi" class="form-control" rows="2">{{ $tmpl->deskripsi }}</textarea>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                                                            <button type="submit" class="btn btn-primary btn-sm fw-bold"><i class="bi bi-save me-1"></i>Simpan Perubahan</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty

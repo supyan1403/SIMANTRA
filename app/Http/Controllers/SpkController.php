@@ -390,6 +390,34 @@ class SpkController extends Controller
         return redirect()->route('spk.templates.index')->with('success', 'Template Dokumen berhasil ditambahkan.');
     }
 
+    public function templateUpdate(Request $request, $id)
+    {
+        $template = DocumentTemplate::findOrFail($id);
+
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            'jenis_dokumen' => 'required|in:spk,bast',
+            'kategori_kegiatan' => 'required|in:sensus,survei,umum',
+            'file_template' => 'nullable|file|mimes:docx,doc,pdf,txt|max:5120',
+            'deskripsi' => 'nullable|string',
+        ]);
+
+        if ($request->hasFile('file_template')) {
+            if ($template->file_path && Storage::disk('public')->exists($template->file_path)) {
+                Storage::disk('public')->delete($template->file_path);
+            }
+            $template->file_path = $request->file('file_template')->store('document-templates', 'public');
+        }
+
+        $template->nama = $request->nama;
+        $template->jenis_dokumen = $request->jenis_dokumen;
+        $template->kategori_kegiatan = $request->kategori_kegiatan;
+        $template->deskripsi = $request->deskripsi;
+        $template->save();
+
+        return redirect()->route('spk.templates.index')->with('success', 'Template Dokumen berhasil diperbarui.');
+    }
+
     public function templateDestroy($id)
     {
         $template = DocumentTemplate::findOrFail($id);

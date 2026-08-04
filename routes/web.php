@@ -47,6 +47,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/spk/{mitra}/download-docx', [\App\Http\Controllers\SpkController::class, 'downloadDocx'])->name('spk.download-docx');
     Route::get('/spk-templates', [\App\Http\Controllers\SpkController::class, 'templateIndex'])->name('spk.templates.index');
     Route::post('/spk-templates', [\App\Http\Controllers\SpkController::class, 'templateStore'])->name('spk.templates.store');
+    Route::put('/spk-templates/{id}', [\App\Http\Controllers\SpkController::class, 'templateUpdate'])->name('spk.templates.update');
     Route::delete('/spk-templates/{id}', [\App\Http\Controllers\SpkController::class, 'templateDestroy'])->name('spk.templates.destroy');
 
     Route::get('/import', [ImportController::class, 'index'])->name('import.index');
