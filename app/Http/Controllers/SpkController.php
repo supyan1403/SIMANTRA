@@ -239,7 +239,7 @@ class SpkController extends Controller
         copy($templatePath, $tempFile);
 
         $zip = new \ZipArchive();
-        if ($zip->open($tempFile) === \ZipArchive::SUCCESS) {
+        if ($zip->open($tempFile) === true) {
             $xml = $zip->getFromName('word/document.xml');
 
             $replacements = [
