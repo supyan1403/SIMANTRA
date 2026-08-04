@@ -239,13 +239,17 @@
 <!-- ========================================== -->
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-white border-bottom py-3">
-        <div class="d-flex align-items-center justify-content-between mb-2">
-            <h6 class="fw-bold text-dark mb-0"><i class="bi bi-person-workspace text-primary me-2"></i>Pencarian & Beban Kerja Mitra</h6>
-            @if($mitraProfile || $mKegiatanId)
-                <a href="{{ route('dashboard', array_filter(['tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'bidang_id' => $bidangId, 'kegiatan_id' => $kegiatanId])) }}" class="btn btn-sm btn-outline-secondary" title="Reset Filter Mitra"><i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filter Mitra</a>
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div>
+                <h6 class="fw-bold text-dark mb-0"><i class="bi bi-person-workspace text-primary me-2"></i>Pencarian & Beban Kerja Mitra</h6>
+                <p class="text-muted small mb-0">Sesuaikan filter kegiatan/periode di bawah ini dan pilih nama mitra untuk melihat alokasi honornya</p>
+            </div>
+            @if($mitraProfile || $mKegiatanId || $mBidangId)
+                <a href="{{ route('dashboard', array_filter(['tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'bidang_id' => $bidangId, 'kegiatan_id' => $kegiatanId])) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3" title="Reset Filter Mitra"><i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filter Mitra</a>
             @endif
         </div>
-        <form method="GET" action="{{ route('dashboard') }}" id="searchMitraForm" class="row g-2 align-items-end">
+        
+        <form method="GET" action="{{ route('dashboard') }}" id="searchMitraForm">
             <!-- Pass top macro params -->
             <input type="hidden" name="tahun" value="{{ $tahun }}">
             <input type="hidden" name="bulan_awal" value="{{ $bulanAwal }}">
@@ -253,69 +257,79 @@
             @if($bidangId)<input type="hidden" name="bidang_id" value="{{ $bidangId }}">@endif
             @if($kegiatanId)<input type="hidden" name="kegiatan_id" value="{{ $kegiatanId }}">@endif
 
-            <div class="col-6 col-md-1">
-                <label class="form-label text-muted small fw-bold mb-1">TAHUN</label>
-                <select name="m_tahun" class="form-select px-2" onchange="this.form.submit()">
-                    @foreach($tahunList as $t)
-                        <option value="{{ $t }}" {{ $t == $mTahun ? 'selected' : '' }}>{{ $t }}</option>
-                    @endforeach
-                </select>
+            <!-- Row 1: Cascade Filter Dropdowns -->
+            <div class="row g-2 align-items-end mb-3">
+                <div class="col-6 col-md-2">
+                    <label class="form-label text-muted small fw-bold mb-1">TAHUN</label>
+                    <select name="m_tahun" class="form-select" onchange="this.form.submit()">
+                        @foreach($tahunList as $t)
+                            <option value="{{ $t }}" {{ $t == $mTahun ? 'selected' : '' }}>{{ $t }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label text-muted small fw-bold mb-1">BULAN AWAL</label>
+                    <select name="m_bulan_awal" class="form-select" onchange="this.form.submit()">
+                        @foreach($monthOptions as $angka => $nm)
+                            <option value="{{ $angka }}" {{ $mBulanAwal == $angka ? 'selected' : '' }}>{{ $nm }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label text-muted small fw-bold mb-1">BULAN AKHIR</label>
+                    <select name="m_bulan_akhir" class="form-select" onchange="this.form.submit()">
+                        @foreach($monthOptions as $angka => $nm)
+                            <option value="{{ $angka }}" {{ $mBulanAkhir == $angka ? 'selected' : '' }}>{{ $nm }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @if(!$isOperatorScoped)
+                <div class="col-6 col-md-3">
+                    <label class="form-label text-muted small fw-bold mb-1">BIDANG</label>
+                    <select name="m_bidang_id" class="form-select" onchange="this.form.submit()">
+                        <option value="">Semua Bidang</option>
+                        @foreach($bidangOptions as $b)
+                            <option value="{{ $b->id }}" {{ $mBidangId == $b->id ? 'selected' : '' }}>{{ $b->nama }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label text-muted small fw-bold mb-1">KEGIATAN</label>
+                    <select name="m_kegiatan_id" class="form-select" onchange="this.form.submit()">
+                        <option value="">Semua Kegiatan</option>
+                        @foreach($mKegiatanOptions as $k)
+                            <option value="{{ $k->id }}" {{ $mKegiatanId == $k->id ? 'selected' : '' }}>{{ $k->nama }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @else
+                <div class="col-12 col-md-6">
+                    <label class="form-label text-muted small fw-bold mb-1">KEGIATAN</label>
+                    <select name="m_kegiatan_id" class="form-select" onchange="this.form.submit()">
+                        <option value="">Semua Kegiatan</option>
+                        @foreach($mKegiatanOptions as $k)
+                            <option value="{{ $k->id }}" {{ $mKegiatanId == $k->id ? 'selected' : '' }}>{{ $k->nama }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
             </div>
-            <div class="col-6 col-md-2">
-                <label class="form-label text-muted small fw-bold mb-1">BULAN AWAL</label>
-                <select name="m_bulan_awal" class="form-select px-2" onchange="this.form.submit()">
-                    @foreach($monthOptions as $angka => $nm)
-                        <option value="{{ $angka }}" {{ $mBulanAwal == $angka ? 'selected' : '' }}>{{ $nm }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-6 col-md-2">
-                <label class="form-label text-muted small fw-bold mb-1">BULAN AKHIR</label>
-                <select name="m_bulan_akhir" class="form-select px-2" onchange="this.form.submit()">
-                    @foreach($monthOptions as $angka => $nm)
-                        <option value="{{ $angka }}" {{ $mBulanAkhir == $angka ? 'selected' : '' }}>{{ $nm }}</option>
-                    @endforeach
-                </select>
-            </div>
-            @if(!$isOperatorScoped)
-            <div class="col-6 col-md-2">
-                <label class="form-label text-muted small fw-bold mb-1">BIDANG</label>
-                <select name="m_bidang_id" class="form-select px-2" onchange="this.form.submit()">
-                    <option value="">Semua Bidang</option>
-                    @foreach($bidangOptions as $b)
-                        <option value="{{ $b->id }}" {{ $mBidangId == $b->id ? 'selected' : '' }}>{{ $b->nama }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-12 col-md-2">
-                <label class="form-label text-muted small fw-bold mb-1">KEGIATAN</label>
-                <select name="m_kegiatan_id" class="form-select px-2" onchange="this.form.submit()">
-                    <option value="">Semua Kegiatan</option>
-                    @foreach($mKegiatanOptions as $k)
-                        <option value="{{ $k->id }}" {{ $mKegiatanId == $k->id ? 'selected' : '' }}>{{ $k->nama }}</option>
-                    @endforeach
-                </select>
-            </div>
-            @else
-            <div class="col-12 col-md-4">
-                <label class="form-label text-muted small fw-bold mb-1">KEGIATAN</label>
-                <select name="m_kegiatan_id" class="form-select px-2" onchange="this.form.submit()">
-                    <option value="">Semua Kegiatan</option>
-                    @foreach($mKegiatanOptions as $k)
-                        <option value="{{ $k->id }}" {{ $mKegiatanId == $k->id ? 'selected' : '' }}>{{ $k->nama }}</option>
-                    @endforeach
-                </select>
-            </div>
-            @endif
-            <div class="col-12 col-md-3">
-                <label class="form-label text-muted small fw-bold mb-1">CARI MITRA (LIVE)</label>
-                <select name="mitra_id" id="selectMitraSearch" class="form-select">
+
+            <!-- Row 2: Prominent Full-Width Live Search Input -->
+            <div class="bg-light p-3 rounded-3 border">
+                <label class="form-label text-primary fw-bold small mb-1"><i class="bi bi-person-search me-1"></i> CARI NAMA / ID SOBAT MITRA (LIVE SEARCH)</label>
+                <div class="input-group">
+                    <select name="mitra_id" id="selectMitraSearch" class="form-select">
+                        @if($mitraProfile)
+                            <option value="{{ $mitraProfile->id }}" selected>{{ $mitraProfile->nama }}{{ $mitraProfile->id_sobat ? ' (' . $mitraProfile->id_sobat . ')' : '' }}</option>
+                        @else
+                            <option value="">Ketik nama atau ID Sobat Mitra (contoh: ADE SONI, 3206...)</option>
+                        @endif
+                    </select>
                     @if($mitraProfile)
-                        <option value="{{ $mitraProfile->id }}" selected>{{ $mitraProfile->nama }}{{ $mitraProfile->id_sobat ? ' (' . $mitraProfile->id_sobat . ')' : '' }}</option>
-                    @else
-                        <option value="">Ketik nama / ID Sobat Mitra...</option>
+                        <a href="{{ route('dashboard', array_filter(['tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'bidang_id' => $bidangId, 'kegiatan_id' => $kegiatanId, 'm_tahun' => $mTahun, 'm_bulan_awal' => $mBulanAwal, 'm_bulan_akhir' => $mBulanAkhir, 'm_bidang_id' => $mBidangId, 'm_kegiatan_id' => $mKegiatanId])) }}" class="btn btn-outline-secondary px-3" title="Hapus Mitra Terpilih"><i class="bi bi-x-lg me-1"></i> Reset Mitra</a>
                     @endif
-                </select>
+                </div>
             </div>
         </form>
     </div>
