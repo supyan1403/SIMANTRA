@@ -344,7 +344,9 @@
         .metric-card-primary { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%) !important; color: #ffffff !important; }
         .metric-card-success { background: linear-gradient(135deg, #047857 0%, #10b981 100%) !important; color: #ffffff !important; }
         .metric-card-warning { background: linear-gradient(135deg, #b45309 0%, #f59e0b 100%) !important; color: #ffffff !important; }
+        .metric-card-danger  { background: linear-gradient(135deg, #991b1b 0%, #ef4444 100%) !important; color: #ffffff !important; }
         .metric-card-purple  { background: linear-gradient(135deg, #6d28d9 0%, #a855f7 100%) !important; color: #ffffff !important; }
+
 
         .metric-icon-bg {
             width: 44px;
