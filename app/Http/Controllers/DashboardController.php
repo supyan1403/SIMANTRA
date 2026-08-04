@@ -79,17 +79,14 @@ class DashboardController extends Controller
 
         $periodeIds = $periodeInRange;
 
-        // ===== Scoping Honor =====
+        // ===== Scoping Honor (General Kumulatif) =====
         $honorQuery = fn() => AlokasiHonor::query()
             ->whereIn('periode_id', $periodeIds)
-            ->when($mitraId, fn($q) => $q->where('mitra_id', $mitraId))
             ->when($kegiatanId, fn($q) => $q->where('kegiatan_id', $kegiatanId))
             ->when($bidangId && !$kegiatanId, fn($q) => $q->whereHas('kegiatan', fn($qq) => $qq->where('bidang_id', $bidangId)));
 
-        $realisasiHonor = (float) $honorTotal = 0;
-        $honorTotal = (float) $honorQuery()->sum('nominal');
+        $realisasiHonor = (float) $honorQuery()->sum('nominal');
         $totalTransaksi = $honorQuery()->count();
-        $realisasiHonor = $honorTotal;
 
         // ===== Pagu Mata Anggaran (tahun = terpilih) =====
         $paguQuery = fn() => Kegiatan::where('tahun', $tahun)
@@ -98,11 +95,9 @@ class DashboardController extends Controller
         $paguMataAnggaran = (float) $paguQuery()->sum('total');
         $sisaAnggaran = $paguMataAnggaran - $realisasiHonor;
 
-        // ===== Kapasitas Honor (SBML) =====
-        $sbmlQuery = Sbml::query()
-            ->whereIn('periode_id', $periodeIds)
-            ->when($mitraId, fn($q) => $q->where('mitra_id', $mitraId));
-        if (!$mitraId && ($bidangId || $kegiatanId)) {
+        // ===== Kapasitas Honor (SBML General) =====
+        $sbmlQuery = Sbml::query()->whereIn('periode_id', $periodeIds);
+        if ($bidangId || $kegiatanId) {
             $scopeMitraIds = collect($honorQuery()->pluck('mitra_id')->unique());
             $sbmlQuery->whereIn('mitra_id', $scopeMitraIds);
         }
@@ -120,21 +115,14 @@ class DashboardController extends Controller
         $kegiatanOptions = Kegiatan::when($bidangId, fn($q) => $q->where('bidang_id', $bidangId))
             ->orderBy('nama')->get(['id', 'nama', 'kode_mata_anggaran']);
 
-        // ===== Grafik =====
-        $honorPerBulan = $this->honorPerBulan($periodeIds, $bulanAwal, $bulanAkhir, $bidangId, $kegiatanId, $mitraId);
-        $honorPerBidang = $this->honorPerBidang($periodeIds, $mitraId, $kegiatanId);
+        // ===== Grafik (General Kumulatif) =====
+        $honorPerBulan = $this->honorPerBulan($periodeIds, $bulanAwal, $bulanAkhir, $bidangId, $kegiatanId, null);
+        $honorPerBidang = $this->honorPerBidang($periodeIds, null, $kegiatanId);
 
-        // ===== Statistik global (opsional) =====
+        // ===== Statistik global =====
         $totalMitra = Mitra::count();
         $totalOperator = User::where('role', 'operator')->count();
         $mitraOptions = Mitra::orderBy('nama')->get(['id', 'nama', 'id_sobat']);
-
-        // Transaksi terakhir (terfilter) 
-        $latestTransaksis = $honorQuery()
-            ->with(['mitra', 'periode', 'kegiatan.bidang'])
-            ->orderBy('created_at', 'desc')
-            ->take(10)
-            ->get();
 
         // ===== Beban Kerja Mitra =====
         $mitraProfile = null;
@@ -183,13 +171,14 @@ class DashboardController extends Controller
         return view('dashboard', compact(
             'user',
             'isAdmin',
-            'tahunList', 'tahun', 'monthOptions', 'bulanAwal', 'bulanAkhir',
+            'isOperatorScoped',
+            'tahunList', 'tahun',
+            'monthOptions', 'bulanAwal', 'bulanAkhir',
             'bidangOptions', 'bidangId', 'kegiatanOptions', 'kegiatanId', 'mitraId',
             'paguMataAnggaran', 'realisasiHonor', 'sisaAnggaran', 'paguSBML',
             'totalTransaksi', 'totalMitra', 'totalOperator',
             'mitraOptions', 'searchMitra',
             'honorPerBulan', 'honorPerBidang',
-            'latestTransaksis',
             'mitraProfile', 'workloadKegiatans', 'workloadMonths', 'estimasiHonor'
         ));
     }

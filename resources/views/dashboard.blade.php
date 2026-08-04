@@ -32,10 +32,13 @@
 <!-- ========================================== -->
 <!-- BILAH FILTER CASCADE                        -->
 <!-- ========================================== -->
+<!-- ========================================== -->
+<!-- BILAH FILTER CASCADE                        -->
+<!-- ========================================== -->
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body p-3">
         <form method="GET" action="{{ route('dashboard') }}" class="row g-2 align-items-end">
-            <div class="col-6 col-md-1">
+            <div class="col-6 col-md-2">
                 <label class="form-label text-muted small fw-bold mb-1">TAHUN</label>
                 <select name="tahun" class="form-select px-2" onchange="this.form.submit()">
                     @foreach($tahunList as $t)
@@ -69,7 +72,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-12 col-md-2">
+            <div class="col-12 col-md-3">
                 <label class="form-label text-muted small fw-bold mb-1">KEGIATAN</label>
                 <select name="kegiatan_id" class="form-select px-2" onchange="this.form.submit()">
                     <option value="">Semua Kegiatan</option>
@@ -79,7 +82,7 @@
                 </select>
             </div>
             @else
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-5">
                 <label class="form-label text-muted small fw-bold mb-1">KEGIATAN</label>
                 <select name="kegiatan_id" class="form-select px-2" onchange="this.form.submit()">
                     <option value="">Semua Kegiatan</option>
@@ -89,18 +92,8 @@
                 </select>
             </div>
             @endif
-            <div class="col-12 col-md-3">
-                <label class="form-label text-muted small fw-bold mb-1">CARI MITRA (LIVE)</label>
-                <select name="mitra_id" id="selectMitraSearch" class="form-select">
-                    @if($mitraProfile)
-                        <option value="{{ $mitraProfile->id }}" selected>{{ $mitraProfile->nama }}{{ $mitraProfile->id_sobat ? ' (' . $mitraProfile->id_sobat . ')' : '' }}</option>
-                    @else
-                        <option value="">Ketik nama / ID Mitra...</option>
-                    @endif
-                </select>
-            </div>
             <div class="col-12 col-md-1 d-flex gap-1">
-                <button type="submit" class="btn btn-primary w-100" title="Filter"><i class="bi bi-search"></i></button>
+                <button type="submit" class="btn btn-primary w-100" title="Filter"><i class="bi bi-filter"></i></button>
                 <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary" title="Reset"><i class="bi bi-arrow-counterclockwise"></i></a>
             </div>
         </form>
@@ -242,170 +235,154 @@
 </div>
 
 <!-- ========================================== -->
-<!-- PANEL BEBAN KERJA MITRA                     -->
+<!-- PANEL PENCARIAN & BEBAN KERJA MITRA        -->
 <!-- ========================================== -->
-@if($mitraProfile)
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-white border-bottom py-3">
-        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-person-workspace text-primary me-2"></i>Beban Kerja Mitra: {{ $mitraProfile->nama }}</h6>
-        <p class="text-muted small mb-0">Kegiatan yang dipegang {{ $mitraProfile->nama }} pada {{ $monthOptions[$bulanAwal] }} - {{ $monthOptions[$bulanAkhir] }} {{ $tahun }}</p>
+        <div class="row align-items-center g-3">
+            <div class="col-md-6">
+                <h6 class="fw-bold text-dark mb-0"><i class="bi bi-person-workspace text-primary me-2"></i>Pencarian & Beban Kerja Mitra</h6>
+                <p class="text-muted small mb-0">Cari nama/ID Sobat mitra untuk melihat beban kerja & estimasi honor</p>
+            </div>
+            <div class="col-md-6">
+                <form method="GET" action="{{ route('dashboard') }}" id="searchMitraForm">
+                    <input type="hidden" name="tahun" value="{{ $tahun }}">
+                    <input type="hidden" name="bulan_awal" value="{{ $bulanAwal }}">
+                    <input type="hidden" name="bulan_akhir" value="{{ $bulanAkhir }}">
+                    @if($bidangId)<input type="hidden" name="bidang_id" value="{{ $bidangId }}">@endif
+                    @if($kegiatanId)<input type="hidden" name="kegiatan_id" value="{{ $kegiatanId }}">@endif
+                    
+                    <div class="input-group">
+                        <select name="mitra_id" id="selectMitraSearch" class="form-select">
+                            @if($mitraProfile)
+                                <option value="{{ $mitraProfile->id }}" selected>{{ $mitraProfile->nama }}{{ $mitraProfile->id_sobat ? ' (' . $mitraProfile->id_sobat . ')' : '' }}</option>
+                            @else
+                                <option value="">Ketik nama / ID Sobat Mitra...</option>
+                            @endif
+                        </select>
+                        @if($mitraProfile)
+                            <a href="{{ route('dashboard', array_filter(['tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'bidang_id' => $bidangId, 'kegiatan_id' => $kegiatanId])) }}" class="btn btn-outline-secondary" title="Hapus Filter Mitra"><i class="bi bi-x-circle-fill"></i> Reset</a>
+                        @endif
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
     <div class="card-body p-4">
-        <div class="row g-3 mb-4">
-            <div class="col-md-3">
-                <div class="border p-3 rounded-3">
-                    <div class="text-muted small">ID Sobat</div>
-                    <div class="fw-bold text-dark">{{ $mitraProfile->id_sobat ?? '-' }}</div>
+        @if($mitraProfile)
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="border p-3 rounded-3">
+                        <div class="text-muted small">ID Sobat</div>
+                        <div class="fw-bold text-dark">{{ $mitraProfile->id_sobat ?? '-' }}</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border p-3 rounded-3">
+                        <div class="text-muted small">No. HP</div>
+                        <div class="fw-bold text-dark">{{ $mitraProfile->no_hp ?? '-' }}</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border p-3 rounded-3">
+                        <div class="text-muted small">Bidang / Tim</div>
+                        <div class="fw-bold text-dark">{{ $user->role === 'admin' ? ($workloadKegiatans->first()?->kegiatan->bidang->nama ?? '-') : ($user->bidang->nama ?? '-') }}</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border p-3 rounded-3 bg-success bg-opacity-10 border-success border-opacity-25">
+                        <div class="text-muted small">Estimasi Total Honor</div>
+                        <div class="fw-extrabold text-success fs-5">Rp {{ number_format($estimasiHonor, 0, ',', '.') }}</div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="border p-3 rounded-3">
-                    <div class="text-muted small">No. HP</div>
-                    <div class="fw-bold text-dark">{{ $mitraProfile->no_hp ?? '-' }}</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="border p-3 rounded-3">
-                    <div class="text-muted small">Bidang / Tim</div>
-                    <div class="fw-bold text-dark">{{ $user->role === 'admin' ? ($workloadKegiatans->first()?->kegiatan->bidang->nama ?? '-') : ($user->bidang->nama ?? '-') }}</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="border p-3 rounded-3 bg-success bg-opacity-10 border-success border-opacity-25">
-                    <div class="text-muted small">Estimasi Total Honor</div>
-                    <div class="fw-extrabold text-success fs-5">Rp {{ number_format($estimasiHonor, 0, ',', '.') }}</div>
-                </div>
-            </div>
-        </div>
 
-        @if($workloadKegiatans->isEmpty())
-            <div class="alert alert-light border text-center py-4 mb-0">
-                <i class="bi bi-inbox fs-2 d-block text-muted mb-2"></i>
-                Tidak ada alokasi pekerjaan untuk {{ $mitraProfile->nama }} pada rentang terpilih.
+            @if($workloadKegiatans->isEmpty())
+                <div class="alert alert-light border text-center py-4 mb-0">
+                    <i class="bi bi-inbox fs-2 d-block text-muted mb-2"></i>
+                    Tidak ada alokasi pekerjaan untuk <strong>{{ $mitraProfile->nama }}</strong> pada rentang terpilih.
+                </div>
+            @else
+            <div class="table-responsive mb-4">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3" style="width:50px;">NO</th>
+                            <th>NAMA KEGIATAN</th>
+                            <th>KODE MAK</th>
+                            <th>BIDANG</th>
+                            <th class="text-center">BULAN</th>
+                            <th class="text-end pe-3">TOTAL HONOR</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($workloadKegiatans as $i => $wk)
+                        <tr>
+                            <td class="ps-3 text-muted fw-semibold">{{ $i + 1 }}</td>
+                            <td class="fw-bold text-dark">{{ $wk->kegiatan->nama ?? '-' }}</td>
+                            <td>
+                                @if($wk->kegiatan->kode_mata_anggaran)
+                                    <code class="px-2 py-0.5 bg-light border rounded text-dark small">{{ $wk->kegiatan->kode_mata_anggaran }}</code>
+                                @else <span class="text-muted small">-</span> @endif
+                            </td>
+                            <td><span class="badge badge-soft-info">{{ $wk->kegiatan->bidang->nama ?? '-' }}</span></td>
+                            <td class="text-center">
+                                <span class="badge badge-soft-primary">{{ $wk->list->map(fn($a) => $a->periode->bulan)->implode(', ') }}</span>
+                            </td>
+                            <td class="text-end pe-3 fw-extrabold text-success">Rp {{ number_format($wk->honor, 0, ',', '.') }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-light">
+                            <td colspan="5" class="text-end fw-bold pe-3">TOTAL</td>
+                            <td class="text-end pe-3 fw-extrabold text-success">Rp {{ number_format($estimasiHonor, 0, ',', '.') }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
+
+            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-calendar3 text-primary me-1"></i>Matriks Honor per Bulan</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">BULAN</th>
+                            @foreach($workloadMonths as $wm)
+                                <th class="text-center">{{ $wm->bulan }}</th>
+                            @endforeach
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="ps-3 fw-bold">Realisasi Honor</td>
+                            @foreach($workloadMonths as $wm)
+                                <td class="text-center text-success fw-bold">Rp {{ number_format($wm->honor, 0, ',', '.') }}</td>
+                            @endforeach
+                        </tr>
+                        <tr>
+                            <td class="ps-3 fw-bold">Kapasitas SBML</td>
+                            @foreach($workloadMonths as $wm)
+                                <td class="text-center">Rp {{ number_format($wm->sbml, 0, ',', '.') }}</td>
+                            @endforeach
+                        </tr>
+                        <tr>
+                            <td class="ps-3 fw-bold">Sisa</td>
+                            @foreach($workloadMonths as $wm)
+                                <td class="text-center {{ $wm->sisa < 0 ? 'text-danger fw-bold' : 'text-muted' }}">Rp {{ number_format($wm->sisa, 0, ',', '.') }}</td>
+                            @endforeach
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            @endif
         @else
-        <div class="table-responsive mb-4">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th class="ps-3" style="width:50px;">NO</th>
-                        <th>NAMA KEGIATAN</th>
-                        <th>KODE MAK</th>
-                        <th>BIDANG</th>
-                        <th class="text-center">BULAN</th>
-                        <th class="text-end pe-3">TOTAL HONOR</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($workloadKegiatans as $i => $wk)
-                    <tr>
-                        <td class="ps-3 text-muted fw-semibold">{{ $i + 1 }}</td>
-                        <td class="fw-bold text-dark">{{ $wk->kegiatan->nama ?? '-' }}</td>
-                        <td>
-                            @if($wk->kegiatan->kode_mata_anggaran)
-                                <code class="px-2 py-0.5 bg-light border rounded text-dark small">{{ $wk->kegiatan->kode_mata_anggaran }}</code>
-                            @else <span class="text-muted small">-</span> @endif
-                        </td>
-                        <td><span class="badge badge-soft-info">{{ $wk->kegiatan->bidang->nama ?? '-' }}</span></td>
-                        <td class="text-center">
-                            <span class="badge badge-soft-primary">{{ $wk->list->map(fn($a) => $a->periode->bulan)->implode(', ') }}</span>
-                        </td>
-                        <td class="text-end pe-3 fw-extrabold text-success">Rp {{ number_format($wk->honor, 0, ',', '.') }}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
-                <tfoot>
-                    <tr class="table-light">
-                        <td colspan="5" class="text-end fw-bold pe-3">TOTAL</td>
-                        <td class="text-end pe-3 fw-extrabold text-success">Rp {{ number_format($estimasiHonor, 0, ',', '.') }}</td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-
-        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-calendar3 text-primary me-1"></i>Matriks Honor per Bulan</h6>
-        <div class="table-responsive">
-            <table class="table table-sm table-bordered align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th class="ps-3">BULAN</th>
-                        @foreach($workloadMonths as $wm)
-                            <th class="text-center">{{ $wm->bulan }}</th>
-                        @endforeach
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="ps-3 fw-bold">Realisasi Honor</td>
-                        @foreach($workloadMonths as $wm)
-                            <td class="text-center text-success fw-bold">Rp {{ number_format($wm->honor, 0, ',', '.') }}</td>
-                        @endforeach
-                    </tr>
-                    <tr>
-                        <td class="ps-3 fw-bold">Kapasitas SBML</td>
-                        @foreach($workloadMonths as $wm)
-                            <td class="text-center">Rp {{ number_format($wm->sbml, 0, ',', '.') }}</td>
-                        @endforeach
-                    </tr>
-                    <tr>
-                        <td class="ps-3 fw-bold">Sisa</td>
-                        @foreach($workloadMonths as $wm)
-                            <td class="text-center {{ $wm->sisa < 0 ? 'text-danger fw-bold' : 'text-muted' }}">Rp {{ number_format($wm->sisa, 0, ',', '.') }}</td>
-                        @endforeach
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+            <div class="text-center py-4 text-muted">
+                <i class="bi bi-person-search fs-1 d-block mb-2 text-primary text-opacity-50"></i>
+                <div class="fw-bold text-dark">Pencarian Beban Kerja Mitra</div>
+                <div class="small">Ketik nama atau ID Sobat mitra pada kotak pencarian di atas untuk melihat detail beban kerja & matriks honor per bulan.</div>
+            </div>
         @endif
-    </div>
-</div>
-@endif
-
-<!-- ========================================== -->
-<!-- TRANSAKSI TERBARU (TERFILTER)               -->
-<!-- ========================================== -->
-<div class="card border-0 shadow-sm">
-    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-        <div>
-            <h6 class="fw-bold text-dark mb-0"><i class="bi bi-list-stars text-primary me-2"></i>Transaksi Terbaru</h6>
-            <p class="text-muted small mb-0">10 transaksi honor terakhir sesuai filter</p>
-        </div>
-        <a href="{{ route('monitoring.index') }}" class="btn btn-sm btn-outline-primary">Lihat Semua Transaksi</a>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th class="ps-3" style="width: 50px;">NO</th>
-                        <th>NAMA MITRA</th>
-                        <th>PERIODE</th>
-                        <th>KEGIATAN / MATA ANGGARAN</th>
-                        <th>BIDANG</th>
-                        <th class="text-end pe-3">NOMINAL HONOR</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($latestTransaksis as $idx => $t)
-                    <tr>
-                        <td class="ps-3 text-muted fw-semibold">{{ $idx + 1 }}</td>
-                        <td>
-                            <div class="fw-bold text-dark">{{ $t->mitra->nama ?? '-' }}</div>
-                            @if($t->mitra->id_sobat)<span class="text-muted small">ID: {{ $t->mitra->id_sobat }}</span>@endif
-                        </td>
-                        <td><span class="badge badge-soft-primary"><i class="bi bi-calendar-event me-1"></i>{{ $t->periode->bulan ?? '' }} {{ $t->periode->tahun ?? '' }}</span></td>
-                        <td class="fw-semibold text-slate-700">{{ $t->kegiatan->nama ?? '-' }}</td>
-                        <td><span class="badge badge-soft-info">{{ $t->kegiatan->bidang->nama ?? '-' }}</span></td>
-                        <td class="text-end pe-3 fw-extrabold text-success">Rp {{ number_format($t->nominal, 0, ',', '.') }}</td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="6" class="text-center text-muted py-4">Belum ada transaksi sesuai filter.</td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
     </div>
 </div>
 
