@@ -27,7 +27,31 @@ class DashboardController extends Controller
 
         // ===== Filter =====
         $tahunList = Periode::select('tahun')->distinct()->orderBy('tahun', 'desc')->pluck('tahun');
-        $defaultTahun = $tahunList->first() ?? date('Y');
+        
+        $kegiatanId = $request->kegiatan_id ?: null;
+        $mitraId = $request->mitra_id ?: null;
+        $searchMitra = trim($request->search_mitra ?? '');
+
+        if ($searchMitra !== '' && !$mitraId) {
+            $foundMitra = Mitra::where('nama', 'like', "%{$searchMitra}%")
+                ->orWhere('id_sobat', 'like', "%{$searchMitra}%")
+                ->first();
+            if ($foundMitra) {
+                $mitraId = $foundMitra->id;
+            }
+        }
+
+        // Tentukan default tahun pintar (utamakan tahun yang memiliki transaksi)
+        $defaultTahun = null;
+        if ($mitraId) {
+            $defaultTahun = Periode::whereHas('alokasiHonors', fn($q) => $q->where('mitra_id', $mitraId))
+                ->orderBy('tahun', 'desc')
+                ->value('tahun');
+        }
+        if (!$defaultTahun) {
+            $defaultTahun = Periode::whereHas('alokasiHonors')->orderBy('tahun', 'desc')->value('tahun') ?? $tahunList->first() ?? date('Y');
+        }
+
         $tahun = $request->tahun ?? $defaultTahun;
 
         $monthOptions = [];
@@ -46,19 +70,6 @@ class DashboardController extends Controller
         $isOperatorScoped = ($user->role === 'operator' && $user->bidang_id);
         $bidangId = ($isOperatorScoped) ? $user->bidang_id : ($request->bidang_id ?? null);
         if ($bidangId === '' || $bidangId === 'all') $bidangId = null;
-
-        $kegiatanId = $request->kegiatan_id ?: null;
-        $mitraId = $request->mitra_id ?: null;
-        $searchMitra = trim($request->search_mitra ?? '');
-
-        if ($searchMitra !== '' && !$mitraId) {
-            $foundMitra = Mitra::where('nama', 'like', "%{$searchMitra}%")
-                ->orWhere('id_sobat', 'like', "%{$searchMitra}%")
-                ->first();
-            if ($foundMitra) {
-                $mitraId = $foundMitra->id;
-            }
-        }
 
         // Periode dalam rentang
         $periodeInRange = Periode::where('tahun', $tahun)
