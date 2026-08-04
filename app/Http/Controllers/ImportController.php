@@ -14,7 +14,7 @@ class ImportController extends Controller
     public function preview(Request $request)
     {
         ini_set('memory_limit', '-1');
-        set_time_limit(300);
+        set_time_limit(0);
 
         $request->validate(['file' => 'required|file|mimes:xlsx,xls']);
         
@@ -27,6 +27,7 @@ class ImportController extends Controller
         $file->move($importsDir, $filename);
         $fullPath = $importsDir . DIRECTORY_SEPARATOR . $filename;
 
+        \PhpOffice\PhpSpreadsheet\Calculation\Calculation::getInstance()->disableCalculationEngine();
         $reader = IOFactory::createReaderForFile($fullPath);
         $reader->setReadDataOnly(true);
         $spreadsheet = $reader->load($fullPath);
@@ -44,7 +45,7 @@ class ImportController extends Controller
     public function process(Request $request)
     {
         ini_set('memory_limit', '-1');
-        set_time_limit(600);
+        set_time_limit(0);
 
         $request->validate(['path' => 'required|string']);
         
@@ -82,6 +83,7 @@ class ImportController extends Controller
             $bidangMap[strtolower($b)] = $allBidang[$b] ?? \App\Models\Bidang::create(['nama' => $b])->id;
         }
         
+        \PhpOffice\PhpSpreadsheet\Calculation\Calculation::getInstance()->disableCalculationEngine();
         $reader = IOFactory::createReaderForFile($fullPath);
         $reader->setReadDataOnly(true);
         $spreadsheet = $reader->load($fullPath);

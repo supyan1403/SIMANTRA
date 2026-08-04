@@ -20,7 +20,7 @@ class ImportMantraCommand extends Command
     public function handle()
     {
         ini_set('memory_limit', '-1');
-        set_time_limit(900);
+        set_time_limit(0);
 
         $filePath = $this->argument('path') ?? base_path('1. Input MANTRA (Monitoring Alokasi Pekerjaan Dan Honor Mitra) oleh PJ Kegiatan atau Ketua Tim - Update3.xlsx.xlsx');
 
@@ -30,7 +30,10 @@ class ImportMantraCommand extends Command
         }
 
         $this->info("Membaca file Excel MANTRA: {$filePath}...");
-        $spreadsheet = IOFactory::load($filePath);
+        \PhpOffice\PhpSpreadsheet\Calculation\Calculation::getInstance()->disableCalculationEngine();
+        $reader = IOFactory::createReaderForFile($filePath);
+        $reader->setReadDataOnly(true);
+        $spreadsheet = $reader->load($filePath);
 
         $bulanMap = [
             'JANUARI' => ['bulan' => 'Januari', 'angka' => 1],
@@ -77,13 +80,13 @@ class ImportMantraCommand extends Command
                         $this->info("Mengimpor data SOBAT ID & No HP dari sheet {$sName}...");
                         $mHighestRow = $mitraSheet->getHighestRow();
                         for ($mr = 3; $mr <= $mHighestRow; $mr++) {
-                            $mNama = trim((string)$mitraSheet->getCell('B' . $mr)->getCalculatedValue());
+                            $mNama = trim((string)$mitraSheet->getCell('B' . $mr)->getValue());
                             if (empty($mNama) || $mNama === 'Nama') continue;
 
-                            $mAlamat = trim((string)$mitraSheet->getCell('C' . $mr)->getCalculatedValue());
-                            $mPekerjaan = trim((string)$mitraSheet->getCell('E' . $mr)->getCalculatedValue());
-                            $mNoHp = trim((string)$mitraSheet->getCell('Y' . $mr)->getCalculatedValue());
-                            $mSobatId = trim((string)$mitraSheet->getCell('AJ' . $mr)->getCalculatedValue());
+                            $mAlamat = trim((string)$mitraSheet->getCell('C' . $mr)->getValue());
+                            $mPekerjaan = trim((string)$mitraSheet->getCell('E' . $mr)->getValue());
+                            $mNoHp = trim((string)$mitraSheet->getCell('Y' . $mr)->getValue());
+                            $mSobatId = trim((string)$mitraSheet->getCell('AJ' . $mr)->getValue());
 
                             $existingMitra = Mitra::where('nama', $mNama)->first();
                             if ($existingMitra) {
@@ -126,16 +129,16 @@ class ImportMantraCommand extends Command
                 $highestRow = $sheet->getHighestRow();
 
                 for ($row = 7; $row <= $highestRow; $row++) {
-                    $no = trim($sheet->getCell('A' . $row)->getCalculatedValue() ?? '');
+                    $no = trim((string)($sheet->getCell('A' . $row)->getValue() ?? ''));
                     if (empty($no) || !is_numeric($no)) continue;
 
-                    $namaMitra = trim($sheet->getCell('B' . $row)->getCalculatedValue() ?? '');
+                    $namaMitra = trim((string)($sheet->getCell('B' . $row)->getValue() ?? ''));
                     if (empty($namaMitra)) continue;
 
-                    $alamat = trim($sheet->getCell('C' . $row)->getCalculatedValue() ?? '');
-                    $pekerjaan = trim($sheet->getCell('D' . $row)->getCalculatedValue() ?? '');
-                    $kodeAlamat = trim($sheet->getCell('E' . $row)->getCalculatedValue() ?? '');
-                    $jkRaw = trim($sheet->getCell('F' . $row)->getCalculatedValue() ?? '');
+                    $alamat = trim((string)($sheet->getCell('C' . $row)->getValue() ?? ''));
+                    $pekerjaan = trim((string)($sheet->getCell('D' . $row)->getValue() ?? ''));
+                    $kodeAlamat = trim((string)($sheet->getCell('E' . $row)->getValue() ?? ''));
+                    $jkRaw = trim((string)($sheet->getCell('F' . $row)->getValue() ?? ''));
                     $jk = ($jkRaw == '1' || strtolower($jkRaw) == 'l') ? 'L' : (($jkRaw == '2' || strtolower($jkRaw) == 'p') ? 'P' : null);
 
                     $mitra = Mitra::firstOrCreate(
@@ -146,11 +149,11 @@ class ImportMantraCommand extends Command
                     $totalMitraCount++;
 
                     // Honor & Kegiatan
-                    $totalHonorRaw = $sheet->getCell('G' . $row)->getCalculatedValue() ?? 0;
+                    $totalHonorRaw = $sheet->getCell('G' . $row)->getValue() ?? 0;
                     $totalHonor = is_numeric($totalHonorRaw) ? floatval($totalHonorRaw) : 0;
 
-                    $namaKegiatanRaw = trim($sheet->getCell('I' . $row)->getCalculatedValue() ?? '');
-                    $makRaw = trim($sheet->getCell('J' . $row)->getCalculatedValue() ?? '');
+                    $namaKegiatanRaw = trim((string)($sheet->getCell('I' . $row)->getValue() ?? ''));
+                    $makRaw = trim((string)($sheet->getCell('J' . $row)->getValue() ?? ''));
 
                     if (!empty($namaKegiatanRaw) && $totalHonor > 0) {
                         $kegiatanItems = array_filter(array_map('trim', explode(';', $namaKegiatanRaw)));
@@ -161,10 +164,10 @@ class ImportMantraCommand extends Command
 
                         // Determine Bidang
                         $targetBidang = $bidangDistribusi;
-                        $honorL = floatval($sheet->getCell('L' . $row)->getCalculatedValue() ?? 0);
-                        $honorM = floatval($sheet->getCell('M' . $row)->getCalculatedValue() ?? 0);
-                        $honorN = floatval($sheet->getCell('N' . $row)->getCalculatedValue() ?? 0);
-                        $honorO = floatval($sheet->getCell('O' . $row)->getCalculatedValue() ?? 0);
+                        $honorL = floatval($sheet->getCell('L' . $row)->getValue() ?? 0);
+                        $honorM = floatval($sheet->getCell('M' . $row)->getValue() ?? 0);
+                        $honorN = floatval($sheet->getCell('N' . $row)->getValue() ?? 0);
+                        $honorO = floatval($sheet->getCell('O' . $row)->getValue() ?? 0);
 
                         if ($honorL > 0) $targetBidang = $bidangNeraca;
                         elseif ($honorM > 0) $targetBidang = $bidangProduksi;
@@ -203,8 +206,26 @@ class ImportMantraCommand extends Command
                     }
 
                     // SBML Pencacahan & Pengolahan
-                    $sbmlPencacahan = $sheet->getCell('BO' . $row)->getCalculatedValue() ?? 0;
-                    $sbmlPengolahan = $sheet->getCell('BS' . $row)->getCalculatedValue() ?? 0;
+                    $sbmlPencacahan = $sheet->getCell('BO' . $row)->getValue() ?? 0;
+                    $sbmlPengolahan = $sheet->getCell('BS' . $row)->getValue() ?? 0;
+
+                    $sbmlPencacahanVal = is_numeric($sbmlPencacahan) ? floatval($sbmlPencacahan) : 0;
+                    $sbmlPengolahanVal = is_numeric($sbmlPengolahan) ? floatval($sbmlPengolahan) : 0;
+
+                    if ($sbmlPencacahanVal > 0) {
+                        Sbml::updateOrCreate(
+                            ['mitra_id' => $mitra->id, 'periode_id' => $periode->id, 'jenis' => 'Pencacahan'],
+                            ['nominal' => $sbmlPencacahanVal]
+                        );
+                    }
+                    if ($sbmlPengolahanVal > 0) {
+                        Sbml::updateOrCreate(
+                            ['mitra_id' => $mitra->id, 'periode_id' => $periode->id, 'jenis' => 'Pengolahan'],
+                            ['nominal' => $sbmlPengolahanVal]
+                        );
+                    }
+                }
+            }
 
                     $sbmlPencacahanVal = is_numeric($sbmlPencacahan) ? floatval($sbmlPencacahan) : 0;
                     $sbmlPengolahanVal = is_numeric($sbmlPengolahan) ? floatval($sbmlPengolahan) : 0;
