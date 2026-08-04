@@ -39,5 +39,12 @@ class DatabaseSeeder extends Seeder
         foreach ($bidangs as $nama) {
             Bidang::firstOrCreate(['nama' => $nama]);
         }
+
+        // Auto-import MANTRA Excel Data automatically during db:seed / migrate:fresh --seed
+        if (class_exists(\App\Console\Commands\ImportMantraCommand::class)) {
+            try {
+                Artisan::call('mantra:import');
+            } catch (\Throwable $e) {}
+        }
     }
 }

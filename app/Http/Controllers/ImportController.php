@@ -172,18 +172,18 @@ class ImportController extends Controller
                     $jk = trim((string)($this->getCellValue($sheet->getCell('F'.$row)) ?? ''));
                     $jk = ($jk == '1') ? 'L' : (($jk == '2') ? 'P' : $jk);
                     
-                    $cleanAlamat = (!empty($alamat) && !str_starts_with($alamat, '=')) ? $alamat : null;
-                    $cleanPekerjaan = (!empty($pekerjaan) && !str_starts_with($pekerjaan, '=')) ? $pekerjaan : null;
+                    $cleanAlamat = (!empty($alamat) && !str_starts_with($alamat, '=') && !str_contains($alamat, '#')) ? $alamat : null;
+                    $cleanPekerjaan = (!empty($pekerjaan) && !str_starts_with($pekerjaan, '=') && !str_contains($pekerjaan, '#')) ? $pekerjaan : null;
 
                     $mitra = \App\Models\Mitra::firstOrCreate(
                         ['nama' => $namaMitra],
                         ['alamat' => $cleanAlamat, 'pekerjaan' => $cleanPekerjaan, 'kode_alamat' => $kodeAlamat, 'jk' => $jk]
                     );
                     
-                    if ($mitra->pekerjaan && str_starts_with($mitra->pekerjaan, '=')) {
+                    if ($cleanPekerjaan && (empty($mitra->pekerjaan) || str_starts_with($mitra->pekerjaan, '=') || str_contains($mitra->pekerjaan, '#'))) {
                         $mitra->update(['pekerjaan' => $cleanPekerjaan]);
                     }
-                    if ($mitra->alamat && str_starts_with($mitra->alamat, '=')) {
+                    if ($cleanAlamat && (empty($mitra->alamat) || str_starts_with($mitra->alamat, '=') || str_contains($mitra->alamat, '#'))) {
                         $mitra->update(['alamat' => $cleanAlamat]);
                     }
 
