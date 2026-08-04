@@ -136,16 +136,14 @@
     <table style="width: 100%; border: none; margin-top: 35px; border-collapse: collapse;">
         <tr valign="top">
             <td style="width: 50%; text-align: center; border: none; padding: 0;">
-                <p style="margin: 0 0 6px 0;"><strong>PIHAK KEDUA,</strong></p>
-                <div style="border: 1px dashed #777; width: 80px; height: 48px; margin: 0 auto 12px auto; font-size: 8pt; display: flex; align-items: center; justify-content: center; color: #555;">Materai<br>10.000</div>
+                <p style="margin: 0 0 8px 0;"><strong>PIHAK KEDUA,</strong></p>
+                <div style="border: 1px dashed #777; width: 80px; height: 48px; margin: 0 auto 15px auto; font-size: 8pt; display: flex; align-items: center; justify-content: center; color: #555;">Materai<br>10.000</div>
                 <p style="margin: 0; font-weight: normal;"><u>{{ strtoupper($b->mitra->nama) }}</u></p>
-                <div style="font-size: 9pt; color: #555; margin-top: 2px;">ID SOBAT: {{ $b->mitra->id_sobat ?? '-' }}</div>
             </td>
             <td style="width: 50%; text-align: center; border: none; padding: 0;">
-                <p style="margin: 0 0 6px 0;"><strong>PIHAK PERTAMA,</strong></p>
-                <div style="height: 66px;"></div>
+                <p style="margin: 0 0 8px 0;"><strong>PIHAK PERTAMA,</strong></p>
+                <div style="height: 73px;"></div>
                 <p style="margin: 0; font-weight: normal;"><u>Dindin Muldiana, S.ST. MP.</u></p>
-                <div style="font-size: 9pt; color: #555; margin-top: 2px;">NIP. 19800101 200212 1 001</div>
             </td>
         </tr>
     </table>
@@ -226,16 +224,14 @@
     <table style="width: 100%; border: none; margin-top: 20px; border-collapse: collapse;">
         <tr valign="top">
             <td style="width: 50%; text-align: center; border: none; padding: 0;">
-                <p style="margin: 0 0 6px 0;"><strong>PIHAK KEDUA,</strong></p>
-                <div style="height: 55px;"></div>
+                <p style="margin: 0 0 8px 0;"><strong>PIHAK KEDUA,</strong></p>
+                <div style="height: 60px;"></div>
                 <p style="margin: 0; font-weight: normal;"><u>{{ strtoupper($b->mitra->nama) }}</u></p>
-                <div style="font-size: 9pt; color: #555; margin-top: 2px;">ID SOBAT: {{ $b->mitra->id_sobat ?? '-' }}</div>
             </td>
             <td style="width: 50%; text-align: center; border: none; padding: 0;">
-                <p style="margin: 0 0 6px 0;"><strong>PIHAK PERTAMA,</strong></p>
-                <div style="height: 55px;"></div>
+                <p style="margin: 0 0 8px 0;"><strong>PIHAK PERTAMA,</strong></p>
+                <div style="height: 60px;"></div>
                 <p style="margin: 0; font-weight: normal;"><u>Dindin Muldiana, S.ST. MP.</u></p>
-                <div style="font-size: 9pt; color: #555; margin-top: 2px;">NIP. 19800101 200212 1 001</div>
             </td>
         </tr>
     </table>
