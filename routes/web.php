@@ -39,6 +39,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/rekap', [RekapController::class, 'index'])->name('rekap.index');
     Route::get('/rekap/export', [RekapController::class, 'export'])->name('rekap.export');
 
+    // Modul Cetak SPK
+    Route::get('/spk', [\App\Http\Controllers\SpkController::class, 'index'])->name('spk.index');
+    Route::get('/spk/{mitra}/cetak-utama', [\App\Http\Controllers\SpkController::class, 'cetakUtama'])->name('spk.cetak-utama');
+    Route::get('/spk/{mitra}/cetak-lampiran', [\App\Http\Controllers\SpkController::class, 'cetakLampiran'])->name('spk.cetak-lampiran');
+
     Route::get('/import', [ImportController::class, 'index'])->name('import.index');
     Route::post('/import/preview', [ImportController::class, 'preview'])->name('import.preview');
     Route::post('/import/process', [ImportController::class, 'process'])->name('import.process');

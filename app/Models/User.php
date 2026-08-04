@@ -24,11 +24,20 @@ class User extends Authenticatable
         'password',
         'role',
         'bidang_id',
+        'foto_profil',
     ];
 
     public function bidang()
     {
         return $this->belongsTo(Bidang::class);
+    }
+
+    public function getFotoProfilUrlAttribute()
+    {
+        if ($this->foto_profil && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->foto_profil)) {
+            return asset('storage/' . $this->foto_profil);
+        }
+        return null;
     }
 
     /**

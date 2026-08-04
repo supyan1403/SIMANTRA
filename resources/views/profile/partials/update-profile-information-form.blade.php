@@ -13,9 +13,27 @@
         @csrf
     </form>
 
-    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
+    <form method="post" action="{{ route('profile.update') }}" enctype="multipart/form-data" class="mt-6 space-y-6">
         @csrf
         @method('patch')
+
+        <div>
+            <x-input-label for="foto_profil" :value="__('Foto Profil Operator')" />
+            <div class="mt-2 flex items-center gap-4">
+                <div class="w-16 h-16 rounded-full overflow-hidden bg-gray-100 border border-gray-300 flex items-center justify-center flex-shrink-0">
+                    @if($user->foto_profil_url)
+                        <img src="{{ $user->foto_profil_url }}" alt="{{ $user->name }}" class="w-full h-full object-cover">
+                    @else
+                        <span class="text-xl font-bold text-gray-400">{{ strtoupper(substr($user->name, 0, 2)) }}</span>
+                    @endif
+                </div>
+                <div class="flex-1">
+                    <input id="foto_profil" name="foto_profil" type="file" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+                    <p class="mt-1 text-xs text-gray-500">Format: JPG, PNG, WEBP (Max: 2MB)</p>
+                </div>
+            </div>
+            <x-input-error class="mt-2" :messages="$errors->get('foto_profil')" />
+        </div>
 
         <div>
             <x-input-label for="name" :value="__('Name')" />

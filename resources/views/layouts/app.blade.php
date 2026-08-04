@@ -583,6 +583,11 @@
                 <span class="nav-text">Rekap Tahunan</span>
             </a>
 
+            <a href="{{ route('spk.index') }}" class="sidebar-link {{ request()->routeIs('spk.*') ? 'active' : '' }}" title="Cetak SPK">
+                <i class="bi bi-file-earmark-pdf-fill text-danger"></i>
+                <span class="nav-text">Cetak SPK</span>
+            </a>
+
             <div class="sidebar-group-title mt-3">Alat & Pengaturan</div>
 
             <a href="{{ route('import.index') }}" class="sidebar-link {{ request()->routeIs('import.*') ? 'active' : '' }}" title="Import Excel">
@@ -605,8 +610,12 @@
 
         <div class="sidebar-footer">
             <div class="user-card">
-                <div class="user-avatar-circle">
-                    {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                <div class="user-avatar-circle overflow-hidden p-0">
+                    @if(auth()->user()->foto_profil_url)
+                        <img src="{{ auth()->user()->foto_profil_url }}" alt="{{ auth()->user()->name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    @else
+                        {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                    @endif
                 </div>
                 <div class="user-info-text overflow-hidden me-auto">
                     <div class="fw-bold text-white text-truncate small" style="max-width: 120px;" title="{{ auth()->user()->name }}">{{ auth()->user()->name }}</div>
