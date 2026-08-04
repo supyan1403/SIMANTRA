@@ -319,7 +319,7 @@ class SpkController extends Controller
                 if ($tables->length >= 2) {
                     $tbl2 = $tables->item(1);
                     $rows = $xpath->query('.//w:tr', $tbl2);
-                    if (isset($rows->item(4))) { // Row 5 (Index 4) is 2nd activity item
+                    if ($rows->item(4) !== null) { // Row 5 (Index 4) is 2nd activity item
                         $cells = $xpath->query('.//w:tc', $rows->item(4));
                         foreach ($cells as $cIdx => $cell) {
                             if ($cIdx > 0) { // Keep row index '2', clear all other cells
