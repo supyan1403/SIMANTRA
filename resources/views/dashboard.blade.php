@@ -46,7 +46,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-6 col-md-2">
+            <div class="col-6 col-md-3">
                 <label class="form-label text-muted small fw-bold mb-1">BULAN AWAL</label>
                 <select name="bulan_awal" class="form-select px-2" onchange="this.form.submit()">
                     @foreach($monthOptions as $angka => $nm)
@@ -54,7 +54,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-6 col-md-2">
+            <div class="col-6 col-md-3">
                 <label class="form-label text-muted small fw-bold mb-1">BULAN AKHIR</label>
                 <select name="bulan_akhir" class="form-select px-2" onchange="this.form.submit()">
                     @foreach($monthOptions as $angka => $nm)
@@ -63,31 +63,12 @@
                 </select>
             </div>
             @if(!$isOperatorScoped)
-            <div class="col-6 col-md-2">
+            <div class="col-6 col-md-3">
                 <label class="form-label text-muted small fw-bold mb-1">BIDANG</label>
                 <select name="bidang_id" class="form-select px-2" onchange="this.form.submit()">
                     <option value="">Semua Bidang</option>
                     @foreach($bidangOptions as $b)
                         <option value="{{ $b->id }}" {{ $bidangId == $b->id ? 'selected' : '' }}>{{ $b->nama }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-12 col-md-3">
-                <label class="form-label text-muted small fw-bold mb-1">KEGIATAN</label>
-                <select name="kegiatan_id" class="form-select px-2" onchange="this.form.submit()">
-                    <option value="">Semua Kegiatan</option>
-                    @foreach($kegiatanOptions as $k)
-                        <option value="{{ $k->id }}" {{ $kegiatanId == $k->id ? 'selected' : '' }}>{{ $k->nama }}</option>
-                    @endforeach
-                </select>
-            </div>
-            @else
-            <div class="col-12 col-md-5">
-                <label class="form-label text-muted small fw-bold mb-1">KEGIATAN</label>
-                <select name="kegiatan_id" class="form-select px-2" onchange="this.form.submit()">
-                    <option value="">Semua Kegiatan</option>
-                    @foreach($kegiatanOptions as $k)
-                        <option value="{{ $k->id }}" {{ $kegiatanId == $k->id ? 'selected' : '' }}>{{ $k->nama }}</option>
                     @endforeach
                 </select>
             </div>
@@ -239,19 +220,24 @@
 <!-- ========================================== -->
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-white border-bottom py-3">
-        <div class="row align-items-center g-3">
-            <div class="col-md-6">
-                <h6 class="fw-bold text-dark mb-0"><i class="bi bi-person-workspace text-primary me-2"></i>Pencarian & Beban Kerja Mitra</h6>
-                <p class="text-muted small mb-0">Cari nama/ID Sobat mitra untuk melihat beban kerja & estimasi honor</p>
-            </div>
-            <div class="col-md-6">
-                <form method="GET" action="{{ route('dashboard') }}" id="searchMitraForm">
-                    <input type="hidden" name="tahun" value="{{ $tahun }}">
-                    <input type="hidden" name="bulan_awal" value="{{ $bulanAwal }}">
-                    <input type="hidden" name="bulan_akhir" value="{{ $bulanAkhir }}">
-                    @if($bidangId)<input type="hidden" name="bidang_id" value="{{ $bidangId }}">@endif
-                    @if($kegiatanId)<input type="hidden" name="kegiatan_id" value="{{ $kegiatanId }}">@endif
-                    
+        <form method="GET" action="{{ route('dashboard') }}" id="searchMitraForm">
+            <input type="hidden" name="tahun" value="{{ $tahun }}">
+            <input type="hidden" name="bulan_awal" value="{{ $bulanAwal }}">
+            <input type="hidden" name="bulan_akhir" value="{{ $bulanAkhir }}">
+            @if($bidangId)<input type="hidden" name="bidang_id" value="{{ $bidangId }}">@endif
+
+            <div class="row g-2 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label text-muted small fw-bold mb-1"><i class="bi bi-journal-check text-primary me-1"></i>FILTER KEGIATAN</label>
+                    <select name="kegiatan_id" class="form-select px-2" onchange="this.form.submit()">
+                        <option value="">Semua Kegiatan</option>
+                        @foreach($kegiatanOptions as $k)
+                            <option value="{{ $k->id }}" {{ $kegiatanId == $k->id ? 'selected' : '' }}>{{ $k->nama }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-7">
+                    <label class="form-label text-muted small fw-bold mb-1"><i class="bi bi-person-search text-primary me-1"></i>CARI MITRA (LIVE)</label>
                     <div class="input-group">
                         <select name="mitra_id" id="selectMitraSearch" class="form-select">
                             @if($mitraProfile)
@@ -260,13 +246,13 @@
                                 <option value="">Ketik nama / ID Sobat Mitra...</option>
                             @endif
                         </select>
-                        @if($mitraProfile)
-                            <a href="{{ route('dashboard', array_filter(['tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'bidang_id' => $bidangId, 'kegiatan_id' => $kegiatanId])) }}" class="btn btn-outline-secondary" title="Hapus Filter Mitra"><i class="bi bi-x-circle-fill"></i> Reset</a>
+                        @if($mitraProfile || $kegiatanId)
+                            <a href="{{ route('dashboard', array_filter(['tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'bidang_id' => $bidangId])) }}" class="btn btn-outline-secondary" title="Reset Filter Kegiatan & Mitra"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
                         @endif
                     </div>
-                </form>
+                </div>
             </div>
-        </div>
+        </form>
     </div>
     <div class="card-body p-4">
         @if($mitraProfile)

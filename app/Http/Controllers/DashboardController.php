@@ -79,25 +79,23 @@ class DashboardController extends Controller
 
         $periodeIds = $periodeInRange;
 
-        // ===== Scoping Honor (General Kumulatif) =====
+        // ===== Scoping Honor (General Kumulatif Macro) =====
         $honorQuery = fn() => AlokasiHonor::query()
             ->whereIn('periode_id', $periodeIds)
-            ->when($kegiatanId, fn($q) => $q->where('kegiatan_id', $kegiatanId))
-            ->when($bidangId && !$kegiatanId, fn($q) => $q->whereHas('kegiatan', fn($qq) => $qq->where('bidang_id', $bidangId)));
+            ->when($bidangId, fn($q) => $q->whereHas('kegiatan', fn($qq) => $qq->where('bidang_id', $bidangId)));
 
         $realisasiHonor = (float) $honorQuery()->sum('nominal');
         $totalTransaksi = $honorQuery()->count();
 
         // ===== Pagu Mata Anggaran (tahun = terpilih) =====
         $paguQuery = fn() => Kegiatan::where('tahun', $tahun)
-            ->when($bidangId, fn($q) => $q->where('bidang_id', $bidangId))
-            ->when($kegiatanId, fn($q) => $q->where('id', $kegiatanId));
+            ->when($bidangId, fn($q) => $q->where('bidang_id', $bidangId));
         $paguMataAnggaran = (float) $paguQuery()->sum('total');
         $sisaAnggaran = $paguMataAnggaran - $realisasiHonor;
 
         // ===== Kapasitas Honor (SBML General) =====
         $sbmlQuery = Sbml::query()->whereIn('periode_id', $periodeIds);
-        if ($bidangId || $kegiatanId) {
+        if ($bidangId) {
             $scopeMitraIds = collect($honorQuery()->pluck('mitra_id')->unique());
             $sbmlQuery->whereIn('mitra_id', $scopeMitraIds);
         }
@@ -116,8 +114,8 @@ class DashboardController extends Controller
             ->orderBy('nama')->get(['id', 'nama', 'kode_mata_anggaran']);
 
         // ===== Grafik (General Kumulatif) =====
-        $honorPerBulan = $this->honorPerBulan($periodeIds, $bulanAwal, $bulanAkhir, $bidangId, $kegiatanId, null);
-        $honorPerBidang = $this->honorPerBidang($periodeIds, null, $kegiatanId);
+        $honorPerBulan = $this->honorPerBulan($periodeIds, $bulanAwal, $bulanAkhir, $bidangId, null, null);
+        $honorPerBidang = $this->honorPerBidang($periodeIds, null, null);
 
         // ===== Statistik global =====
         $totalMitra = Mitra::count();
