@@ -256,6 +256,9 @@ class SpkController extends Controller
             $item2Sat = isset($items[1]) ? 'dokumen' : '';
             $item2Periode = isset($items[1]) ? $periodeLabel : '';
 
+            $pekerjaanVal = ($mitra->pekerjaan && !str_starts_with($mitra->pekerjaan, '=')) ? $mitra->pekerjaan : 'Lainnya/ Belum Bekerja';
+            $alamatVal = ($mitra->alamat && !str_starts_with($mitra->alamat, '=')) ? $mitra->alamat : 'Kabupaten Tasikmalaya';
+
             $replacements = [
                 // 1. Clean MERGEFIELD artifact text in Header Lampiran
                 'MERGEFIELD Nama_Petugas LINA KARLINA' => strtoupper($mitra->nama),
@@ -267,11 +270,11 @@ class SpkController extends Controller
                 '${NAMA_MITRA}' => strtoupper($mitra->nama),
                 '${NAMA}' => strtoupper($mitra->nama),
 
-                'Lainnya/ Belum Bekerja' => $mitra->pekerjaan ?? 'Lainnya/ Belum Bekerja',
-                '${PEKERJAAN}' => $mitra->pekerjaan ?? 'Lainnya/ Belum Bekerja',
+                'Lainnya/ Belum Bekerja' => $pekerjaanVal,
+                '${PEKERJAAN}' => $pekerjaanVal,
 
-                'Kp. Pameungpeuk RT/RW : 24/03 Desa Sukarasa Kec. Salawu' => $mitra->alamat ?? 'Kabupaten Tasikmalaya',
-                '${ALAMAT}' => $mitra->alamat ?? 'Kabupaten Tasikmalaya',
+                'Kp. Pameungpeuk RT/RW : 24/03 Desa Sukarasa Kec. Salawu' => $alamatVal,
+                '${ALAMAT}' => $alamatVal,
 
                 // 3. Document Numbering
                 '1001/PPK/SPK/03/2024' => $nomorDokumen,

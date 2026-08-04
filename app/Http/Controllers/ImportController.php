@@ -41,6 +41,22 @@ class ImportController extends Controller
         return view('import.preview', ['sheets' => $sheets, 'path' => $filename]);
     }
 
+    private function getCellValue($cell)
+    {
+        if (!$cell) return '';
+        $val = $cell->getValue();
+        if (is_string($val) && str_starts_with($val, '=')) {
+            try {
+                $oldVal = $cell->getOldCalculatedValue();
+                if ($oldVal !== null && (!is_string($oldVal) || !str_starts_with((string)$oldVal, '='))) {
+                    return $oldVal;
+                }
+            } catch (\Throwable $e) {}
+            return '';
+        }
+        return $val;
+    }
+
     public function process(Request $request)
     {
         ini_set('memory_limit', '-1');
@@ -97,29 +113,29 @@ class ImportController extends Controller
                     if ($mitraSheet) {
                         $mHighestRow = $mitraSheet->getHighestRow();
                         for ($mr = 3; $mr <= $mHighestRow; $mr++) {
-                            $mNama = trim((string)$mitraSheet->getCell('B' . $mr)->getValue());
+                            $mNama = trim((string)$this->getCellValue($mitraSheet->getCell('B' . $mr)));
                             if (empty($mNama) || $mNama === 'Nama') continue;
 
-                            $mAlamat = trim((string)$mitraSheet->getCell('C' . $mr)->getValue());
-                            $mPekerjaan = trim((string)$mitraSheet->getCell('E' . $mr)->getValue());
-                            $mNoHp = trim((string)$mitraSheet->getCell('Y' . $mr)->getValue());
-                            $mSobatId = trim((string)$mitraSheet->getCell('AJ' . $mr)->getValue());
+                            $mAlamat = trim((string)$this->getCellValue($mitraSheet->getCell('C' . $mr)));
+                            $mPekerjaan = trim((string)$this->getCellValue($mitraSheet->getCell('E' . $mr)));
+                            $mNoHp = trim((string)$this->getCellValue($mitraSheet->getCell('Y' . $mr)));
+                            $mSobatId = trim((string)$this->getCellValue($mitraSheet->getCell('AJ' . $mr)));
 
                             $existingMitra = \App\Models\Mitra::where('nama', $mNama)->first();
                             if ($existingMitra) {
                                 $existingMitra->update(array_filter([
                                     'id_sobat' => $mSobatId ?: $existingMitra->id_sobat,
                                     'no_hp' => $mNoHp ?: $existingMitra->no_hp,
-                                    'alamat' => $mAlamat ?: $existingMitra->alamat,
-                                    'pekerjaan' => $mPekerjaan ?: $existingMitra->pekerjaan,
+                                    'alamat' => ($mAlamat && !str_starts_with($mAlamat, '=')) ? $mAlamat : $existingMitra->alamat,
+                                    'pekerjaan' => ($mPekerjaan && !str_starts_with($mPekerjaan, '=')) ? $mPekerjaan : $existingMitra->pekerjaan,
                                 ]));
                             } else {
                                 \App\Models\Mitra::create([
                                     'nama' => $mNama,
                                     'id_sobat' => $mSobatId ?: null,
                                     'no_hp' => $mNoHp ?: null,
-                                    'alamat' => $mAlamat ?: null,
-                                    'pekerjaan' => $mPekerjaan ?: null,
+                                    'alamat' => ($mAlamat && !str_starts_with($mAlamat, '=')) ? $mAlamat : null,
+                                    'pekerjaan' => ($mPekerjaan && !str_starts_with($mPekerjaan, '=')) ? $mPekerjaan : null,
                                 ]);
                             }
                         }
@@ -144,24 +160,34 @@ class ImportController extends Controller
                 $highestRow = $sheet->getHighestRow();
                 
                 for ($row = 7; $row <= $highestRow; $row++) {
-                    $no = trim($sheet->getCell('A'.$row)->getValue() ?? '');
+                    $no = trim((string)($this->getCellValue($sheet->getCell('A'.$row)) ?? ''));
                     if (empty($no) || !is_numeric($no)) continue;
                     
-                    $namaMitra = trim($sheet->getCell('B'.$row)->getValue() ?? '');
+                    $namaMitra = trim((string)($this->getCellValue($sheet->getCell('B'.$row)) ?? ''));
                     if (empty($namaMitra)) continue;
                     
-                    $alamat = trim($sheet->getCell('C'.$row)->getValue() ?? '');
-                    $pekerjaan = trim($sheet->getCell('D'.$row)->getValue() ?? '');
-                    $kodeAlamat = trim($sheet->getCell('E'.$row)->getValue() ?? '');
-                    $jk = trim($sheet->getCell('F'.$row)->getValue() ?? '');
+                    $alamat = trim((string)($this->getCellValue($sheet->getCell('C'.$row)) ?? ''));
+                    $pekerjaan = trim((string)($this->getCellValue($sheet->getCell('D'.$row)) ?? ''));
+                    $kodeAlamat = trim((string)($this->getCellValue($sheet->getCell('E'.$row)) ?? ''));
+                    $jk = trim((string)($this->getCellValue($sheet->getCell('F'.$row)) ?? ''));
                     $jk = ($jk == '1') ? 'L' : (($jk == '2') ? 'P' : $jk);
                     
+                    $cleanAlamat = (!empty($alamat) && !str_starts_with($alamat, '=')) ? $alamat : null;
+                    $cleanPekerjaan = (!empty($pekerjaan) && !str_starts_with($pekerjaan, '=')) ? $pekerjaan : null;
+
                     $mitra = \App\Models\Mitra::firstOrCreate(
                         ['nama' => $namaMitra],
-                        ['alamat' => $alamat, 'pekerjaan' => $pekerjaan, 'kode_alamat' => $kodeAlamat, 'jk' => $jk]
+                        ['alamat' => $cleanAlamat, 'pekerjaan' => $cleanPekerjaan, 'kode_alamat' => $kodeAlamat, 'jk' => $jk]
                     );
                     
-                    $namaKegiatan = trim($sheet->getCell('I'.$row)->getValue() ?? '');
+                    if ($mitra->pekerjaan && str_starts_with($mitra->pekerjaan, '=')) {
+                        $mitra->update(['pekerjaan' => $cleanPekerjaan]);
+                    }
+                    if ($mitra->alamat && str_starts_with($mitra->alamat, '=')) {
+                        $mitra->update(['alamat' => $cleanAlamat]);
+                    }
+
+                    $namaKegiatan = trim((string)($this->getCellValue($sheet->getCell('I'.$row)) ?? ''));
                     if (!empty($namaKegiatan) && !str_contains($namaKegiatan, '#REF!')) {
                         $kegiatanNames = explode(';', $namaKegiatan);
                         $kegiatanName = trim($kegiatanNames[0]);
