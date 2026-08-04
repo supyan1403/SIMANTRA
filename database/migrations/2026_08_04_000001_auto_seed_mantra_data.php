@@ -18,7 +18,7 @@ return new class extends Migration
 
         // Automatically seed/update database with MANTRA data on php artisan migrate
         try {
-            Artisan::call('mantra:import');
+            Artisan::call('db:seed', ['--force' => true]);
         } catch (\Throwable $e) {}
     }
 
