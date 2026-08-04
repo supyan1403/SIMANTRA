@@ -44,6 +44,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/spk/cetak-massal', [\App\Http\Controllers\SpkController::class, 'cetakMassal'])->name('spk.cetak-massal');
     Route::get('/spk/{mitra}/cetak-utama', [\App\Http\Controllers\SpkController::class, 'cetakUtama'])->name('spk.cetak-utama');
     Route::get('/spk/{mitra}/cetak-lampiran', [\App\Http\Controllers\SpkController::class, 'cetakLampiran'])->name('spk.cetak-lampiran');
+    Route::get('/spk/{mitra}/download-docx', [\App\Http\Controllers\SpkController::class, 'downloadDocx'])->name('spk.download-docx');
     Route::get('/spk-templates', [\App\Http\Controllers\SpkController::class, 'templateIndex'])->name('spk.templates.index');
     Route::post('/spk-templates', [\App\Http\Controllers\SpkController::class, 'templateStore'])->name('spk.templates.store');
     Route::delete('/spk-templates/{id}', [\App\Http\Controllers\SpkController::class, 'templateDestroy'])->name('spk.templates.destroy');

@@ -198,6 +198,93 @@ class SpkController extends Controller
         return view($viewName, compact('batchList', 'jenisDokumen', 'kategoriKegiatan', 'tahun', 'periodeLabel'));
     }
 
+    public function downloadDocx(Request $request, $mitraId)
+    {
+        $mitra = Mitra::findOrFail($mitraId);
+        $tahun = $request->tahun ?? date('Y');
+        $bulanAwal = (int) ($request->bulan_awal ?? 1);
+        $bulanAkhir = (int) ($request->bulan_akhir ?? 12);
+        $nomorAwal = (int) ($request->nomor_awal ?? 1);
+        $templateId = $request->template_id;
+
+        $periodeIds = Periode::where('tahun', $tahun)
+            ->where('bulan_angka', '>=', $bulanAwal)
+            ->where('bulan_angka', '<=', $bulanAkhir)
+            ->pluck('id');
+
+        $kegiatanId = $request->kegiatan_id ?: null;
+        $items = AlokasiHonor::with(['kegiatan.bidang', 'periode'])
+            ->where('mitra_id', $mitraId)
+            ->whereIn('periode_id', $periodeIds)
+            ->when($kegiatanId, fn($q) => $q->where('kegiatan_id', $kegiatanId))
+            ->get();
+
+        $totalHonor = (float) $items->sum('nominal');
+        $periodeLabel = $this->bulanNama[$bulanAwal] . ($bulanAwal !== $bulanAkhir ? ' s.d ' . $this->bulanNama[$bulanAkhir] : '') . ' ' . $tahun;
+        $nomorDokumen = sprintf("1001/PPK/SPK/%02d/%s", $bulanAwal, $tahun);
+
+        $templatePath = base_path('File SPK (Sumber -2).docx');
+        if ($templateId) {
+            $docTmpl = DocumentTemplate::find($templateId);
+            if ($docTmpl && $docTmpl->file_path && Storage::disk('public')->exists($docTmpl->file_path)) {
+                $templatePath = Storage::disk('public')->path($docTmpl->file_path);
+            }
+        }
+
+        if (!file_exists($templatePath)) {
+            return redirect()->back()->with('error', 'Berkas template DOCX rujukan tidak ditemukan.');
+        }
+
+        $tempFile = sys_get_temp_dir() . '/spk_' . time() . '_' . $mitra->id . '.docx';
+        copy($templatePath, $tempFile);
+
+        $zip = new \ZipArchive();
+        if ($zip->open($tempFile) === \ZipArchive::SUCCESS) {
+            $xml = $zip->getFromName('word/document.xml');
+
+            $replacements = [
+                'LINA KARLINA' => strtoupper($mitra->nama),
+                '${NAMA_MITRA}' => strtoupper($mitra->nama),
+                '${NAMA}' => strtoupper($mitra->nama),
+                'Lainnya/ Belum Bekerja' => $mitra->pekerjaan ?? 'Lainnya/ Belum Bekerja',
+                '${PEKERJAAN}' => $mitra->pekerjaan ?? 'Lainnya/ Belum Bekerja',
+                'Kp. Pameungpeuk RT/RW : 24/03 Desa Sukarasa Kec. Salawu' => $mitra->alamat ?? 'Kabupaten Tasikmalaya',
+                '${ALAMAT}' => $mitra->alamat ?? 'Kabupaten Tasikmalaya',
+                '1001/PPK/SPK/03/2024' => $nomorDokumen,
+                '${NOMOR_SPK}' => $nomorDokumen,
+                '1.160.000' => number_format($totalHonor, 0, ',', '.'),
+                '${TOTAL_HONOR}' => number_format($totalHonor, 0, ',', '.'),
+                'Satu Juta Seratus Enam Puluh Ribu Rupiah' => $this->terbilang($totalHonor),
+                '${TERBILANG}' => $this->terbilang($totalHonor),
+            ];
+
+            foreach ($replacements as $key => $val) {
+                $xml = str_replace($key, htmlspecialchars($val, ENT_XML1, 'UTF-8'), $xml);
+            }
+
+            $zip->addFromString('word/document.xml', $xml);
+            $zip->close();
+        }
+
+        $downloadName = 'SPK_' . preg_replace('/[^a-zA-Z0-9]/', '_', $mitra->nama) . '.docx';
+        return response()->download($tempFile, $downloadName)->deleteFileAfterSend(true);
+    }
+
+    private function terbilang($angka)
+    {
+        $angka = abs((float)$angka);
+        $baca = ['', 'Satu', 'Dua', 'Tiga', 'Empat', 'Lima', 'Enam', 'Tujuh', 'Delapan', 'Sembilan', 'Sepuluh', 'Sebelas'];
+        if ($angka < 12) return ' ' . $baca[(int)$angka];
+        if ($angka < 20) return $this->terbilang($angka - 10) . ' Belas';
+        if ($angka < 100) return $this->terbilang($angka / 10) . ' Puluh' . $this->terbilang($angka % 10);
+        if ($angka < 200) return ' Seratus' . $this->terbilang($angka - 100);
+        if ($angka < 1000) return $this->terbilang($angka / 100) . ' Ratus' . $this->terbilang($angka % 100);
+        if ($angka < 2000) return ' Seribu' . $this->terbilang($angka - 1000);
+        if ($angka < 1000000) return $this->terbilang($angka / 1000) . ' Ribu' . $this->terbilang($angka % 1000);
+        if ($angka < 1000000000) return $this->terbilang($angka / 1000000) . ' Juta' . $this->terbilang($angka % 1000000);
+        return trim((string)$angka) . ' Rupiah';
+    }
+
     public function templateIndex()
     {
         $templates = DocumentTemplate::orderBy('created_at', 'desc')->get();
