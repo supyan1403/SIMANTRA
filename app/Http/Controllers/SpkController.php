@@ -250,8 +250,11 @@ class SpkController extends Controller
             $item1Mak = isset($items[0]) ? ($items[0]->kegiatan->kode_mata_anggaran ?? '054.01.GG.2903.BMA.009.005.A.521213') : '';
 
             $item2Nama = isset($items[1]) ? $items[1]->kegiatan->nama : '';
-            $item2Nominal = isset($items[1]) ? 'Rp ' . number_format($items[1]->nominal, 0, ',', '.') : 'Rp 0';
-            $item2Mak = isset($items[1]) ? ($items[1]->kegiatan->kode_mata_anggaran ?? '054.01.GG.2903.BMA.009.005.A.521213') : '';
+            $item2Nominal = isset($items[1]) ? 'Rp ' . number_format($items[1]->nominal, 0, ',', '.') : '';
+            $item2Mak = isset($items[1]) ? ($items[1]->kegiatan->kode_mata_anggaran ?? '') : '';
+            $item2Vol = isset($items[1]) ? '1' : '';
+            $item2Sat = isset($items[1]) ? 'dokumen' : '';
+            $item2Periode = isset($items[1]) ? $periodeLabel : '';
 
             $replacements = [
                 // 1. Clean MERGEFIELD artifact text in Header Lampiran
@@ -280,7 +283,7 @@ class SpkController extends Controller
                 'Rp. 900.000, 00' => $item1Nominal,
                 '054.01.GG.2903.BMA.009.005.A.521213' => $item1Mak,
 
-                // 5. Annex Table Row 2 (Item 2)
+                // 5. Annex Table Row 2 (Item 2) - Cleared if only 1 item
                 'Pencacahan survei harga konsumen perdesaan (hkd) non pns' => $item2Nama,
                 'Rp. 65000,00' => $item2Nominal,
                 'Rp. 260.000, 00' => $item2Nominal,
@@ -293,10 +296,42 @@ class SpkController extends Controller
                 'Rp. 1.160.000,00' => 'Rp ' . $formattedTotalHonor,
                 'Rp. 1.160.000' => 'Rp ' . $formattedTotalHonor,
                 '${TOTAL_HONOR}' => 'Rp ' . $formattedTotalHonor,
+
+                // 7. Clean up default decimal values in empty rows
+                'Rp. ,00' => '',
+                'Rp., 00' => '',
+                'Rp. 00' => '',
+                'Rp.  00' => '',
             ];
 
             foreach ($replacements as $key => $val) {
                 $xml = str_replace($key, htmlspecialchars($val, ENT_XML1, 'UTF-8'), $xml);
+            }
+
+            // DOM manipulation to ensure Row 5 (Item 2) is completely blank if mitra has only 1 activity
+            if (!isset($items[1])) {
+                $dom = new \DOMDocument();
+                @$dom->loadXML($xml);
+                $xpath = new \DOMXPath($dom);
+                $xpath->registerNamespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main');
+
+                $tables = $xpath->query('//w:tbl');
+                if ($tables->length >= 2) {
+                    $tbl2 = $tables->item(1);
+                    $rows = $xpath->query('.//w:tr', $tbl2);
+                    if (isset($rows->item(4))) { // Row 5 (Index 4) is 2nd activity item
+                        $cells = $xpath->query('.//w:tc', $rows->item(4));
+                        foreach ($cells as $cIdx => $cell) {
+                            if ($cIdx > 0) { // Keep row index '2', clear all other cells
+                                $textNodes = $xpath->query('.//w:t', $cell);
+                                foreach ($textNodes as $tn) {
+                                    $tn->nodeValue = '';
+                                }
+                            }
+                        }
+                    }
+                }
+                $xml = $dom->saveXML();
             }
 
             $zip->addFromString('word/document.xml', $xml);

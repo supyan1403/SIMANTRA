@@ -200,11 +200,8 @@
                             </td>
                             <td class="text-center pe-3">
                                 <div class="btn-group btn-group-sm">
-                                    <a href="{{ route('spk.download-docx', array_filter(['mitra' => $spk->mitra_id, 'tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'kegiatan_id' => $kegiatanId, 'nomor_awal' => $nomorAwal + $idx])) }}" class="btn btn-outline-success fw-bold" title="Download Berkas DOCX Asli dari Template Word">
-                                        <i class="bi bi-file-earmark-word me-1"></i> DOCX
-                                    </a>
-                                    <a href="{{ route('spk.cetak-utama', array_filter(['mitra' => $spk->mitra_id, 'tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'kegiatan_id' => $kegiatanId, 'nomor_awal' => $nomorAwal + $idx])) }}" target="_blank" class="btn btn-outline-danger fw-bold" title="Cetak File Utama SPK">
-                                        <i class="bi bi-file-earmark-pdf me-1"></i> Utama
+                                    <a href="{{ route('spk.download-docx', array_filter(['mitra' => $spk->mitra_id, 'tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'kegiatan_id' => $kegiatanId, 'nomor_awal' => $nomorAwal + $idx])) }}" class="btn btn-outline-danger fw-bold" title="Generate & Download Berkas SPK Utama (DOCX Original Word)">
+                                        <i class="bi bi-file-earmark-word me-1"></i> Utama
                                     </a>
                                     <a href="{{ route('spk.cetak-lampiran', array_filter(['mitra' => $spk->mitra_id, 'tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'kegiatan_id' => $kegiatanId])) }}" target="_blank" class="btn btn-outline-primary fw-bold" title="Cetak Lampiran SPK">
                                         <i class="bi bi-paperclip me-1"></i> Lampiran
