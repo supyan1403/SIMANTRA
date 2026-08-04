@@ -227,24 +227,6 @@ class ImportMantraCommand extends Command
                 }
             }
 
-                    $sbmlPencacahanVal = is_numeric($sbmlPencacahan) ? floatval($sbmlPencacahan) : 0;
-                    $sbmlPengolahanVal = is_numeric($sbmlPengolahan) ? floatval($sbmlPengolahan) : 0;
-
-                    if ($sbmlPencacahanVal > 0) {
-                        Sbml::updateOrCreate(
-                            ['mitra_id' => $mitra->id, 'periode_id' => $periode->id, 'jenis' => 'Pencacahan'],
-                            ['nominal' => $sbmlPencacahanVal]
-                        );
-                    }
-                    if ($sbmlPengolahanVal > 0) {
-                        Sbml::updateOrCreate(
-                            ['mitra_id' => $mitra->id, 'periode_id' => $periode->id, 'jenis' => 'Pengolahan'],
-                            ['nominal' => $sbmlPengolahanVal]
-                        );
-                    }
-                }
-            }
-
             DB::commit();
             $this->info("Import BERHASIL! {$totalAlokasiCount} data alokasi honor dan mitra berhasil diimport ke seluruh Bidang.");
             return 0;
