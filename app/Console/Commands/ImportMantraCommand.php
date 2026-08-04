@@ -164,10 +164,10 @@ class ImportMantraCommand extends Command
                         ['alamat' => $cleanAlamat, 'pekerjaan' => $cleanPekerjaan, 'kode_alamat' => $kodeAlamat, 'jk' => $jk]
                     );
 
-                    if ($cleanPekerjaan && (empty($mitra->pekerjaan) || str_starts_with($mitra->pekerjaan, '=') || str_contains($mitra->pekerjaan, '#'))) {
+                    if ($cleanPekerjaan && (empty($mitra->pekerjaan) || $mitra->pekerjaan === 'Lainnya/ Belum Bekerja' || str_starts_with($mitra->pekerjaan, '=') || str_contains($mitra->pekerjaan, '#'))) {
                         $mitra->update(['pekerjaan' => $cleanPekerjaan]);
                     }
-                    if ($cleanAlamat && (empty($mitra->alamat) || str_starts_with($mitra->alamat, '=') || str_contains($mitra->alamat, '#'))) {
+                    if ($cleanAlamat && (empty($mitra->alamat) || $mitra->alamat === 'Kabupaten Tasikmalaya' || str_starts_with($mitra->alamat, '=') || str_contains($mitra->alamat, '#'))) {
                         $mitra->update(['alamat' => $cleanAlamat]);
                     }
 

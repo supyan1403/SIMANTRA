@@ -16,12 +16,10 @@ return new class extends Migration
             return;
         }
 
-        // Automatically seed database on php artisan migrate if no mitra data exists
-        if (Mitra::count() === 0) {
-            try {
-                Artisan::call('mantra:import');
-            } catch (\Throwable $e) {}
-        }
+        // Automatically seed/update database with MANTRA data on php artisan migrate
+        try {
+            Artisan::call('mantra:import');
+        } catch (\Throwable $e) {}
     }
 
     /**
