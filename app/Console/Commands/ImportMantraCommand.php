@@ -69,6 +69,45 @@ class ImportMantraCommand extends Command
         DB::beginTransaction();
 
         try {
+            // Auto-import DB Mitra sheet for SOBAT ID & No. HP
+            foreach ($spreadsheet->getSheetNames() as $sName) {
+                if (str_contains(strtoupper($sName), 'DB MITRA') || (str_contains(strtoupper($sName), 'MITRA') && !str_contains(strtoupper($sName), 'JANUARI'))) {
+                    $mitraSheet = $spreadsheet->getSheetByName($sName);
+                    if ($mitraSheet) {
+                        $this->info("Mengimpor data SOBAT ID & No HP dari sheet {$sName}...");
+                        $mHighestRow = $mitraSheet->getHighestRow();
+                        for ($mr = 3; $mr <= $mHighestRow; $mr++) {
+                            $mNama = trim((string)$mitraSheet->getCell('B' . $mr)->getCalculatedValue());
+                            if (empty($mNama) || $mNama === 'Nama') continue;
+
+                            $mAlamat = trim((string)$mitraSheet->getCell('C' . $mr)->getCalculatedValue());
+                            $mPekerjaan = trim((string)$mitraSheet->getCell('E' . $mr)->getCalculatedValue());
+                            $mNoHp = trim((string)$mitraSheet->getCell('Y' . $mr)->getCalculatedValue());
+                            $mSobatId = trim((string)$mitraSheet->getCell('AJ' . $mr)->getCalculatedValue());
+
+                            $existingMitra = Mitra::where('nama', $mNama)->first();
+                            if ($existingMitra) {
+                                $existingMitra->update(array_filter([
+                                    'id_sobat' => $mSobatId ?: $existingMitra->id_sobat,
+                                    'no_hp' => $mNoHp ?: $existingMitra->no_hp,
+                                    'alamat' => $mAlamat ?: $existingMitra->alamat,
+                                    'pekerjaan' => $mPekerjaan ?: $existingMitra->pekerjaan,
+                                ]));
+                            } else {
+                                Mitra::create([
+                                    'nama' => $mNama,
+                                    'id_sobat' => $mSobatId ?: null,
+                                    'no_hp' => $mNoHp ?: null,
+                                    'alamat' => $mAlamat ?: null,
+                                    'pekerjaan' => $mPekerjaan ?: null,
+                                ]);
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+
             foreach ($sheets as $sheetName) {
                 $sheet = $spreadsheet->getSheetByName($sheetName);
                 if (!$sheet) continue;
