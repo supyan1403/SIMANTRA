@@ -43,7 +43,7 @@
         <div class="bast-nomor">Nomor: {{ $b->nomor_dokumen }}</div>
     </div>
 
-    <p>Pada hari ini, bertempat di Kantor BPS Kabupaten Tasikmalaya dengan alamat Jalan R.A.A Kusumahsubrata Komplek Perkantoran Kertasari, Kabupaten Tasikmalaya, yang bertanda tangan di bawah ini:</p>
+    <p>Pada hari ini Jum’at, tanggal tiga puluh satu bulan Maret tahun dua ribu dua puluh tiga (31 Maret 2023), bertempat di Kantor BPS Kabupaten Tasikmalaya dengan alamat Jalan R.A.A Kusumahsubrata Komplek Perkantoran Kertasari, Kabupaten Tasikmalaya, yang bertanda tangan di bawah ini:</p>
 
     <table class="party-table ms-1">
         <tr>

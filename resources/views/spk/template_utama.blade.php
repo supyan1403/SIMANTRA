@@ -53,7 +53,7 @@
     <div class="spk-title">PERJANJIAN KERJA PETUGAS PENDATAAN LAPANGAN KEGIATAN SURVEI/SENSUS TAHUN {{ $tahun }} PADA BADAN PUSAT STATISTIK KABUPATEN TASIKMALAYA</div>
     <div class="spk-nomor">NOMOR: {{ $nomorDokumen ?? '1001/PPK/SPK/03/' . $tahun }}</div>
 
-    <p class="mb-2">Pada hari ini, bertempat di Tasikmalaya, yang bertanda tangan di bawah ini:</p>
+    <p class="mb-2">Pada hari ini Selasa, tanggal dua puluh delapan, bulan Februari, tahun dua ribu dua puluh empat, bertempat di Tasikmalaya, yang bertanda tangan di bawah ini:</p>
 
     <table class="ms-2 mb-3" style="width: 100%; font-size: 11pt;">
         <tr valign="top">
