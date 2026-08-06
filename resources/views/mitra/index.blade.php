@@ -232,7 +232,7 @@
                     @forelse($mitras as $i => $m)
                     <tr>
                         <td class="text-center ps-3 text-muted fw-semibold">{{ $mitras->firstItem() + $i }}</td>
-                        <td><code class="bg-light px-1.5 py-0.5 rounded text-dark fw-bold" style="font-size: 0.75rem;">{{ $m->id_sobat ?? '-' }}</code></td>
+                        <td><span class="badge font-monospace fw-bold" style="font-size: 0.775rem; padding: 0.35rem 0.65rem; background-color: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; border-radius: 0.375rem;">{{ $m->id_sobat ?? '-' }}</span></td>
                         <td>
                             <div class="d-inline-flex align-items-center gap-1.5">
                                 <div class="avatar-initials bg-primary bg-opacity-10 text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
@@ -253,7 +253,7 @@
                                 {{ $m->alamat_detail ?? $m->alamat ?? '-' }}
                             </div>
                         </td>
-                        <td class="text-center"><code class="bg-light px-1.5 py-0.5 rounded text-dark" style="font-size: 0.75rem;">{{ $m->kode_alamat ?? '-' }}</code></td>
+                        <td class="text-center"><span class="badge font-monospace fw-semibold" style="font-size: 0.775rem; padding: 0.35rem 0.65rem; background-color: #f8fafc; color: #334155; border: 1px solid #cbd5e1; border-radius: 0.375rem;">{{ $m->kode_alamat ?? '-' }}</span></td>
                         <td><span class="text-slate-700 fw-semibold text-nowrap">{{ $m->pekerjaan ?? 'Mitra' }}</span></td>
                         <td class="text-center">
                             @if($m->jk === 'L')

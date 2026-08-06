@@ -302,6 +302,11 @@
             margin-top: 0.25rem;
         }
 
+        /* Ensure Dropdown Select Arrow never covers text */
+        .form-select, .form-select-sm {
+            padding-right: 2.25rem !important;
+        }
+
         /* Main Content Wrapper */
         #content-wrapper {
             margin-left: var(--sidebar-width);

@@ -10,7 +10,7 @@
     <div class="d-flex align-items-center gap-2 flex-wrap">
         <form method="GET" action="{{ route('rekap.index') }}" class="d-flex align-items-center gap-2">
             <label for="tahun" class="form-label text-muted small fw-bold mb-0 text-nowrap">Tahun:</label>
-            <select name="tahun" id="tahun" class="form-select form-select-sm shadow-sm" onchange="this.form.submit()" style="min-width: 110px;">
+            <select name="tahun" id="tahun" class="form-select form-select-sm shadow-sm" onchange="this.form.submit()" style="min-width: 135px; padding-right: 2.25rem !important;">
                 @foreach($tahunList as $t)
                     <option value="{{ $t }}" {{ $tahun == $t ? 'selected' : '' }}>Tahun {{ $t }}</option>
                 @endforeach
