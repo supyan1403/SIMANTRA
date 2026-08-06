@@ -437,7 +437,6 @@
 
             <div>
                 <div class="hero-pill">
-                    <i class="bi bi-building"></i>
                     <span>BPS KABUPATEN TASIKMALAYA</span>
                 </div>
             </div>

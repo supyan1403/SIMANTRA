@@ -658,12 +658,9 @@
                         {{ auth()->user()->role === 'admin' ? 'ADMINISTRATOR' : 'OPERATOR' }}
                     </span>
                 </div>
-                <form method="POST" action="{{ route('logout') }}" class="d-inline">
-                    @csrf
-                    <button type="submit" class="logout-btn-sidebar border-0" title="Logout dari Sistem">
-                        <i class="bi bi-box-arrow-right fs-6"></i>
-                    </button>
-                </form>
+                <button type="button" class="logout-btn-sidebar border-0" data-bs-toggle="modal" data-bs-target="#modalConfirmLogout" title="Logout dari Sistem">
+                    <i class="bi bi-box-arrow-right fs-6"></i>
+                </button>
             </div>
             <div class="sidebar-copyright-text">
                 &copy; {{ date('Y') }} BPS Kab. Tasikmalaya
@@ -819,6 +816,37 @@
         initAnimatedCounters();
     });
     </script>
+    <!-- Modal Konfirmasi Logout (Executive Centered Dialog) -->
+    <div class="modal fade" id="modalConfirmLogout" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 1.5rem; overflow: hidden; background: #ffffff;">
+                <div class="modal-body p-4 text-center">
+                    <div class="mx-auto mb-3 rounded-circle bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center shadow-sm" style="width: 58px; height: 58px;">
+                        <i class="bi bi-box-arrow-right fs-3"></i>
+                    </div>
+                    
+                    <h5 class="fw-extrabold text-dark mb-2" style="font-size: 1.2rem; letter-spacing: -0.3px;">Konfirmasi Keluar</h5>
+                    <p class="text-secondary small mb-1" style="line-height: 1.5;">
+                        Apakah Anda yakin ingin keluar (<em>logout</em>) dari akun<br><strong class="text-dark">{{ auth()->user()->name ?? 'Pengguna' }}</strong>?
+                    </p>
+                    <span class="text-muted extra-small d-block mb-4">Sesi login Anda akan diakhiri secara aman.</span>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-light border text-secondary fw-semibold rounded-pill py-2 w-50" data-bs-dismiss="modal" style="font-size: 0.875rem;">
+                            Batal
+                        </button>
+                        <form method="POST" action="{{ route('logout') }}" class="w-50 m-0">
+                            @csrf
+                            <button type="submit" class="btn btn-danger fw-bold rounded-pill py-2 w-100 shadow-sm" style="font-size: 0.875rem; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none;">
+                                <i class="bi bi-box-arrow-right me-1"></i> Ya, Logout
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @stack('scripts')
 </body>
 </html>
