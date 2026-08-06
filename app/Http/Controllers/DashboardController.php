@@ -168,6 +168,109 @@ class DashboardController extends Controller
             }
         }
 
+        // ===== FITUR MONITORING STATUS PEKERJAAN MITRA (100% DECOUPLED & MODAL SUPPORT) =====
+        $sTahun = $request->s_tahun ?? $tahun;
+        $sBulanAwal = (int) ($request->s_bulan_awal ?? 1);
+        $sBulanAkhir = (int) ($request->s_bulan_akhir ?? 12);
+        $sBulanAwal = max(1, min(12, $sBulanAwal));
+        $sBulanAkhir = max(1, min(12, $sBulanAkhir));
+        if ($sBulanAkhir < $sBulanAwal) { $sBulanAkhir = $sBulanAwal; }
+
+        $sBidangId = ($isOperatorScoped) ? $user->bidang_id : ($request->s_bidang_id ?? null);
+        if ($sBidangId === '' || $sBidangId === 'all') $sBidangId = null;
+
+        $sKegiatanId = $request->s_kegiatan_id ?: null;
+        $sStatus = $request->s_status ?? 'all'; // 'all', 'sudah', 'belum'
+        $sSearch = trim($request->s_search ?? '');
+
+        $sKegiatanOptions = Kegiatan::when($sBidangId, fn($q) => $q->where('bidang_id', $sBidangId))
+            ->orderBy('nama')->get(['id', 'nama', 'kode_mata_anggaran']);
+
+        $sPeriodeIds = Periode::where('tahun', $sTahun)
+            ->where('bulan_angka', '>=', $sBulanAwal)
+            ->where('bulan_angka', '<=', $sBulanAkhir)
+            ->pluck('id');
+
+        $allocatedQuery = AlokasiHonor::whereIn('periode_id', $sPeriodeIds)
+            ->when($sKegiatanId, fn($q) => $q->where('kegiatan_id', $sKegiatanId))
+            ->when($sBidangId && !$sKegiatanId, fn($q) => $q->whereHas('kegiatan', fn($qq) => $qq->where('bidang_id', $sBidangId)));
+
+        $allocatedMitraIds = $allocatedQuery->pluck('mitra_id')->unique()->filter()->values();
+
+        $sudahDipekerjakanCount = $allocatedMitraIds->count();
+        $belumDipekerjakanCount = max(0, $totalMitra - $sudahDipekerjakanCount);
+
+        $mitraStatusQuery = Mitra::query();
+
+        if ($sStatus === 'sudah') {
+            $mitraStatusQuery->whereIn('id', $allocatedMitraIds);
+        } elseif ($sStatus === 'belum') {
+            $mitraStatusQuery->whereNotIn('id', $allocatedMitraIds);
+        }
+
+        if ($sSearch !== '') {
+            $mitraStatusQuery->where(function ($qq) use ($sSearch) {
+                $qq->where('nama', 'like', "%{$sSearch}%")
+                   ->orWhere('id_sobat', 'like', "%{$sSearch}%")
+                   ->orWhere('kecamatan', 'like', "%{$sSearch}%")
+                   ->orWhere('desa', 'like', "%{$sSearch}%")
+                   ->orWhere('kabupaten_kota', 'like', "%{$sSearch}%");
+            });
+        }
+
+        $mitraStatusPaginated = $mitraStatusQuery->orderBy('nama')->paginate(15, ['*'], 's_page')->withQueryString();
+
+        // Enrich each paginated mitra with modal detail workload data
+        $mitraStatusList = $mitraStatusPaginated->getCollection()->map(function ($m) use ($sPeriodeIds, $sKegiatanId, $sBidangId, $sTahun, $sBulanAwal, $sBulanAkhir) {
+            $allocs = AlokasiHonor::with(['kegiatan.bidang', 'periode'])
+                ->where('mitra_id', $m->id)
+                ->whereIn('periode_id', $sPeriodeIds)
+                ->when($sKegiatanId, fn($q) => $q->where('kegiatan_id', $sKegiatanId))
+                ->when($sBidangId && !$sKegiatanId, fn($q) => $q->whereHas('kegiatan', fn($qq) => $qq->where('bidang_id', $sBidangId)))
+                ->get();
+
+            $totalHonor = (float) $allocs->sum('nominal');
+            $jumlahAlokasi = $allocs->count();
+            $isAllocated = $jumlahAlokasi > 0;
+
+            $m->total_honor_periode = $totalHonor;
+            $m->jumlah_alokasi_periode = $jumlahAlokasi;
+            $m->status_pekerjaan = $isAllocated ? 'Sudah di-Pekerjakan' : 'Belum di-Pekerjakan';
+
+            // Grouped activities for modal popup
+            $m->modal_workload_kegiatans = $allocs->groupBy('kegiatan_id')->map(function ($items) {
+                $first = $items->first();
+                return (object) [
+                    'kegiatan' => $first->kegiatan,
+                    'list' => $items->sortBy('periode.bulan_angka'),
+                    'honor' => (float) $items->sum('nominal'),
+                    'jumlah' => $items->count(),
+                ];
+            })->sortByDesc('honor')->values();
+
+            // Monthly matrix for modal popup
+            $mWorkloadMonths = collect([]);
+            foreach (range($sBulanAwal, $sBulanAkhir) as $b) {
+                $pId = Periode::where('tahun', $sTahun)->where('bulan_angka', $b)->value('id');
+                $sum = $pId ? (float) AlokasiHonor::where('mitra_id', $m->id)->where('periode_id', $pId)
+                    ->when($sKegiatanId, fn($q) => $q->where('kegiatan_id', $sKegiatanId))
+                    ->sum('nominal') : 0;
+                $sbml = $pId ? SbmlHelper::limitFor($m->id, $pId) : 0;
+                $mWorkloadMonths->push((object)[
+                    'bulan' => $this->bulanNama[$b],
+                    'bulan_angka' => $b,
+                    'honor' => $sum,
+                    'sbml' => $sbml,
+                    'sisa' => $sbml - $sum,
+                ]);
+            }
+            $m->modal_workload_months = $mWorkloadMonths;
+
+            return $m;
+        });
+
+        $mitraStatusPaginated->setCollection($mitraStatusList);
+
         return view('dashboard', compact(
             'user',
             'isAdmin',
@@ -180,7 +283,9 @@ class DashboardController extends Controller
             'mitraOptions', 'searchMitra',
             'honorPerBulan', 'honorPerBidang',
             'mTahun', 'mBulanAwal', 'mBulanAkhir', 'mBidangId', 'mKegiatanId', 'mKegiatanOptions', 'mitraId',
-            'mitraProfile', 'workloadKegiatans', 'workloadMonths', 'estimasiHonor'
+            'mitraProfile', 'workloadKegiatans', 'workloadMonths', 'estimasiHonor',
+            'sTahun', 'sBulanAwal', 'sBulanAkhir', 'sBidangId', 'sKegiatanId', 'sKegiatanOptions', 'sStatus', 'sSearch',
+            'sudahDipekerjakanCount', 'belumDipekerjakanCount', 'mitraStatusPaginated'
         ));
     }
 
