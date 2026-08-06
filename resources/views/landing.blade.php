@@ -333,19 +333,6 @@
             </div>
         </div>
 
-        <!-- FOOTER LOG IN CALLOUT -->
-        <div class="card border-0 shadow-sm bg-gradient p-4 text-center text-md-start" style="background: linear-gradient(135deg, #f1f5f9, #e2e8f0); border-radius: 16px;">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                <div>
-                    <h6 class="fw-bold text-dark mb-1"><i class="bi bi-lock-fill text-primary me-1.5"></i>Akses Manajemen Beban Kerja & Cetak SPK</h6>
-                    <p class="text-muted small mb-0">Untuk melakukan pencarian detail beban kerja mitra individu, pengalokasian honor, dan pencetakan SPK, silakan login terlebih dahulu.</p>
-                </div>
-                <a href="{{ route('login') }}" class="btn btn-primary fw-bold rounded-pill px-4 py-2.5 shadow-sm">
-                    <i class="bi bi-box-arrow-in-right me-1.5"></i> LOGIN ADMIN / OPERATOR
-                </a>
-            </div>
-        </div>
-
     </div>
 
     <!-- FOOTER -->
