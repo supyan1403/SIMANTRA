@@ -4,7 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>SIMANTRA - {{ $title ?? 'Monitoring Alokasi Pekerjaan & Honor Mitra' }}</title>
+    <script>
+        // Anti-BFCache: Force server revalidation on Back/Forward browser navigation after logout
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || (window.performance && window.performance.getEntriesByType && window.performance.getEntriesByType('navigation')[0] && window.performance.getEntriesByType('navigation')[0].type === 'back_forward')) {
+                window.location.reload(true);
+            }
+        });
+    </script>
     
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -236,7 +243,7 @@
         }
 
         #sidebar.collapsed .sidebar-footer {
-            padding: 0.85rem 0.4rem;
+            padding: 0.75rem 0.25rem;
         }
 
         .user-card {
@@ -247,7 +254,30 @@
         }
 
         #sidebar.collapsed .user-card {
+            flex-direction: column;
+            gap: 0.5rem;
             justify-content: center;
+            align-items: center;
+        }
+
+        .logout-btn-sidebar {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #f87171;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            transition: all 0.2s ease;
+        }
+
+        .logout-btn-sidebar:hover {
+            background: #ef4444;
+            color: #ffffff;
+            border-color: #ef4444;
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.35);
         }
 
         .user-avatar-circle {
@@ -625,8 +655,8 @@
                 </div>
                 <form method="POST" action="{{ route('logout') }}" class="d-inline">
                     @csrf
-                    <button type="submit" class="btn btn-sm btn-link text-muted p-1" title="Logout">
-                        <i class="bi bi-box-arrow-right fs-6 text-danger"></i>
+                    <button type="submit" class="logout-btn-sidebar border-0" title="Logout dari Sistem">
+                        <i class="bi bi-box-arrow-right fs-6"></i>
                     </button>
                 </form>
             </div>
@@ -749,6 +779,39 @@
                 sidebar.classList.toggle('mobile-open');
             });
         }
+
+        // Global Animated Counter Effect (Ultra Smooth Ease-Out 1.4s)
+        function initAnimatedCounters() {
+            const counterElements = document.querySelectorAll('[data-counter-value]');
+            counterElements.forEach(el => {
+                const rawVal = parseFloat(el.getAttribute('data-counter-value')) || 0;
+                const prefix = el.getAttribute('data-counter-prefix') || '';
+                const isNegative = rawVal < 0;
+                const targetVal = Math.abs(rawVal);
+                const duration = 1400;
+                const startTime = performance.now();
+
+                function step(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const easeProgress = 1 - Math.pow(1 - progress, 4);
+                    const currentVal = Math.floor(easeProgress * targetVal);
+
+                    const formatted = new Intl.NumberFormat('id-ID').format(currentVal);
+                    const sign = isNegative ? '-' : '';
+                    el.textContent = `${prefix}${sign}${formatted}`;
+
+                    if (progress < 1) {
+                        requestAnimationFrame(step);
+                    } else {
+                        const finalFormatted = new Intl.NumberFormat('id-ID').format(targetVal);
+                        el.textContent = `${prefix}${sign}${finalFormatted}`;
+                    }
+                }
+                requestAnimationFrame(step);
+            });
+        }
+        initAnimatedCounters();
     });
     </script>
     @stack('scripts')

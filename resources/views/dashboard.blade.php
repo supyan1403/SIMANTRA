@@ -109,7 +109,7 @@
             <div class="card-body d-flex align-items-center justify-content-between p-3.5">
                 <div>
                     <span class="text-white-50 small fw-bold text-uppercase" style="font-size: 0.7rem;">Pagu Mata Anggaran</span>
-                    <h3 class="fw-extrabold text-white mt-1 mb-0">Rp {{ $paguTxt }}</h3>
+                    <h3 class="fw-extrabold text-white mt-1 mb-0 text-nowrap" style="font-size: 1.3rem;" data-counter-value="{{ $paguMataAnggaran }}" data-counter-prefix="Rp ">Rp {{ $paguTxt }}</h3>
                     <span class="text-white-50 extra-small">Total pagu kegiatan ({{ $tahun }})</span>
                 </div>
                 <div class="metric-icon-bg"><i class="bi bi-journal-bookmark-fill fs-3"></i></div>
@@ -121,7 +121,7 @@
             <div class="card-body d-flex align-items-center justify-content-between p-3.5">
                 <div>
                     <span class="text-white-50 small fw-bold text-uppercase" style="font-size: 0.7rem;">Realisasi Honor</span>
-                    <h3 class="fw-extrabold text-white mt-1 mb-0">Rp {{ $realTxt }}</h3>
+                    <h3 class="fw-extrabold text-white mt-1 mb-0 text-nowrap" style="font-size: 1.3rem;" data-counter-value="{{ $realisasiHonor }}" data-counter-prefix="Rp ">Rp {{ $realTxt }}</h3>
                     <span class="text-white-50 extra-small">{{ $bulanAwal == $bulanAkhir ? $monthOptions[$bulanAwal] : $monthOptions[$bulanAwal] . ' - ' . $monthOptions[$bulanAkhir] }} {{ $tahun }}</span>
                 </div>
                 <div class="metric-icon-bg"><i class="bi bi-wallet2 fs-3"></i></div>
@@ -133,7 +133,7 @@
             <div class="card-body d-flex align-items-center justify-content-between p-3.5">
                 <div>
                     <span class="text-white-50 small fw-bold text-uppercase" style="font-size: 0.7rem;">Sisa Anggaran</span>
-                    <h3 class="fw-extrabold text-white mt-1 mb-0">Rp {{ $sisaTxt }}</h3>
+                    <h3 class="fw-extrabold text-white mt-1 mb-0 text-nowrap" style="font-size: 1.3rem;" data-counter-value="{{ $sisaAnggaran }}" data-counter-prefix="Rp ">Rp {{ $sisaTxt }}</h3>
                     <span class="text-white-50 extra-small">Pagu − Realisasi ({{ $sisaPct }}% terpakai)</span>
                 </div>
                 <div class="metric-icon-bg"><i class="bi bi-graph-down-arrow fs-3"></i></div>
@@ -145,7 +145,7 @@
             <div class="card-body d-flex align-items-center justify-content-between p-3.5">
                 <div>
                     <span class="text-white-50 small fw-bold text-uppercase" style="font-size: 0.7rem;">Kapasitas Honor (SBML)</span>
-                    <h3 class="fw-extrabold text-white mt-1 mb-0">Rp {{ number_format($paguSBML, 0, ',', '.') }}</h3>
+                    <h3 class="fw-extrabold text-white mt-1 mb-0 text-nowrap" style="font-size: 1.3rem;" data-counter-value="{{ $paguSBML }}" data-counter-prefix="Rp ">Rp {{ number_format($paguSBML, 0, ',', '.') }}</h3>
                     <span class="text-white-50 extra-small">Total acuan SBML dalam rentang</span>
                 </div>
                 <div class="metric-icon-bg"><i class="bi bi-piggy-bank-fill fs-3"></i></div>
@@ -160,7 +160,7 @@
             <div class="card-body d-flex align-items-center justify-content-between">
                 <div>
                     <span class="text-muted small fw-bold text-uppercase">Total Mitra</span>
-                    <h4 class="fw-extrabold text-dark mb-0">{{ number_format($totalMitra) }}</h4>
+                    <h4 class="fw-extrabold text-dark mb-0" data-counter-value="{{ $totalMitra }}">{{ number_format($totalMitra) }}</h4>
                 </div>
                 <i class="bi bi-people-fill fs-3 text-primary"></i>
             </div>
@@ -171,7 +171,7 @@
             <div class="card-body d-flex align-items-center justify-content-between">
                 <div>
                     <span class="text-muted small fw-bold text-uppercase">Total Transaksi</span>
-                    <h4 class="fw-extrabold text-dark mb-0">{{ number_format($totalTransaksi) }}</h4>
+                    <h4 class="fw-extrabold text-dark mb-0" data-counter-value="{{ $totalTransaksi }}">{{ number_format($totalTransaksi) }}</h4>
                 </div>
                 <i class="bi bi-card-checklist fs-3 text-info"></i>
             </div>
@@ -182,7 +182,7 @@
             <div class="card-body d-flex align-items-center justify-content-between">
                 <div>
                     <span class="text-muted small fw-bold text-uppercase">Total Operator</span>
-                    <h4 class="fw-extrabold text-dark mb-0">{{ number_format($totalOperator) }}</h4>
+                    <h4 class="fw-extrabold text-dark mb-0" data-counter-value="{{ $totalOperator }}">{{ number_format($totalOperator) }}</h4>
                 </div>
                 <i class="bi bi-person-badge-fill fs-3 text-success"></i>
             </div>

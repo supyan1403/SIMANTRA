@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - SIMANTRA BPS Kab. Tasikmalaya</title>
+    <script>
+        // Anti-BFCache: Force page reload on Back/Forward navigation
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || (window.performance && window.performance.getEntriesByType && window.performance.getEntriesByType('navigation')[0] && window.performance.getEntriesByType('navigation')[0].type === 'back_forward')) {
+                window.location.reload(true);
+            }
+        });
+    </script>
     
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,7 +25,8 @@
     <style>
         :root {
             --bs-body-font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-            --bps-blue: #0284c7;
+            --bps-blue: #2563eb;
+            --bps-navy: #0f172a;
             --bps-green: #16a34a;
             --bps-orange: #f97316;
             --bps-dark: #0f172a;
@@ -30,7 +39,7 @@
             padding: 0;
             overflow: hidden !important; /* Strict No Scrollbar */
             font-family: var(--bs-body-font-family);
-            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -45,8 +54,8 @@
             max-height: 94vh;
             background: #ffffff;
             border-radius: 1.25rem;
-            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.08);
-            border: 1px solid #e2e8f0;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.12);
+            border: 1px solid #cbd5e1;
             display: flex;
             overflow: hidden;
             position: relative;
@@ -66,13 +75,25 @@
         /* Right Column: Minimalist BPS Banner (48% width) */
         .split-right {
             width: 48%;
-            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             padding: 2.5rem;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             position: relative;
             color: #ffffff;
+            overflow: hidden;
+        }
+
+        .split-right::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            right: -30%;
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.25) 0%, rgba(255, 255, 255, 0) 70%);
+            pointer-events: none;
         }
 
         /* Brand Elements */
@@ -115,7 +136,7 @@
         .input-group-text {
             border-color: #cbd5e1;
             background-color: #f8fafc;
-            color: #0284c7;
+            color: #2563eb;
             font-size: 0.95rem;
             padding-left: 0.85rem;
             padding-right: 0.65rem;
@@ -132,8 +153,8 @@
 
         .form-control:focus {
             background-color: #ffffff;
-            border-color: #0284c7;
-            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
         }
 
         .btn-toggle-eye {
@@ -143,25 +164,28 @@
         }
 
         .btn-toggle-eye:hover {
-            color: #0284c7;
+            color: #2563eb;
             background-color: #ffffff;
         }
 
         .btn-login {
-            background: #0284c7;
-            border: none;
+            background: #0f172a;
+            border: 1px solid #0f172a;
             border-radius: 0.55rem;
-            padding: 0.65rem 1rem;
+            padding: 0.7rem 1rem;
             font-weight: 700;
             font-size: 0.875rem;
             color: #ffffff;
-            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
-            transition: all 0.15s ease;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.25);
+            transition: all 0.2s ease;
         }
 
         .btn-login:hover {
-            background: #0369a1;
+            background: #1e293b;
+            border-color: #1e293b;
             color: #ffffff;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.35);
+            transform: translateY(-1px);
         }
 
         /* Demo Helper Card */
@@ -246,13 +270,46 @@
             font-weight: 700;
             display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
             width: fit-content;
+        }
+
+        .login-page-container {
+            width: 900px;
+            max-width: 94vw;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .login-back-link {
+            color: #475569;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            padding: 0.2rem 0;
+        }
+
+        .login-back-link:hover {
+            color: #2563eb;
+            transform: translateX(-4px);
         }
     </style>
 </head>
 <body>
-    <div class="login-split-card">
+    <div class="login-page-container">
+        <div class="mb-3">
+            <a href="{{ route('landing') }}" class="login-back-link">
+                <i class="bi bi-arrow-left text-primary fs-6"></i>
+                <span>Kembali ke Beranda</span>
+            </a>
+        </div>
+
+        <div class="login-split-card">
         <!-- LEFT SIDE: Form Inputs -->
         <div class="split-left">
             <div>
@@ -385,6 +442,7 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
 
     <script>

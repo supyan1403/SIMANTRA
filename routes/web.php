@@ -3,6 +3,7 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\KegiatanController;
+use App\Http\Controllers\LandingController;
 use App\Http\Controllers\MitraController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\PengaturanController;
@@ -12,12 +13,10 @@ use App\Http\Controllers\RekapController;
 use App\Http\Controllers\SbmlMasterController;
 use Illuminate\Support\Facades\Route;
 
-// Redirect Root / directly to Login page first
-Route::get('/', function () {
-    return redirect()->route('login');
-});
+// Public Executive Landing Page
+Route::get('/', [LandingController::class, 'index'])->name('landing');
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'prevent-back-history'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/mitra-options', [DashboardController::class, 'mitraOptions'])->name('dashboard.mitra-options');
 
