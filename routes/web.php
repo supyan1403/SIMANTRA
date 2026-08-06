@@ -21,6 +21,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/mitra-options', [DashboardController::class, 'mitraOptions'])->name('dashboard.mitra-options');
 
+    Route::get('/mitra/desas/{kecamatanNama}', [MitraController::class, 'getDesasByKecamatan'])->name('mitra.desas');
     Route::resource('mitra', MitraController::class);
     Route::get('/import-mitra', [MitraController::class, 'importIndex'])->name('mitra.import.index');
     Route::get('/import-mitra/template', [MitraController::class, 'importTemplate'])->name('mitra.import.template');

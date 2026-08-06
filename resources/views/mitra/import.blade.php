@@ -29,7 +29,7 @@
                         <strong>Langkah Import:</strong>
                         <ol class="mb-2 ps-3 mt-1">
                             <li>Download tombol <strong>Download Template</strong> untuk mendapat format Excel (sheet Template Mitra + Petunjuk).</li>
-                            <li>Isi kolom <strong>ID Sobat</strong> (ID/kode mitra, unik &amp; siap untuk SKP) dan <strong>Nama</strong> (wajib), lalu No. HP, Alamat, Kode Alamat, Pekerjaan, Jenis Kelamin.</li>
+                            <li>Isi kolom <strong>ID Sobat</strong> (ID/kode mitra, unik &amp; siap untuk SKP) dan <strong>Nama</strong> (wajib), lalu No. HP, Kabupaten / Kota, Kecamatan, Desa / Kelurahan, Alamat Detail, Kode Alamat, Pekerjaan, Jenis Kelamin.</li>
                             <li>Jenis Kelamin bisa diisi <strong>1/L/Laki-laki</strong> atau <strong>2/P/Perempuan</strong>.</li>
                             <li>Upload file di bawah, pratinjau, lalu simpan. Baris dengan ID Sobat sama akan <strong>diperbarui</strong>, bukan duplikat.</li>
                         </ol>

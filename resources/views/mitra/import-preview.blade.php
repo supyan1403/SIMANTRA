@@ -34,7 +34,10 @@
                                 <th>ID Sobat</th>
                                 <th>Nama</th>
                                 <th>No. HP</th>
-                                <th>Alamat</th>
+                                <th>Kabupaten / Kota</th>
+                                <th>Kecamatan</th>
+                                <th>Desa</th>
+                                <th>Alamat Detail</th>
                                 <th>Kode Alamat</th>
                                 <th>Pekerjaan</th>
                                 <th>JK</th>
@@ -47,7 +50,10 @@
                                 <td><code class="bg-light px-2 py-0.5 rounded text-dark small">{{ $row['id_sobat'] ?: '-' }}</code></td>
                                 <td class="fw-bold text-dark">{{ $row['nama'] }}</td>
                                 <td>{{ $row['no_hp'] ?: '-' }}</td>
-                                <td class="text-slate-600 small">{{ $row['alamat'] ?: '-' }}</td>
+                                <td><span class="badge bg-light text-dark border fw-normal small">{{ $row['kabupaten_kota'] ?: 'Kabupaten Tasikmalaya' }}</span></td>
+                                <td class="text-slate-700 small fw-semibold">{{ $row['kecamatan'] ?: '-' }}</td>
+                                <td class="text-slate-700 small">{{ $row['desa'] ?: '-' }}</td>
+                                <td class="text-slate-600 small">{{ $row['alamat_detail'] ?: '-' }}</td>
                                 <td class="text-center"><code class="bg-light px-2 py-0.5 rounded small">{{ $row['kode_alamat'] ?: '-' }}</code></td>
                                 <td>{{ $row['pekerjaan'] ?: '-' }}</td>
                                 <td>

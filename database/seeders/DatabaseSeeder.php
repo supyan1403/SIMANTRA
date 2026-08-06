@@ -112,10 +112,6 @@ class DatabaseSeeder extends Seeder
                     }
                 });
             }
-        } elseif (class_exists(\App\Console\Commands\ImportMantraCommand::class)) {
-            try {
-                Artisan::call('mantra:import');
-            } catch (\Throwable $e) {}
-        }
+        $this->call(KecamatanDesaSeeder::class);
     }
 }

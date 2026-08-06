@@ -12,7 +12,7 @@
 </div>
 
 <div class="row justify-content-center">
-    <div class="col-lg-8">
+    <div class="col-lg-9">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-bottom py-3">
                 <h6 class="fw-bold text-dark mb-0"><i class="bi bi-card-heading text-primary me-2"></i>Formulir Data Mitra</h6>
@@ -44,10 +44,52 @@
                         @error('nama') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
-                    <div class="mb-4">
-                        <label for="alamat" class="form-label fw-bold">Alamat Lengkap</label>
-                        <textarea class="form-control @error('alamat') is-invalid @enderror" id="alamat" name="alamat" rows="3" placeholder="Masukkan alamat tempat tinggal mitra...">{{ old('alamat', $mitra->alamat ?? '') }}</textarea>
-                        @error('alamat') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    <!-- Separated Address Section -->
+                    <div class="card bg-light border-0 p-3 mb-4 rounded-3">
+                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-geo-alt-fill text-danger me-1"></i>Informasi Alamat Mitra</h6>
+                        
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label for="kabupaten_kota" class="form-label fw-bold">Kabupaten / Kota</label>
+                                <select class="form-select @error('kabupaten_kota') is-invalid @enderror" id="kabupaten_kota" name="kabupaten_kota">
+                                    @php $currentKab = old('kabupaten_kota', $mitra->kabupaten_kota ?? 'Kabupaten Tasikmalaya'); @endphp
+                                    @foreach($kabupatenKotaList as $kab)
+                                        <option value="{{ $kab }}" {{ $currentKab == $kab ? 'selected' : '' }}>{{ $kab }}</option>
+                                    @endforeach
+                                    @if(!in_array($currentKab, $kabupatenKotaList) && !empty($currentKab))
+                                        <option value="{{ $currentKab }}" selected>{{ $currentKab }}</option>
+                                    @endif
+                                </select>
+                                @error('kabupaten_kota') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="kecamatan" class="form-label fw-bold">Kecamatan</label>
+                                <select class="form-select @error('kecamatan') is-invalid @enderror" id="kecamatan" name="kecamatan">
+                                    <option value="">-- Pilih Kecamatan --</option>
+                                    @foreach($kecamatans as $kec)
+                                        <option value="{{ $kec->nama }}" {{ old('kecamatan', $mitra->kecamatan ?? '') == $kec->nama ? 'selected' : '' }}>
+                                            {{ $kec->nama }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('kecamatan') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="desa" class="form-label fw-bold">Desa / Kelurahan</label>
+                                <select class="form-select @error('desa') is-invalid @enderror" id="desa" name="desa">
+                                    <option value="">-- Pilih Desa / Kelurahan --</option>
+                                </select>
+                                @error('desa') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="alamat_detail" class="form-label fw-bold">Alamat Detail (RT/RW, Kampung, Jalan)</label>
+                            <textarea class="form-control @error('alamat_detail') is-invalid @enderror" id="alamat_detail" name="alamat_detail" rows="2" placeholder="Contoh: Kp. Cisarua RT. 003 RW. 002 / Jl. Raya No. 12">{{ old('alamat_detail', $mitra->alamat_detail ?? $mitra->alamat ?? '') }}</textarea>
+                            @error('alamat_detail') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
                     </div>
 
                     <div class="row g-3 mb-4">
@@ -60,6 +102,7 @@
                         <div class="col-md-4">
                             <label for="kode_alamat" class="form-label fw-bold">Kode Alamat / Wilayah</label>
                             <input type="text" class="form-control @error('kode_alamat') is-invalid @enderror" id="kode_alamat" name="kode_alamat" value="{{ old('kode_alamat', $mitra->kode_alamat ?? '') }}" placeholder="Contoh: 3206120001">
+                            <div class="form-text small text-muted">Otomatis terisi saat Desa dipilih</div>
                             @error('kode_alamat') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
@@ -85,5 +128,51 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const kecamatansData = @json($kecamatans);
+    const kecamatanSelect = document.getElementById('kecamatan');
+    const desaSelect = document.getElementById('desa');
+    const kodeAlamatInput = document.getElementById('kode_alamat');
+
+    const currentDesa = "{{ old('desa', $mitra->desa ?? '') }}";
+
+    function updateDesaDropdown(kecName, selectedDesaName) {
+        desaSelect.innerHTML = '<option value="">-- Pilih Desa / Kelurahan --</option>';
+        if (!kecName) return;
+
+        const kec = kecamatansData.find(k => k.nama === kecName);
+        if (kec && kec.desas) {
+            kec.desas.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.nama;
+                opt.textContent = d.nama;
+                opt.dataset.kodeFull = d.kode_full;
+                if (d.nama === selectedDesaName) {
+                    opt.selected = true;
+                }
+                desaSelect.appendChild(opt);
+            });
+        }
+    }
+
+    kecamatanSelect.addEventListener('change', function () {
+        updateDesaDropdown(this.value, '');
+    });
+
+    desaSelect.addEventListener('change', function () {
+        const selectedOpt = this.options[this.selectedIndex];
+        if (selectedOpt && selectedOpt.dataset.kodeFull) {
+            kodeAlamatInput.value = selectedOpt.dataset.kodeFull;
+        }
+    });
+
+    // Initial load
+    if (kecamatanSelect.value) {
+        updateDesaDropdown(kecamatanSelect.value, currentDesa);
+    }
+});
+</script>
 
 @endsection

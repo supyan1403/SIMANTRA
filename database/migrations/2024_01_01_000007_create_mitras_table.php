@@ -7,9 +7,9 @@ return new class extends Migration {
         Schema::create('mitras', function (Blueprint $table) {
             $table->id();
             $table->string('nama');
-            $table->string('alamat');
+            $table->string('alamat')->nullable();
             $table->string('pekerjaan');
-            $table->string('kode_alamat');
+            $table->string('kode_alamat')->nullable();
             $table->enum('jk', ['L', 'P']);
             $table->timestamps();
         });

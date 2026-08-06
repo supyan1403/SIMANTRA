@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Mitra;
+use App\Models\Kecamatan;
+use App\Models\Desa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -23,12 +25,28 @@ class MitraController extends Controller
             $query->where('pekerjaan', $request->pekerjaan);
         }
 
+        if ($request->filled('kabupaten_kota')) {
+            $query->where('kabupaten_kota', $request->kabupaten_kota);
+        }
+
+        if ($request->filled('kecamatan')) {
+            $query->where('kecamatan', $request->kecamatan);
+        }
+
+        if ($request->filled('desa')) {
+            $query->where('desa', $request->desa);
+        }
+
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('nama', 'like', "%{$search}%")
                   ->orWhere('id_sobat', 'like', "%{$search}%")
                   ->orWhere('no_hp', 'like', "%{$search}%")
+                  ->orWhere('kabupaten_kota', 'like', "%{$search}%")
+                  ->orWhere('kecamatan', 'like', "%{$search}%")
+                  ->orWhere('desa', 'like', "%{$search}%")
+                  ->orWhere('alamat_detail', 'like', "%{$search}%")
                   ->orWhere('alamat', 'like', "%{$search}%")
                   ->orWhere('kode_alamat', 'like', "%{$search}%");
             });
@@ -40,17 +58,39 @@ class MitraController extends Controller
             ->pluck('pekerjaan')
             ->sort();
 
+        $kabupatenKotaList = Mitra::whereNotNull('kabupaten_kota')
+            ->where('kabupaten_kota', '!=', '')
+            ->distinct()
+            ->pluck('kabupaten_kota')
+            ->sort();
+
+        $kecamatans = Kecamatan::orderBy('nama')->get();
+
+        $desasList = collect();
+        if ($request->filled('kecamatan')) {
+            $kecObj = Kecamatan::where('nama', $request->kecamatan)->first();
+            if ($kecObj) {
+                $desasList = Desa::where('kecamatan_id', $kecObj->id)->orderBy('nama')->pluck('nama');
+            }
+        }
+
         $mitras = $query->orderBy('nama')
             ->paginate(20)
             ->onEachSide(1)
             ->withQueryString();
 
-        return view('mitra.index', compact('mitras', 'pekerjaanList'));
+        return view('mitra.index', compact('mitras', 'pekerjaanList', 'kabupatenKotaList', 'kecamatans', 'desasList'));
     }
 
     public function create()
     {
-        return view('mitra.form');
+        $kecamatans = Kecamatan::with(['desas' => function($q) {
+            $q->orderBy('nama');
+        }])->orderBy('nama')->get();
+
+        $kabupatenKotaList = ['Kabupaten Tasikmalaya', 'Kota Tasikmalaya', 'Kabupaten Garut', 'Kabupaten Ciamis', 'Kabupaten Bandung', 'Kabupaten Bandung Barat', 'Kabupaten Bogor', 'Kabupaten Kuningan', 'Kabupaten Majalengka', 'Kabupaten Indramayu', 'Kabupaten Karawang', 'Kabupaten Bekasi'];
+
+        return view('mitra.form', compact('kecamatans', 'kabupatenKotaList'));
     }
 
     public function store(Request $request)
@@ -59,18 +99,46 @@ class MitraController extends Controller
             'nama' => 'required|string|max:255',
             'id_sobat' => 'nullable|string|max:100|unique:mitras,id_sobat',
             'no_hp' => 'nullable|string|max:30',
+            'kabupaten_kota' => 'nullable|string|max:255',
+            'kecamatan' => 'nullable|string|max:255',
+            'desa' => 'nullable|string|max:255',
+            'alamat_detail' => 'nullable|string',
             'alamat' => 'nullable|string',
             'pekerjaan' => 'nullable|string|max:255',
             'kode_alamat' => 'nullable|string|max:50',
             'jk' => 'nullable|in:L,P',
         ]);
+
+        $validated['kabupaten_kota'] = $validated['kabupaten_kota'] ?: 'Kabupaten Tasikmalaya';
+
+        // Auto lookup kode_alamat if kecamatan & desa are specified and kode_alamat is blank
+        if (!empty($validated['kecamatan']) && !empty($validated['desa']) && empty($validated['kode_alamat'])) {
+            $desaObj = Desa::whereHas('kecamatan', function($q) use ($validated) {
+                $q->where('nama', $validated['kecamatan']);
+            })->where('nama', $validated['desa'])->first();
+
+            if ($desaObj) {
+                $validated['kode_alamat'] = $desaObj->kode_full;
+            }
+        }
+
+        if (empty($validated['alamat']) && !empty($validated['alamat_detail'])) {
+            $validated['alamat'] = $validated['alamat_detail'];
+        }
+
         Mitra::create($validated);
         return redirect()->route('mitra.index')->with('success', 'Mitra berhasil ditambahkan');
     }
 
     public function edit(Mitra $mitra)
     {
-        return view('mitra.form', compact('mitra'));
+        $kecamatans = Kecamatan::with(['desas' => function($q) {
+            $q->orderBy('nama');
+        }])->orderBy('nama')->get();
+
+        $kabupatenKotaList = ['Kabupaten Tasikmalaya', 'Kota Tasikmalaya', 'Kabupaten Garut', 'Kabupaten Ciamis', 'Kabupaten Bandung', 'Kabupaten Bandung Barat', 'Kabupaten Bogor', 'Kabupaten Kuningan', 'Kabupaten Majalengka', 'Kabupaten Indramayu', 'Kabupaten Karawang', 'Kabupaten Bekasi'];
+
+        return view('mitra.form', compact('mitra', 'kecamatans', 'kabupatenKotaList'));
     }
 
     public function update(Request $request, Mitra $mitra)
@@ -79,11 +147,32 @@ class MitraController extends Controller
             'nama' => 'required|string|max:255',
             'id_sobat' => 'nullable|string|max:100|unique:mitras,id_sobat,'.$mitra->id,
             'no_hp' => 'nullable|string|max:30',
+            'kabupaten_kota' => 'nullable|string|max:255',
+            'kecamatan' => 'nullable|string|max:255',
+            'desa' => 'nullable|string|max:255',
+            'alamat_detail' => 'nullable|string',
             'alamat' => 'nullable|string',
             'pekerjaan' => 'nullable|string|max:255',
             'kode_alamat' => 'nullable|string|max:50',
             'jk' => 'nullable|in:L,P',
         ]);
+
+        $validated['kabupaten_kota'] = $validated['kabupaten_kota'] ?: 'Kabupaten Tasikmalaya';
+
+        if (!empty($validated['kecamatan']) && !empty($validated['desa']) && empty($validated['kode_alamat'])) {
+            $desaObj = Desa::whereHas('kecamatan', function($q) use ($validated) {
+                $q->where('nama', $validated['kecamatan']);
+            })->where('nama', $validated['desa'])->first();
+
+            if ($desaObj) {
+                $validated['kode_alamat'] = $desaObj->kode_full;
+            }
+        }
+
+        if (empty($validated['alamat']) && !empty($validated['alamat_detail'])) {
+            $validated['alamat'] = $validated['alamat_detail'];
+        }
+
         $mitra->update($validated);
         return redirect()->route('mitra.index')->with('success', 'Mitra berhasil diupdate');
     }
@@ -92,6 +181,20 @@ class MitraController extends Controller
     {
         $mitra->delete();
         return redirect()->route('mitra.index')->with('success', 'Mitra berhasil dihapus');
+    }
+
+    public function getDesasByKecamatan($kecamatanNama)
+    {
+        $kecamatan = Kecamatan::where('nama', urldecode($kecamatanNama))->first();
+        if (!$kecamatan) {
+            return response()->json([]);
+        }
+
+        $desas = Desa::where('kecamatan_id', $kecamatan->id)
+            ->orderBy('nama')
+            ->get(['id', 'nama', 'kode_full', 'kode_desa']);
+
+        return response()->json($desas);
     }
 
     public function importIndex()
@@ -105,19 +208,19 @@ class MitraController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Template Mitra');
 
-        $header = ['Nomor', 'ID Sobat', 'Nama', 'No. HP', 'Alamat Detail', 'Kode Alamat', 'Pekerjaan', 'Jenis Kelamin'];
+        $header = ['Nomor', 'ID Sobat', 'Nama', 'No. HP', 'Kabupaten / Kota', 'Kecamatan', 'Desa / Kelurahan', 'Alamat Detail', 'Kode Alamat', 'Pekerjaan', 'Jenis Kelamin'];
         foreach ($header as $i => $h) {
             $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1);
             $sheet->setCellValue($col . '1', $h);
-            $sheet->getColumnDimension($col)->setWidth($h === 'Nama' || $h === 'Alamat Detail' ? 30 : 18);
+            $sheet->getColumnDimension($col)->setWidth(in_array($h, ['Nama', 'Alamat Detail', 'Kabupaten / Kota', 'Kecamatan', 'Desa / Kelurahan']) ? 25 : 16);
             $sheet->getStyle($col . '1')->getFont()->setBold(true);
         }
-        $sheet->getStyle('A1:H1')->getFill()
+        $sheet->getStyle('A1:K1')->getFill()
             ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
             ->getStartColor()->setARGB('2D5FA8');
-        $sheet->getStyle('A1:H1')->getFont()->getColor()->setARGB('FFFFFFFF');
+        $sheet->getStyle('A1:K1')->getFont()->getColor()->setARGB('FFFFFFFF');
 
-        $example = ['1', '1234567', 'Contoh Nama Mitra', '081234567890', 'Jl. Contoh No. 1, Tasikmalaya', '3206120001', 'Pencacah', 'L'];
+        $example = ['1', '1234567', 'Contoh Nama Mitra', '081234567890', 'Kabupaten Tasikmalaya', 'CIPATUJAH', 'CIHERAS', 'Jl. Raya Cipatujah No. 12', '3206010001', 'Pencacah', 'L'];
         foreach ($example as $i => $val) {
             $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1) . '2', $val);
             $sheet->getStyle(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1) . '2')->getFill()
@@ -131,14 +234,9 @@ class MitraController extends Controller
         $petunjuk->getStyle('A1')->getFont()->setBold(true)->setSize(13);
         $petunjuk->setCellValue('A3', '1. Kolom "ID Sobat" = ID/kode mitra (unik, dipakai untuk SPK). Wajib diisi agar mudah dicari & di-update.');
         $petunjuk->setCellValue('A4', '2. Kolom "Nama" wajib diisi.');
-        $petunjuk->setCellValue('A5', '3. Kolom "Jenis Kelamin" bisa diisi: 1 / L / Laki-laki  atau  2 / P / Perempuan.');
-        $petunjuk->setCellValue('A6', '4. Baris dengan ID Sobat yang sama akan "diperbarui", bukan membuat duplikat.');
-        $petunjuk->setCellValue('A7', '5. Jika ID Sobat kosong, pencocokan memakai Nama.');
-        $petunjuk->setCellValue('A9', 'Format Jenis Kelamin:');
-        $petunjuk->setCellValue('B10', 'Laki-laki')->getStyle('B10')->getFont()->setBold(true);
-        $petunjuk->setCellValue('C10', 'Perempuan')->getStyle('C10')->getFont()->setBold(true);
-        $petunjuk->setCellValue('B11', '1, L, l, Laki-laki');
-        $petunjuk->setCellValue('C11', '2, P, p, Perempuan');
+        $petunjuk->setCellValue('A5', '3. Kolom "Kabupaten / Kota" contoh: Kabupaten Tasikmalaya, Kota Tasikmalaya, Kabupaten Garut, dll.');
+        $petunjuk->setCellValue('A6', '4. Kolom "Kecamatan", "Desa / Kelurahan", dan "Alamat Detail" dipisah untuk kemudahan pengelolaan.');
+        $petunjuk->setCellValue('A7', '5. Kolom "Jenis Kelamin" bisa diisi: 1 / L / Laki-laki  atau  2 / P / Perempuan.');
 
         $objWriter = new Xlsx($spreadsheet);
         $filename = 'Template_Mitra_Sobat_BPS.xlsx';
@@ -176,7 +274,7 @@ class MitraController extends Controller
         $rowsData = $sheet->toArray();
         $max = count($rowsData);
         for ($r = 1; $r < $max; $r++) {
-            $row = array_pad($rowsData[$r], 8, null);
+            $row = array_pad($rowsData[$r], 11, null);
             $nama = trim($row[2] ?? '');
             $idSobat = trim($row[1] ?? '');
             if ($nama === '' && $idSobat === '') continue;
@@ -186,11 +284,14 @@ class MitraController extends Controller
                 'id_sobat' => $idSobat,
                 'nama' => $nama,
                 'no_hp' => trim($row[3] ?? ''),
-                'alamat' => trim($row[4] ?? ''),
-                'kode_alamat' => trim($row[5] ?? ''),
-                'pekerjaan' => trim($row[6] ?? ''),
-                'jk' => $this->normalizeJk($row[7] ?? ''),
-                'jk_raw' => trim((string) ($row[7] ?? '')),
+                'kabupaten_kota' => trim($row[4] ?? '') ?: 'Kabupaten Tasikmalaya',
+                'kecamatan' => trim($row[5] ?? ''),
+                'desa' => trim($row[6] ?? ''),
+                'alamat_detail' => trim($row[7] ?? ''),
+                'kode_alamat' => trim($row[8] ?? ''),
+                'pekerjaan' => trim($row[9] ?? ''),
+                'jk' => $this->normalizeJk($row[10] ?? ''),
+                'jk_raw' => trim((string) ($row[10] ?? '')),
             ];
         }
 
@@ -209,7 +310,7 @@ class MitraController extends Controller
         $fullPath = storage_path('app/imports/' . $filename);
 
         if (!file_exists($fullPath)) {
-            return redirect()->route('mitra.index')->with('error', 'File temporari implor tidak ditemukan. Silakan upload ulang.');
+            return redirect()->route('mitra.index')->with('error', 'File temporari import tidak ditemukan. Silakan upload ulang.');
         }
 
         $reader = IOFactory::createReaderForFile($fullPath);
@@ -226,7 +327,7 @@ class MitraController extends Controller
         DB::beginTransaction();
         try {
             for ($r = 1; $r < $highestRow; $r++) {
-                $row = array_pad($rowsData[$r], 8, null);
+                $row = array_pad($rowsData[$r], 11, null);
 
                 $nama = trim($row[2] ?? '');
                 if ($nama === '') {
@@ -235,13 +336,31 @@ class MitraController extends Controller
                 }
 
                 $idSobat = trim($row[1] ?? '');
+                $kabupatenKota = trim($row[4] ?? '') ?: 'Kabupaten Tasikmalaya';
+                $kecamatan = trim($row[5] ?? '') ?: null;
+                $desa = trim($row[6] ?? '') ?: null;
+                $alamatDetail = trim($row[7] ?? '') ?: null;
+                $kodeAlamat = trim($row[8] ?? '') ?: null;
+
+                if ($kecamatan && $desa && !$kodeAlamat) {
+                    $desaObj = Desa::whereHas('kecamatan', function($q) use ($kecamatan) {
+                        $q->where('nama', $kecamatan);
+                    })->where('nama', $desa)->first();
+                    if ($desaObj) {
+                        $kodeAlamat = $desaObj->kode_full;
+                    }
+                }
+
                 $data = [
                     'id_sobat' => $idSobat ?: null,
                     'no_hp' => trim($row[3] ?? '') ?: null,
-                    'alamat' => trim($row[4] ?? '') ?: null,
-                    'kode_alamat' => trim($row[5] ?? '') ?: null,
-                    'pekerjaan' => trim($row[6] ?? '') ?: null,
-                    'jk' => $this->normalizeJk($row[7] ?? ''),
+                    'kabupaten_kota' => $kabupatenKota,
+                    'kecamatan' => $kecamatan,
+                    'desa' => $desa,
+                    'alamat_detail' => $alamatDetail,
+                    'kode_alamat' => $kodeAlamat,
+                    'pekerjaan' => trim($row[9] ?? '') ?: null,
+                    'jk' => $this->normalizeJk($row[10] ?? ''),
                 ];
 
                 if (!empty($idSobat)) {
@@ -249,7 +368,7 @@ class MitraController extends Controller
                     if ($mitra) {
                         $mitra->update($data);
                     } else {
-                        Mitra::create($data);
+                        Mitra::create(array_merge(['nama' => $nama], $data));
                     }
                 } else {
                     Mitra::updateOrCreate(['nama' => $nama], $data);
