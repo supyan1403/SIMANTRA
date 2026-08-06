@@ -6,29 +6,24 @@ use Illuminate\Database\Seeder;
 use App\Models\Kecamatan;
 use App\Models\Desa;
 use App\Models\Mitra;
-use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Support\Facades\DB;
 
 class KecamatanDesaSeeder extends Seeder
 {
     public function run(): void
     {
-        $excelPath = base_path('Master desa kecamatan.xlsx');
-        if (!file_exists($excelPath)) {
-            $this->command->error('File Master desa kecamatan.xlsx tidak ditemukan!');
+        $dataFile = __DIR__ . '/data_master_tasik.php';
+        if (!file_exists($dataFile)) {
+            $this->command->error('File data_master_tasik.php tidak ditemukan!');
             return;
         }
 
-        $spreadsheet = IOFactory::load($excelPath);
-        $sheet = $spreadsheet->getActiveSheet();
-        $rowsData = $sheet->toArray();
-
+        $rowsData = require $dataFile;
         $masterMap = [];
 
         DB::beginTransaction();
         try {
-            for ($r = 2; $r < count($rowsData); $r++) {
-                $row = $rowsData[$r];
+            foreach ($rowsData as $row) {
                 $kdkec = trim((string)($row[0] ?? ''));
                 $kddesa = trim((string)($row[1] ?? ''));
                 $nmkec = trim((string)($row[2] ?? ''));
