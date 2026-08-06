@@ -482,7 +482,7 @@
                     <i class="bi bi-pie-chart-fill text-primary me-2"></i>Status Pekerjaan Mitra & Grafik Visual
                 </h6>
                 <p class="text-muted small mb-0">
-                    Ringkasan real-time mitra yang <strong>Sudah di-Pekerjakan</strong> dan <strong>Belum di-Pekerjakan</strong> pada rentang {{ $monthOptions[$mBulanAwal] }} - {{ $monthOptions[$mBulanAkhir] }} {{ $mTahun }}
+                    Ringkasan real-time mitra yang <strong>Sudah di-Pekerjakan</strong> dan <strong>Belum di-Pekerjakan</strong> pada Tahun {{ $sTahun }}
                 </p>
             </div>
             <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20 px-3 py-1.5 rounded-pill fw-semibold">
@@ -502,7 +502,7 @@
                                 <div>
                                     <div class="text-success fw-bold small text-uppercase mb-1"><i class="bi bi-check-circle-fill me-1"></i> Sudah di-Pekerjakan</div>
                                     <h3 class="fw-extrabold text-success mb-0">{{ number_format($sudahDipekerjakanCount) }} <span class="fs-6 fw-normal text-muted">Mitra</span></h3>
-                                    <div class="text-muted extra-small mt-1">Memiliki alokasi honor pada periode terpilih</div>
+                                    <div class="text-muted extra-small mt-1">Memiliki alokasi honor pada tahun {{ $sTahun }}</div>
                                 </div>
                                 <div class="text-end">
                                     <span class="fs-3 fw-extrabold text-success">{{ $totalMitra > 0 ? round(($sudahDipekerjakanCount / $totalMitra) * 100, 1) : 0 }}%</span>
@@ -516,7 +516,7 @@
                                 <div>
                                     <div class="text-warning fw-bold small text-uppercase mb-1" style="color: #b45309 !important;"><i class="bi bi-clock-history me-1"></i> Belum di-Pekerjakan</div>
                                     <h3 class="fw-extrabold mb-0" style="color: #b45309;">{{ number_format($belumDipekerjakanCount) }} <span class="fs-6 fw-normal text-muted">Mitra</span></h3>
-                                    <div class="text-muted extra-small mt-1">Belum menerima alokasi honor pada periode terpilih</div>
+                                    <div class="text-muted extra-small mt-1">Belum menerima alokasi honor pada tahun {{ $sTahun }}</div>
                                 </div>
                                 <div class="text-end">
                                     <span class="fs-3 fw-extrabold" style="color: #b45309;">{{ $totalMitra > 0 ? round(($belumDipekerjakanCount / $totalMitra) * 100, 1) : 0 }}%</span>
@@ -538,7 +538,7 @@
             </div>
         </div>
 
-        <!-- Filter Dropdown & Search Form for Status Table (Independent Filters) -->
+        <!-- Filter Dropdown & Search Form for Status Table (Clean Independent Filters) -->
         <form method="GET" action="{{ route('dashboard') }}#status-mitra-section" class="row g-2 align-items-end mb-3" id="statusFilterForm">
             <!-- Retain top macro filters -->
             <input type="hidden" name="tahun" value="{{ $tahun }}">
@@ -550,47 +550,31 @@
 
             <div class="col-6 col-md-2">
                 <label class="form-label text-muted small fw-bold mb-1" style="font-size: 0.7rem;">TAHUN</label>
-                <select name="s_tahun" class="form-select form-select-sm" onchange="this.form.submit()">
+                <select name="s_tahun" class="form-select form-select-sm" style="height: 35px;" onchange="this.form.submit()">
                     @foreach($tahunList as $t)
                         <option value="{{ $t }}" {{ $t == $sTahun ? 'selected' : '' }}>{{ $t }}</option>
                     @endforeach
                 </select>
             </div>
-            <div class="col-6 col-md-2">
-                <label class="form-label text-muted small fw-bold mb-1" style="font-size: 0.7rem;">BULAN AWAL</label>
-                <select name="s_bulan_awal" class="form-select form-select-sm" onchange="this.form.submit()">
-                    @foreach($monthOptions as $angka => $nm)
-                        <option value="{{ $angka }}" {{ $sBulanAwal == $angka ? 'selected' : '' }}>{{ $nm }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-6 col-md-2">
-                <label class="form-label text-muted small fw-bold mb-1" style="font-size: 0.7rem;">BULAN AKHIR</label>
-                <select name="s_bulan_akhir" class="form-select form-select-sm" onchange="this.form.submit()">
-                    @foreach($monthOptions as $angka => $nm)
-                        <option value="{{ $angka }}" {{ $sBulanAkhir == $angka ? 'selected' : '' }}>{{ $nm }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-6 col-md-2">
+            <div class="col-6 col-md-3">
                 <label class="form-label text-muted small fw-bold mb-1" style="font-size: 0.7rem;">STATUS PEKERJAAN</label>
-                <select name="s_status" class="form-select form-select-sm" onchange="this.form.submit()">
+                <select name="s_status" class="form-select form-select-sm" style="height: 35px;" onchange="this.form.submit()">
                     <option value="all" {{ $sStatus === 'all' ? 'selected' : '' }}>Semua Status</option>
                     <option value="sudah" {{ $sStatus === 'sudah' ? 'selected' : '' }}>Sudah di-Pekerjakan</option>
                     <option value="belum" {{ $sStatus === 'belum' ? 'selected' : '' }}>Belum di-Pekerjakan</option>
                 </select>
             </div>
-            <div class="col-12 col-md-3">
+            <div class="col-12 col-md-6">
                 <label class="form-label text-muted small fw-bold mb-1" style="font-size: 0.7rem;">CARI MITRA (NAMA / ID / WILAYAH)</label>
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                    <input type="text" name="s_search" class="form-control form-control-sm border-start-0 ps-0" placeholder="Ketik nama, ID, Kecamatan, Desa..." value="{{ $sSearch }}">
+                <div class="input-group input-group-sm" style="height: 35px;">
+                    <span class="input-group-text bg-white border-end-0 text-muted" style="height: 35px;"><i class="bi bi-search"></i></span>
+                    <input type="text" name="s_search" class="form-control form-control-sm border-start-0 ps-0" style="height: 35px;" placeholder="Ketik nama, ID, Kecamatan, Desa..." value="{{ $sSearch }}">
                 </div>
             </div>
             <div class="col-12 col-md-1 d-flex gap-1">
-                <button type="submit" class="btn btn-sm btn-primary w-100" title="Filter Data"><i class="bi bi-funnel-fill"></i></button>
+                <button type="submit" class="btn btn-sm btn-primary w-100 d-inline-flex align-items-center justify-content-center" style="height: 35px;" title="Filter Data"><i class="bi bi-funnel-fill"></i></button>
                 @if($sStatus !== 'all' || $sSearch !== '' || $sTahun != $tahun)
-                    <a href="{{ route('dashboard', array_filter(['tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'bidang_id' => $bidangId, 'kegiatan_id' => $kegiatanId, 'mitra_id' => $mitraId])) }}#status-mitra-section" class="btn btn-sm btn-outline-secondary" title="Reset Filter Status"><i class="bi bi-arrow-counterclockwise"></i></a>
+                    <a href="{{ route('dashboard', array_filter(['tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'bidang_id' => $bidangId, 'kegiatan_id' => $kegiatanId, 'mitra_id' => $mitraId])) }}#status-mitra-section" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center justify-content-center" style="height: 35px;" title="Reset Filter Status"><i class="bi bi-arrow-counterclockwise"></i></a>
                 @endif
             </div>
         </form>
