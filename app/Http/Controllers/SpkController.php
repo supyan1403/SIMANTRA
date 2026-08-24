@@ -40,8 +40,11 @@ class SpkController extends Controller
 
         $kegiatanId = $request->kegiatan_id ?: null;
         $jenisDokumen = $request->jenis_dokumen ?? 'spk'; // spk or bast
-        $kategoriKegiatan = $request->kategori_kegiatan ?? 'umum'; // sensus, survei, umum
+        $kategoriKegiatan = $request->kategori_kegiatan ?? 'sensus'; // sensus, survei, umum
+        $formatSpk = $request->format_spk ?? '';
         $nomorAwal = (int) ($request->nomor_awal ?? 1);
+        $bulanSpk = (int) ($request->bulan_spk ?? $bulanAwal);
+        $tahunSpk = $request->tahun_spk ?? $tahun;
         $search = trim($request->search ?? '');
 
         $bidangOptions = $isAdmin ? Bidang::orderBy('nama')->get() : Bidang::where('id', $user->bidang_id)->get();
@@ -86,9 +89,43 @@ class SpkController extends Controller
         return view('spk.index', compact(
             'tahunList', 'tahun', 'monthOptions', 'bulanAwal', 'bulanAkhir',
             'bidangOptions', 'bidangId', 'kegiatanOptions', 'kegiatanId', 'search',
-            'jenisDokumen', 'kategoriKegiatan', 'nomorAwal', 'templates', 'selectedTemplate', 'currentTemplateId',
+            'jenisDokumen', 'kategoriKegiatan', 'formatSpk', 'nomorAwal', 'bulanSpk', 'tahunSpk',
+            'templates', 'selectedTemplate', 'currentTemplateId',
             'spkList'
         ));
+    }
+
+    public function generateNomorDokumen(string $format, int $nomorUrut, int $bulan, string $tahun, string $jenisDokumen = 'SPK'): string
+    {
+        if (empty($format) || $format === 'default') {
+            $format = 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}';
+        }
+
+        $replacements = [
+            '{nomor}' => sprintf('%04d', $nomorUrut),
+            '{nomor_raw}' => (string) $nomorUrut,
+            '{bulan}' => sprintf('%02d', $bulan),
+            '{bulan_romawi}' => $this->bulanRomawi($bulan),
+            '{tahun}' => $tahun,
+            '{jenis}' => strtoupper($jenisDokumen),
+        ];
+
+        $result = $format;
+        foreach ($replacements as $key => $val) {
+            $result = str_replace($key, $val, $result);
+        }
+
+        return $result;
+    }
+
+    private function bulanRomawi(int $bulan): string
+    {
+        $romawi = [
+            1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV',
+            5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII',
+            9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'
+        ];
+        return $romawi[$bulan] ?? 'I';
     }
 
     public function cetakUtama(Request $request, $mitraId)
@@ -98,6 +135,9 @@ class SpkController extends Controller
         $bulanAwal = (int) ($request->bulan_awal ?? 1);
         $bulanAkhir = (int) ($request->bulan_akhir ?? 12);
         $nomorAwal = (int) ($request->nomor_awal ?? 1);
+        $bulanSpk = (int) ($request->bulan_spk ?? $bulanAwal);
+        $tahunSpk = $request->tahun_spk ?? $tahun;
+        $formatSpk = $request->format_spk ?? 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}';
 
         $templateId = $request->template_id;
         $jenisDokumen = 'spk';
@@ -124,8 +164,9 @@ class SpkController extends Controller
         $totalHonor = (float) $items->sum('nominal');
         $periodeLabel = $this->bulanNama[$bulanAwal] . ($bulanAwal !== $bulanAkhir ? ' s.d ' . $this->bulanNama[$bulanAkhir] : '') . ' ' . $tahun;
         
+        $nomorDokumen = $this->generateNomorDokumen($formatSpk, $nomorAwal, $bulanSpk, $tahunSpk, $jenisDokumen);
+
         if ($jenisDokumen === 'bast') {
-            $nomorDokumen = sprintf("B-%04d/BPS/3206/BAST/%02d/%s", $nomorAwal, $bulanAwal, $tahun);
             $batchList = collect([(object)[
                 'mitra' => $mitra,
                 'nomor_dokumen' => $nomorDokumen,
@@ -134,8 +175,6 @@ class SpkController extends Controller
             ]]);
             return view('spk.template_bast', compact('batchList', 'tahun', 'periodeLabel'));
         }
-
-        $nomorDokumen = sprintf("B-%04d/BPS/3206/SPK/%02d/%s", $nomorAwal, $bulanAwal, $tahun);
 
         return view('spk.template_utama', compact('mitra', 'items', 'totalHonor', 'tahun', 'periodeLabel', 'nomorDokumen'));
     }
@@ -182,11 +221,14 @@ class SpkController extends Controller
             }
         }
 
-        $kategoriKegiatan = $request->kategori_kegiatan ?? 'umum';
+        $kategoriKegiatan = $request->kategori_kegiatan ?? 'sensus';
+        $formatSpk = $request->format_spk ?? 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}';
         $tahun = $request->tahun ?? date('Y');
         $bulanAwal = (int) ($request->bulan_awal ?? 1);
         $bulanAkhir = (int) ($request->bulan_akhir ?? 12);
         $nomorStart = (int) ($request->nomor_awal ?? 1);
+        $bulanSpk = (int) ($request->bulan_spk ?? $bulanAwal);
+        $tahunSpk = $request->tahun_spk ?? $tahun;
         $kegiatanId = $request->kegiatan_id ?: null;
 
         $periodeIds = Periode::where('tahun', $tahun)
@@ -211,8 +253,7 @@ class SpkController extends Controller
 
             if ($items->isEmpty()) continue;
 
-            $prefix = strtoupper($jenisDokumen);
-            $nomorDoc = sprintf("B-%04d/BPS/3206/%s/%02d/%s", $counter, $prefix, $bulanAwal, $tahun);
+            $nomorDoc = $this->generateNomorDokumen($formatSpk, $counter, $bulanSpk, $tahunSpk, $jenisDokumen);
             $totalHonor = (float) $items->sum('nominal');
 
             $batchList->push((object) [
@@ -237,6 +278,9 @@ class SpkController extends Controller
         $bulanAwal = (int) ($request->bulan_awal ?? 1);
         $bulanAkhir = (int) ($request->bulan_akhir ?? 12);
         $nomorAwal = (int) ($request->nomor_awal ?? 1);
+        $bulanSpk = (int) ($request->bulan_spk ?? $bulanAwal);
+        $tahunSpk = $request->tahun_spk ?? $tahun;
+        $formatSpk = $request->format_spk ?? 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}';
         $templateId = $request->template_id;
 
         $periodeIds = Periode::where('tahun', $tahun)
@@ -253,7 +297,9 @@ class SpkController extends Controller
 
         $totalHonor = (float) $items->sum('nominal');
         $periodeLabel = $this->bulanNama[$bulanAwal] . ($bulanAwal !== $bulanAkhir ? ' s.d ' . $this->bulanNama[$bulanAkhir] : '') . ' ' . $tahun;
-        $nomorDokumen = sprintf("1001/PPK/SPK/%02d/%s", $bulanAwal, $tahun);
+        $docTmpl = $templateId ? DocumentTemplate::find($templateId) : null;
+        $jenisDokumen = ($docTmpl && $docTmpl->jenis_dokumen) ? $docTmpl->jenis_dokumen : ($request->jenis_dokumen ?? 'spk');
+        $nomorDokumen = $this->generateNomorDokumen($formatSpk, $nomorAwal, $bulanSpk, $tahunSpk, $jenisDokumen);
 
         $docTmpl = $templateId ? DocumentTemplate::find($templateId) : null;
         $isBast = ($docTmpl && $docTmpl->jenis_dokumen === 'bast') || ($request->jenis_dokumen === 'bast');
