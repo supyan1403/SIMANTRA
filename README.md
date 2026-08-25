@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/images/logo_kendi_aesthetic.png" width="160" alt="SIMANTRA Logo" style="border-radius: 12px;">
+  <img src="public/images/logo_kendi_trans.png" width="160" alt="SIMANTRA Logo Emblem">
 </p>
 
 <h1 align="center">✨ SIMANTRA ✨</h1>
