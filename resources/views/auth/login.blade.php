@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - SIMANTRA BPS Kab. Tasikmalaya</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo_kendi_trans.png') }}">
     <script>
         // Anti-BFCache: Force page reload on Back/Forward navigation
         window.addEventListener('pageshow', function (event) {
@@ -314,17 +315,7 @@
         <div class="split-left">
             <div>
                 <div class="brand-badge mb-3">
-                    <!-- Neat Sketch Vector Emblem (Kendi Statistik BPS) -->
-                    <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <ellipse cx="50" cy="50" rx="44" ry="20" transform="rotate(-25 50 50)" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="6 3 18 3" fill="none"/>
-                        <path d="M40 15 H60 V24 C60 24 74 34 74 58 C74 78 62 88 50 88 C38 88 26 78 26 58 C26 34 40 24 40 24 Z" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.25"/>
-                        <path d="M42 17 H58 V26 C58 26 72 36 72 60 C72 78 60 86 50 86 C40 86 28 78 28 60 C28 36 42 26 42 26 Z" fill="#f0fdf4" stroke="#0f172a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M65 44 L80 37 V47 L69 51 Z" fill="#f97316" stroke="#0f172a" stroke-width="2.5" stroke-linejoin="round"/>
-                        <path d="M31 35 C20 35 18 54 28 62" stroke="#16a34a" stroke-width="3.5" stroke-linecap="round" fill="none"/>
-                        <path d="M43 37 H57 L48 48 L57 59 H43" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                        <path d="M37 71 H45 M41 67 V75" stroke="#16a34a" stroke-width="3" stroke-linecap="round"/>
-                        <path d="M55 71 H63 M59 66 A1 1 0 1 1 59 65 M59 76 A1 1 0 1 1 59 75" stroke="#f97316" stroke-width="3" stroke-linecap="round"/>
-                    </svg>
+                    <img src="{{ asset('images/logo_kendi_trans.png') }}" alt="SIMANTRA" style="width: 40px; height: 40px; object-fit: contain;">
                     <span>SIMANTRA</span>
                 </div>
                 
@@ -417,17 +408,7 @@
         <div class="split-right">
             <div>
                 <div class="bps-logo-hero-box">
-                    <!-- Neat Sketch Vector Emblem (Kendi Statistik BPS) -->
-                    <svg width="46" height="46" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <ellipse cx="50" cy="50" rx="44" ry="20" transform="rotate(-25 50 50)" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="6 3 18 3" fill="none"/>
-                        <path d="M40 15 H60 V24 C60 24 74 34 74 58 C74 78 62 88 50 88 C38 88 26 78 26 58 C26 34 40 24 40 24 Z" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.3"/>
-                        <path d="M42 17 H58 V26 C58 26 72 36 72 60 C72 78 60 86 50 86 C40 86 28 78 28 60 C28 36 42 26 42 26 Z" fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M65 44 L80 37 V47 L69 51 Z" fill="#f97316" stroke="#0f172a" stroke-width="2.5" stroke-linejoin="round"/>
-                        <path d="M31 35 C20 35 18 54 28 62" stroke="#16a34a" stroke-width="3.5" stroke-linecap="round" fill="none"/>
-                        <path d="M43 37 H57 L48 48 L57 59 H43" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                        <path d="M37 71 H45 M41 67 V75" stroke="#16a34a" stroke-width="3" stroke-linecap="round"/>
-                        <path d="M55 71 H63 M59 66 A1 1 0 1 1 59 65 M59 76 A1 1 0 1 1 59 75" stroke="#f97316" stroke-width="3" stroke-linecap="round"/>
-                    </svg>
+                    <img src="{{ asset('images/logo_kendi_trans.png') }}" alt="SIMANTRA" style="width: 46px; height: 46px; object-fit: contain;">
                 </div>
                 <h2 class="hero-title">Monitoring Alokasi Pekerjaan & Honor</h2>
                 <p class="hero-description">

@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>SIMANTRA - {{ $title ?? 'Sistem Monitoring Alokasi Pekerjaan & Honor Mitra' }}</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo_kendi_trans.png') }}">
     <script>
         // Anti-BFCache: Force server revalidation on Back/Forward browser navigation after logout
         window.addEventListener('pageshow', function (event) {
@@ -563,17 +565,7 @@
         <div class="sidebar-brand">
             <div class="brand-logo-wrapper" id="brandLogoWrapper" title="SIMANTRA BPS (Klik untuk toggle sidebar)">
                 <div class="brand-kendi-sketch-icon">
-                    <!-- Neat Sketch Vector SVG Kendi BPS -->
-                    <svg width="26" height="26" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <ellipse cx="50" cy="50" rx="44" ry="20" transform="rotate(-25 50 50)" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="6 3 18 3" fill="none"/>
-                        <path d="M40 15 H60 V24 C60 24 74 34 74 58 C74 78 62 88 50 88 C38 88 26 78 26 58 C26 34 40 24 40 24 Z" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.3"/>
-                        <path d="M42 17 H58 V26 C58 26 72 36 72 60 C72 78 60 86 50 86 C40 86 28 78 28 60 C28 36 42 26 42 26 Z" fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M65 44 L80 37 V47 L69 51 Z" fill="#f97316" stroke="#0f172a" stroke-width="2.5" stroke-linejoin="round"/>
-                        <path d="M31 35 C20 35 18 54 28 62" stroke="#16a34a" stroke-width="3.5" stroke-linecap="round" fill="none"/>
-                        <path d="M43 37 H57 L48 48 L57 59 H43" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                        <path d="M37 71 H45 M41 67 V75" stroke="#16a34a" stroke-width="3" stroke-linecap="round"/>
-                        <path d="M55 71 H63 M59 66 A1 1 0 1 1 59 65 M59 76 A1 1 0 1 1 59 75" stroke="#f97316" stroke-width="3" stroke-linecap="round"/>
-                    </svg>
+                    <img src="{{ asset('images/logo_kendi_trans.png') }}" alt="SIMANTRA" style="width: 28px; height: 28px; object-fit: contain;">
                 </div>
                 <div class="brand-text-container">
                     <div class="brand-text">SIMANTRA</div>
@@ -677,16 +669,8 @@
                     <i class="bi bi-list fs-5"></i>
                 </button>
                 <div class="d-flex align-items-center gap-2">
-                    <!-- Neat Sketch Vector SVG Kendi BPS in Topbar -->
-                    <svg width="22" height="22" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <ellipse cx="50" cy="50" rx="44" ry="20" transform="rotate(-25 50 50)" stroke="#0284c7" stroke-width="3" stroke-dasharray="6 3 18 3" fill="none"/>
-                        <path d="M42 17 H58 V26 C58 26 72 36 72 60 C72 78 60 86 50 86 C40 86 28 78 28 60 C28 36 42 26 42 26 Z" fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M65 44 L80 37 V47 L69 51 Z" fill="#f97316" stroke="#0f172a" stroke-width="2.5"/>
-                        <path d="M31 35 C20 35 18 54 28 62" stroke="#16a34a" stroke-width="3.5" stroke-linecap="round" fill="none"/>
-                        <path d="M43 37 H57 L48 48 L57 59 H43" stroke="#0284c7" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                        <path d="M37 71 H45 M41 67 V75" stroke="#16a34a" stroke-width="3.5" stroke-linecap="round"/>
-                        <path d="M55 71 H63 M59 66 A1 1 0 1 1 59 65 M59 76 A1 1 0 1 1 59 75" stroke="#f97316" stroke-width="3.5" stroke-linecap="round"/>
-                    </svg>
+                    <!-- Logo Kendi BPS in Topbar -->
+                    <img src="{{ asset('images/logo_kendi_trans.png') }}" alt="SIMANTRA" style="width: 22px; height: 22px; object-fit: contain;">
                     <span class="badge bg-primary bg-opacity-10 text-primary fw-bold px-2.5 py-1">SIMANTRA BPS</span>
                     <span class="text-muted small">/</span>
                     <span class="fw-bold text-dark small">{{ $title ?? 'Sistem Monitoring Alokasi Pekerjaan & Honor Mitra' }}</span>
