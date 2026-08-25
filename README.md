@@ -72,52 +72,53 @@ Berikut adalah kumpulan diagram rancang bangun sistem SIMANTRA yang disajikan me
 ---
 
 ### 1. Use Case Diagram
-Diagram ini memetakan interaksi fungsional antara aktor dengan fitur-fitur yang ada di dalam aplikasi SIMANTRA.
+Diagram ini memetakan pembagian wewenang dan hak akses fungsionalitas sistem secara terstruktur per modul.
 
 ```mermaid
 flowchart LR
-    %% Aktor
+    %% Definisi Aktor
     Public["👤 Pengunjung Publik"]
     Operator["🧑‍💼 Operator SIMANTRA"]
     Admin["👨‍💻 Administrator"]
 
-    subgraph SIMANTRA_System [" 🏛️ Sistem SIMANTRA "]
-        UC1["Melihat Landing Page & Statistik Publik"]
-        UC2["Autentikasi (Login / Logout / Profil)"]
-        UC3["Monitoring Dashboard & Rekapitulasi"]
-        UC4["Kelola Data Mitra & Import Excel"]
-        UC5["Kelola Kegiatan, Bidang & Jadwal"]
-        UC6["Alokasi Honor Mitra & Validasi Limit SBML"]
-        UC7["Export Rekapitulasi (Format Excel/MANTRA)"]
-        UC8["Generate & Cetak Dokumen SPK / BAST"]
-        UC9["Kelola Template Dokumen SPK/BAST"]
-        UC10["Kelola Master SBML & Pagu Standar"]
-        UC11["Manajemen Akun Pengguna & Reset Password"]
+    %% Hubungan Inheritance Hak Akses (Admin memiliki semua hak akses Operator)
+    Admin -.->|Mewarisi Wewenang| Operator
+
+    subgraph ModulPublik [" 🌐 1. Modul Publik & Akses "]
+        direction TB
+        UC_Landing["Melihat Landing Page & Statistik"]
+        UC_Auth["Autentikasi (Login / Kelola Profil)"]
     end
 
-    %% Relasi Aktor Publik
-    Public --> UC1
+    subgraph ModulOperasional [" 📋 2. Modul Operasional Alokasi "]
+        direction TB
+        UC_Mitra["Kelola Data Mitra & Import Excel"]
+        UC_Kegiatan["Kelola Kegiatan & Jadwal Bidang"]
+        UC_Monitoring["Alokasi Honor & Cek Limit SBML"]
+        UC_SPK["Generate & Cetak Dokumen SPK / BAST"]
+        UC_Rekap["Export Laporan Rekapitulasi (Excel)"]
+    end
 
-    %% Relasi Aktor Operator
-    Operator --> UC2
-    Operator --> UC3
-    Operator --> UC4
-    Operator --> UC5
-    Operator --> UC6
-    Operator --> UC7
-    Operator --> UC8
+    subgraph ModulAdmin [" ⚙️ 3. Modul Khusus Administrator "]
+        direction TB
+        UC_UserMgmt["Kelola Akun Operator & Reset Password"]
+        UC_SBMLMaster["Kelola Master Pagu Standar SBML"]
+        UC_Template["Kelola & Edit Template SPK/BAST"]
+    end
 
-    %% Relasi Aktor Administrator
-    Admin --> UC2
-    Admin --> UC3
-    Admin --> UC4
-    Admin --> UC5
-    Admin --> UC6
-    Admin --> UC7
-    Admin --> UC8
-    Admin --> UC9
-    Admin --> UC10
-    Admin --> UC11
+    %% Hubungan Garis Rapi per Modul
+    Public --> UC_Landing
+
+    Operator --> UC_Auth
+    Operator --> UC_Mitra
+    Operator --> UC_Kegiatan
+    Operator --> UC_Monitoring
+    Operator --> UC_SPK
+    Operator --> UC_Rekap
+
+    Admin --> UC_UserMgmt
+    Admin --> UC_SBMLMaster
+    Admin --> UC_Template
 ```
 
 #### 📝 Penjelasan Use Case:
