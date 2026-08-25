@@ -22,11 +22,15 @@
 ## 📌 Daftar Isi
 1. [Tentang SIMANTRA](#-tentang-simantra)
 2. [Fitur Unggulan](#-fitur-unggulan)
-3. [Diagram Sistem (Mermaid)](#-diagram-sistem)
+3. [Diagram Sistem & Penjelasan Lengkap](#-diagram-sistem--penjelasan)
    - [1. Use Case Diagram](#1-use-case-diagram)
-   - [2. Activity Diagram (Alur Alokasi Honor & Validasi SBML)](#2-activity-diagram-alur-alokasi-honor--validasi-sbml)
-   - [3. Entity-Relationship Diagram (ERD)](#3-entity-relationship-diagram-erd)
-   - [4. Diagram Arsitektur Aplikasi](#4-diagram-arsitektur-aplikasi)
+   - [2. Activity Diagram (Alokasi Honor & Validasi SBML)](#2-activity-diagram-alokasi-honor--validasi-sbml)
+   - [3. Sequence Diagram (Validasi Real-time Limit SBML)](#3-sequence-diagram-validasi-real-time-limit-sbml)
+   - [4. Sequence Diagram (Generate & Cetak Dokumen SPK/BAST)](#4-sequence-diagram-generate--cetak-dokumen-spkbast)
+   - [5. Entity-Relationship Diagram (ERD)](#5-entity-relationship-diagram-erd)
+   - [6. Class Diagram (Domain Model Eloquent)](#6-class-diagram-domain-model-eloquent)
+   - [7. State Machine Diagram (Siklus Status Alokasi & Dokumen)](#7-state-machine-diagram-siklus-status-alokasi--dokumen)
+   - [8. Diagram Arsitektur & Deployment Sistem](#8-diagram-arsitektur--deployment-sistem)
 4. [Persyaratan Sistem (Prerequisites)](#-persyaratan-sistem)
 5. [Panduan Instalasi & Setup](#-panduan-instalasi--setup)
 6. [Akun Pengguna Default (Default Credentials)](#-akun-pengguna-default)
@@ -37,59 +41,64 @@
 
 ## 📖 Tentang SIMANTRA
 
-**SIMANTRA** (*Sistem Informasi Monitoring Alokasi Pekerjaan dan Honor Mitra*) adalah platform berbasis web modern yang dirancang untuk mendukung operasional Badan Pusat Statistik (BPS) dalam:
-- Mengelola data master mitra statistik dan sebaran wilayah kerja (Kecamatan/Desa).
-- Mengontrol alokasi beban kerja dan penugasan kegiatan per bidang statistik.
-- **Mencegah pelanggaran pagu anggaran / Standar Biaya Masukan Lainnya (SBML)** secara *real-time* sebelum data dikomit.
-- Mengotomatiskan pembuatan dan pencetakan dokumen legalitas: **Surat Perjanjian Kerja (SPK)** dan **Berita Acara Serah Terima (BAST)** baik satuan maupun massal.
-- Menyediakan rekapitulasi data dan ekspor data sesuai standar format pelaporan MANTRA.
+**SIMANTRA** (*Sistem Informasi Monitoring Alokasi Pekerjaan dan Honor Mitra*) adalah platform web terpadu yang dirancang khusus untuk mempermudah tata kelola administrasi mitra pada Badan Pusat Statistik (BPS).
+
+Sistem ini hadir untuk mengatasi tantangan operasional seperti:
+- Pengawasan alokasi pekerjaan mitra lintas bidang statistik agar merata.
+- **Pencegahan pelanggaran pagu anggaran / Standar Biaya Masukan Lainnya (SBML)** secara otomatis sebelum Surat Perjanjian Kerja (SPK) diterbitkan.
+- Otomasi pembuatan dan pencetakan dokumen legalitas: **SPK Utama**, **Lampiran Rincian Tugas**, dan **Berita Acara Serah Terima (BAST)** dalam format cetak maupun file Word (.docx).
+- Rekapitulasi honor bulanan mitra yang siap diekspor ke format pelaporan standar Excel.
 
 ---
 
 ## 🚀 Fitur Unggulan
 
-| Fitur | Deskripsi |
+| Modul / Fitur | Rincian Fungsionalitas |
 | :--- | :--- |
-| 📊 **Executive Dashboard** | Menampilkan metrik real-time statistik mitra, grafik distribusi alokasi per bidang kegiatan, dan deteksi peringatan honor mendekati/melebihi limit. |
-| 👥 **Manajemen Master Mitra** | Pengelolaan data mitra terintegrasi (ID Sobat, Nama, NIK/No HP, Jenis Kelamin, Wilayah Kecamatan & Desa) dengan dukungan Import Excel batch. |
-| 📋 **Manajemen Kegiatan & Jadwal** | Pengelompokan kegiatan per bidang (Distribusi, Neraca, Produksi, Sosial, Cadangan) disertai kode mata anggaran dan matriks jadwal bulanan. |
-| ⚠️ **Validasi Real-time Limit SBML** | Sistem otomatis memvalidasi total akumulasi honor per mitra dalam satu bulan anggaran dan memunculkan peringatan/pencegahan jika melebihi pagu SBML. |
-| 📄 **Generator & Cetak SPK/BAST** | Cetak langsung (Print view PDF/Browser) atau unduh DOCX untuk SPK Utama, Lampiran Rincian, dan BAST dengan penomoran surat otomatis & template dinamis. |
-| 📥 **Import & Export Excel** | Dukungan impor data mitra & kegiatan serta ekspor rekapitulasi alokasi bulanan format Excel (.xlsx) menggunakan PhpSpreadsheet. |
-| 🛡️ **Role-Based Access Control** | Pembagian hak akses terproteksi antara **Administrator** (Kelola User, Template Dokumen, Master SBML) dan **Operator** (Kelola Operasional Alokasi). |
+| 📊 **Executive Dashboard** | Grafik distribusi honor per bidang, statistik beban kerja mitra, dan indikator peringatan mitra yang mendekati/melebihi pagu SBML. |
+| 👥 **Master Mitra & Wilayah** | Data lengkap mitra statistik (ID Sobat, Nama, NIK/No HP, Jenis Kelamin, Wilayah Kecamatan & Desa) dengan fitur batch Import Excel. |
+| 📋 **Master Kegiatan & Jadwal** | Pengelompokan kegiatan per bidang statistik (Distribusi, Neraca, Produksi, Sosial, Cadangan), kode mata anggaran, dan matriks jadwal bulanan. |
+| 🛡️ **Validasi Limit SBML** | Pengecekan real-time nominal honor kumulatif bulanan per mitra untuk mencegah kelebihan bayar (*over-budgeting*). |
+| 📄 **Generator SPK & BAST** | Penomoran surat otomatis yang dinamis, unduh DOCX, serta cetak langsung SPK Utama, Lampiran Kegiatan, dan BAST secara satuan atau massal. |
+| 📥 **Import & Export Excel** | Dukungan impor master data mitra/kegiatan dan ekspor rekap honor format Excel (.xlsx) menggunakan PhpSpreadsheet. |
+| 🔐 **Manajemen Hak Akses (RBAC)** | Pemisahan peran antara **Administrator** (Full System & User Control) dan **Operator** (Operasional Alokasi & Pencetakan). |
 
 ---
 
-## 📐 Diagram Sistem
+## 📐 Diagram Sistem & Penjelasan
+
+Berikut adalah kumpulan diagram rancang bangun sistem SIMANTRA yang disajikan menggunakan standar **Mermaid** beserta penjelasan detail di setiap diagramnya.
+
+---
 
 ### 1. Use Case Diagram
-Diagram ini memetakan interaksi fungsional antara aktor (**Pengunjung Publik**, **Operator SIMANTRA**, dan **Administrator**) dengan sistem.
+Diagram ini memetakan interaksi fungsional antara aktor dengan fitur-fitur yang ada di dalam aplikasi SIMANTRA.
 
 ```mermaid
 flowchart LR
-    %% Actors
+    %% Aktor
     Public["👤 Pengunjung Publik"]
     Operator["🧑‍💼 Operator SIMANTRA"]
     Admin["👨‍💻 Administrator"]
 
-    subgraph SIMANTRA_System [" Aplikasi SIMANTRA "]
+    subgraph SIMANTRA_System [" 🏛️ Sistem SIMANTRA "]
         UC1["Melihat Landing Page & Statistik Publik"]
         UC2["Autentikasi (Login / Logout / Profil)"]
         UC3["Monitoring Dashboard & Rekapitulasi"]
         UC4["Kelola Data Mitra & Import Excel"]
         UC5["Kelola Kegiatan, Bidang & Jadwal"]
         UC6["Alokasi Honor Mitra & Validasi Limit SBML"]
-        UC7["Export Rekap Honor (Format Excel/MANTRA)"]
+        UC7["Export Rekapitulasi (Format Excel/MANTRA)"]
         UC8["Generate & Cetak Dokumen SPK / BAST"]
         UC9["Kelola Template Dokumen SPK/BAST"]
-        UC10["Kelola Master SBML & Pagu Honor"]
+        UC10["Kelola Master SBML & Pagu Standar"]
         UC11["Manajemen Akun Pengguna & Reset Password"]
     end
 
-    %% Public Relations
+    %% Relasi Aktor Publik
     Public --> UC1
 
-    %% Operator Relations
+    %% Relasi Aktor Operator
     Operator --> UC2
     Operator --> UC3
     Operator --> UC4
@@ -98,7 +107,7 @@ flowchart LR
     Operator --> UC7
     Operator --> UC8
 
-    %% Admin Relations (Inherits Operator + System Management)
+    %% Relasi Aktor Administrator
     Admin --> UC2
     Admin --> UC3
     Admin --> UC4
@@ -111,10 +120,15 @@ flowchart LR
     Admin --> UC11
 ```
 
+#### 📝 Penjelasan Use Case:
+1. **Pengunjung Publik**: Hanya dapat mengakses landing page publik untuk melihat ringkasan informasi dan transparansi statistik umum.
+2. **Operator SIMANTRA**: Bertugas mengelola data operasional harian, mencakup input mitra, penugasan kegiatan, pemantauan batas limit SBML, pengunduhan rekap Excel, serta pencetakan dokumen SPK dan BAST.
+3. **Administrator**: Memiliki seluruh wewenang Operator ditambah kontrol sistem: manajemen akun operator, pengaturan hak akses, konfigurasi template dokumen dinamis, dan penyesuaian master pagu SBML.
+
 ---
 
-### 2. Activity Diagram (Alur Alokasi Honor & Validasi SBML)
-Diagram aktivitas berikut menggambarkan alur kerja mulai dari penugasan mitra pada kegiatan, kalkulasi otomatis batas limit SBML, hingga penerbitan dokumen SPK/BAST.
+### 2. Activity Diagram (Alokasi Honor & Validasi SBML)
+Diagram ini menjelaskan alur aktivitas saat operator menginput honor mitra hingga sistem melakukan pengecekan batas anggaran SBML.
 
 ```mermaid
 flowchart TD
@@ -125,10 +139,10 @@ flowchart TD
     
     InputAlokasi --> CheckLimit{Sistem Cek Akumulasi Honor vs Limit SBML}
     
-    CheckLimit -- "Total Honor > Pagu SBML (Over Limit)" --> ShowWarning[Sistem Tampilkan Peringatan / Limit Alert ⚠️]
-    ShowWarning --> DecisionOver{Tetap Lanjutkan Alokasi?}
-    DecisionOver -- "Tidak / Revisi" --> InputAlokasi
-    DecisionOver -- "Ya / Konfirmasi" --> SaveData[Simpan Alokasi Honor ke Database]
+    CheckLimit -- "Total Honor > Pagu SBML (Over Limit)" --> ShowWarning[Sistem Tampilkan Peringatan Limit Alert ⚠️]
+    ShowWarning --> DecisionOver{Tetap Lanjutkan Simpan?}
+    DecisionOver -- "Revisi Nominal" --> InputAlokasi
+    DecisionOver -- "Konfirmasi Simpan" --> SaveData[Simpan Alokasi Honor ke Database]
 
     CheckLimit -- "Total Honor <= Pagu SBML (Aman)" --> SaveData
     
@@ -137,7 +151,7 @@ flowchart TD
     
     GenerateDocs --> ActionDocs{Pilih Aksi Dokumen}
     ActionDocs -- "Cetak Satuan / Massal" --> PrintDoc[Cetak SPK Utama / Lampiran / BAST]
-    ActionDocs -- "Download File" --> DownloadWord[Unduh Dokumen Format DOCX / Word]
+    ActionDocs -- "Download DOCX" --> DownloadWord[Unduh Dokumen Word .docx]
     ActionDocs -- "Export Laporan" --> ExportExcel[Export Rekapitulasi ke Excel]
 
     PrintDoc --> End([🔴 Selesai])
@@ -145,32 +159,131 @@ flowchart TD
     ExportExcel --> End
 ```
 
+#### 📝 Penjelasan Activity:
+1. Operator memilih mitra dan periode anggaran yang akan dialokasikan penugasannya.
+2. Sistem secara otomatis menjumlahkan seluruh honor mitra di bulan tersebut dan membandingkannya dengan limit SBML yang berlaku.
+3. Jika total honor melebihi batas ketentuan SBML, sistem menampilkan status peringatan (*Warning Alert*). Operator dapat merevisi atau mengonfirmasi penugasan.
+4. Setelah tersimpan, data otomatis masuk ke antrean cetak SPK/BAST dan rekapitulasi honor bulanan.
+
 ---
 
-### 3. Entity-Relationship Diagram (ERD)
-Diagram relasi entitas basis data SIMANTRA memperlihatkan keterhubungan antartabel utama.
+### 3. Sequence Diagram (Validasi Real-time Limit SBML)
+Diagram urutan interaksi komponen aplikasi saat validasi honor dilakukan dari sisi antarmuka pengguna hingga ke basis data.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Operator / PJ Kegiatan
+    participant View as Web UI (Blade & JS)
+    participant Ctrl as MonitoringController
+    participant Model as AlokasiHonor & Sbml Model
+    participant DB as MySQL Database
+
+    User->>View: Memilih Mitra & Memasukkan Nominal Honor
+    View->>Ctrl: GET /monitoring/check-limit?mitra_id=X&periode_id=Y&nominal=Z
+    activate Ctrl
+    Ctrl->>Model: Query total honor berjalan & pagu SBML mitra
+    activate Model
+    Model->>DB: SELECT SUM(nominal) FROM alokasi_honors WHERE ...
+    DB-->>Model: Return total alokasi saat ini
+    Model-->>Ctrl: Data akumulasi honor & limit SBML
+    deactivate Model
+
+    alt Akumulasi Honor > Limit SBML
+        Ctrl-->>View: JSON Response (status: 'warning', is_over_limit: true, sisa_pagu: -N)
+        View-->>User: Tampilkan Badge Merah / Peringatan Over Limit ⚠️
+    else Akumulasi Honor <= Limit SBML
+        Ctrl-->>View: JSON Response (status: 'safe', is_over_limit: false, sisa_pagu: +N)
+        View-->>User: Tampilkan Badge Hijau / Alokasi Aman ✅
+    end
+    deactivate Ctrl
+
+    User->>View: Klik Tombol "Simpan Alokasi"
+    View->>Ctrl: POST /monitoring (Data Alokasi)
+    activate Ctrl
+    Ctrl->>Model: AlokasiHonor::create([...])
+    Model->>DB: INSERT INTO alokasi_honors ...
+    DB-->>Model: Success
+    Ctrl-->>View: Redirect dengan Notifikasi Sukses
+    deactivate Ctrl
+    View-->>User: Menampilkan pesan alokasi berhasil disimpan
+```
+
+#### 📝 Penjelasan Sequence Validasi:
+1. **Asynchronous Check**: Ketika user memilih mitra atau mengisi nominal honor di form, antarmuka memicu request pengecekan ke `MonitoringController`.
+2. **Kalkulasi Cepat**: Controller menghitung total alokasi bulan berjalan ditambah alokasi baru, lalu membandingkannya dengan limit SBML mitra.
+3. **Feedback Visual Instan**: UI memberikan respons warna status (hijau = aman, merah = melebihi limit) sebelum tombol simpan diklik.
+
+---
+
+### 4. Sequence Diagram (Generate & Cetak Dokumen SPK/BAST)
+Diagram urutan proses penerbitan surat perjanjian kerja dan berita acara serah terima.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Operator / Admin
+    participant View as Halaman SPK (Blade)
+    participant Ctrl as SpkController
+    participant NumEngine as SpkNumbering Engine
+    participant Tmpl as DocumentTemplate
+    participant DB as MySQL Database
+
+    User->>View: Buka Menu SPK & Pilih Mitra (Cetak Satuan / Massal)
+    View->>Ctrl: GET /spk/{mitra_id}/cetak-utama
+    activate Ctrl
+    Ctrl->>DB: Ambil data Mitra, Kegiatan, & AlokasiHonor
+    DB-->>Ctrl: Return data alokasi lengkap
+    
+    Ctrl->>NumEngine: Generate Nomor SPK / BAST Otomatis
+    activate NumEngine
+    NumEngine-->>Ctrl: Format Nomor: [No]/BPS/3206/KGT/[BulanRomawi]/[Tahun]
+    deactivate NumEngine
+
+    Ctrl->>Tmpl: Ambil template dokumen aktif
+    Tmpl-->>Ctrl: Return struktur template & format surat
+
+    alt User Memilih Cetak Layar / PDF
+        Ctrl-->>View: Render Blade View (Print Layout Siap Cetak)
+        View-->>User: Tampilkan dialog cetak browser / Print Preview
+    else User Memilih Download Word
+        Ctrl->>Ctrl: Parse variabel ke PhpWord / Template Processor
+        Ctrl-->>User: Download File (.docx)
+    end
+    deactivate Ctrl
+```
+
+#### 📝 Penjelasan Sequence Dokumen:
+1. Sistem mengambil data mitra beserta seluruh rincian kegiatan yang dibebankan pada bulan terpilih.
+2. Mesin penomoran (`SpkNumbering Engine`) menyusun format nomor surat dinamis sesuai kaidah tata naskah dinas BPS.
+3. Sistem menyuntikkan data tersebut ke template dokumen untuk langsung dicetak via browser atau diunduh dalam format Word (.docx).
+
+---
+
+### 5. Entity-Relationship Diagram (ERD)
+Diagram relasi database yang menunjukkan struktur tabel, atribut, dan hubungan antarentitas pada basis data SIMANTRA.
 
 ```mermaid
 erDiagram
-    USERS ||--o{ ALOKASI_HONORS : "dikelola_oleh"
-    BIDANGS ||--o{ KEGIATANS : "memayungi"
+    USERS ||--o{ ALOKASI_HONORS : "menginput"
+    BIDANGS ||--o{ KEGIATANS : "menaungi"
     KEGIATANS ||--o{ KEGIATAN_JADWALS : "memiliki_jadwal"
-    KEGIATANS ||--o{ ALOKASI_HONORS : "dialokasikan_pada"
+    KEGIATANS ||--o{ ALOKASI_HONORS : "diterapkan_pada"
     PERIODES ||--o{ ALOKASI_HONORS : "periode_anggaran"
     PERIODES ||--o{ SBMLS : "periode_sbml"
-    MITRAS ||--o{ ALOKASI_HONORS : "menerima"
-    MITRAS ||--o{ SBMLS : "memiliki_batasan"
+    MITRAS ||--o{ ALOKASI_HONORS : "menerima_alokasi"
+    MITRAS ||--o{ SBMLS : "memiliki_pagu"
     KECAMATANS ||--o{ DESAS : "membawahi"
     KECAMATANS ||--o{ MITRAS : "domisili_kecamatan"
     DESAS ||--o{ MITRAS : "domisili_desa"
 
     USERS {
         bigint id PK
-        string name
-        string email UK
-        string password
+        string name "Nama Pengguna"
+        string email UK "Email Login"
+        string password "Hash Password"
         enum role "admin, operator"
-        string foto_profil
+        string foto_profil "Path Foto"
         timestamp created_at
     }
 
@@ -182,149 +295,276 @@ erDiagram
 
     KEGIATANS {
         bigint id PK
-        bigint bidang_id FK
-        string nama
-        string kode_mata_anggaran
-        string tahun
+        bigint bidang_id FK "Relasi ke Bidang"
+        string nama "Nama Kegiatan Statistik"
+        string kode_mata_anggaran "Kode MAK / Anggaran"
+        string tahun "Tahun Anggaran"
         timestamp created_at
     }
 
     KEGIATAN_JADWALS {
         bigint id PK
-        bigint kegiatan_id FK
-        tinyint bulan "1 - 12"
-        boolean status_aktif
+        bigint kegiatan_id FK "Relasi ke Kegiatan"
+        tinyint bulan "Bulan Pelaksanaan (1-12)"
+        boolean status_aktif "Status Pelaksanaan"
     }
 
     PERIODES {
         bigint id PK
-        string tahun
-        string bulan
-        tinyint bulan_angka
+        string tahun "Tahun (misal: 2024)"
+        string bulan "Nama Bulan (misal: Januari)"
+        tinyint bulan_angka "Angka Bulan (1-12)"
         timestamp created_at
     }
 
     MITRAS {
         bigint id PK
-        string id_sobat UK
-        string nama
-        enum jk "L, P"
-        string no_hp
-        text alamat
-        string pekerjaan
-        string kode_alamat
-        string kecamatan
-        string desa
+        string id_sobat UK "ID Sobat BPS"
+        string nama "Nama Lengkap Mitra"
+        enum jk "L, P (Jenis Kelamin)"
+        string no_hp "Nomor Kontak / WhatsApp"
+        text alamat "Alamat Lengkap"
+        string pekerjaan "Pekerjaan Utama"
+        string kode_alamat "Kode Wilayah BPS"
+        string kecamatan "Nama Kecamatan"
+        string desa "Nama Desa/Kelurahan"
         timestamp created_at
     }
 
     ALOKASI_HONORS {
         bigint id PK
-        bigint mitra_id FK
-        bigint periode_id FK
-        bigint kegiatan_id FK
-        decimal nominal
-        string nomor_dokumen
+        bigint mitra_id FK "Relasi ke Mitra"
+        bigint periode_id FK "Relasi ke Periode"
+        bigint kegiatan_id FK "Relasi ke Kegiatan"
+        decimal nominal "Besaran Honor (Rp)"
+        string nomor_dokumen "Nomor SPK/BAST"
         timestamp created_at
     }
 
     SBMLS {
         bigint id PK
-        bigint mitra_id FK
-        bigint periode_id FK
-        string jenis
-        decimal nominal
+        bigint mitra_id FK "Relasi ke Mitra"
+        bigint periode_id FK "Relasi ke Periode"
+        string jenis "Kategori SBML"
+        decimal nominal "Pagu Maksimum (Rp)"
         timestamp created_at
     }
 
     SBML_MASTERS {
         bigint id PK
-        string jenis UK
-        decimal nominal_default
-        string keterangan
+        string jenis UK "Jenis Standar SBML"
+        decimal nominal_default "Besaran Default (Rp)"
+        string keterangan "Deskripsi Ketentuan"
     }
 
     DOCUMENT_TEMPLATES {
         bigint id PK
-        string template_name
-        text content
-        text header
-        text footer
-        boolean is_active
+        string template_name "Jenis Template (SPK / BAST)"
+        text content "Konten / Klausul Surat"
+        text header "Header Surat"
+        text footer "Footer / Tanda Tangan"
+        boolean is_active "Status Template Aktif"
     }
 
     KECAMATANS {
         bigint id PK
-        string kode_kecamatan UK
-        string nama_kecamatan
+        string kode_kecamatan UK "Kode BPS Kecamatan"
+        string nama_kecamatan "Nama Wilayah Kecamatan"
     }
 
     DESAS {
         bigint id PK
-        bigint kecamatan_id FK
-        string kode_desa
-        string nama_desa
+        bigint kecamatan_id FK "Relasi ke Kecamatan"
+        string kode_desa "Kode BPS Desa"
+        string nama_desa "Nama Wilayah Desa"
     }
 ```
 
+#### 📝 Penjelasan ERD:
+1. **Entitas Pusat (`ALOKASI_HONORS`)**: Berfungsi sebagai tabel transaksi yang menghubungkan `MITRAS`, `KEGIATANS`, dan `PERIODES`.
+2. **Kontrol SBML (`SBMLS` & `SBML_MASTERS`)**: Menyimpan batas maksimum penerimaan honor per mitra untuk setiap periode anggaran.
+3. **Master Wilayah (`KECAMATANS` & `DESAS`)**: Mendukung normalisasi data domisili mitra statistik.
+4. **Template Dinamis (`DOCUMENT_TEMPLATES`)**: Menyimpan format redaksi klausul SPK dan BAST agar dapat dikonfigurasi langsung oleh Administrator.
+
 ---
 
-### 4. Diagram Arsitektur Aplikasi
-Struktur arsitektur berlapis (*layered architecture*) aplikasi SIMANTRA:
+### 6. Class Diagram (Domain Model Eloquent)
+Diagram struktur kelas yang menggambarkan model data Eloquent di Laravel beserta relasi method OOP antar entitas.
+
+```mermaid
+classDiagram
+    class User {
+        +int id
+        +string name
+        +string email
+        +string role
+        +isAdmin() bool
+        +isOperator() bool
+    }
+
+    class Mitra {
+        +int id
+        +string id_sobat
+        +string nama
+        +string jk
+        +string no_hp
+        +alokasiHonors() HasMany
+        +sbmls() HasMany
+        +getTotalHonorPeriode(periodeId) decimal
+        +getSisaPaguSbml(periodeId) decimal
+    }
+
+    class Bidang {
+        +int id
+        +string nama
+        +kegiatans() HasMany
+    }
+
+    class Kegiatan {
+        +int id
+        +int bidang_id
+        +string nama
+        +string kode_mata_anggaran
+        +bidang() BelongsTo
+        +jadwals() HasMany
+        +alokasiHonors() HasMany
+    }
+
+    class Periode {
+        +int id
+        +string tahun
+        +string bulan
+        +alokasiHonors() HasMany
+        +sbmls() HasMany
+    }
+
+    class AlokasiHonor {
+        +int id
+        +int mitra_id
+        +int periode_id
+        +int kegiatan_id
+        +decimal nominal
+        +string nomor_dokumen
+        +mitra() BelongsTo
+        +kegiatan() BelongsTo
+        +periode() BelongsTo
+    }
+
+    class Sbml {
+        +int id
+        +int mitra_id
+        +int periode_id
+        +string jenis
+        +decimal nominal
+        +mitra() BelongsTo
+        +periode() BelongsTo
+    }
+
+    class DocumentTemplate {
+        +int id
+        +string template_name
+        +string content
+        +bool is_active
+        +getCompiledContent(data) string
+    }
+
+    Bidang "1" --> "0..*" Kegiatan : hasMany
+    Kegiatan "1" --> "0..*" AlokasiHonor : hasMany
+    Periode "1" --> "0..*" AlokasiHonor : hasMany
+    Periode "1" --> "0..*" Sbml : hasMany
+    Mitra "1" --> "0..*" AlokasiHonor : hasMany
+    Mitra "1" --> "0..*" Sbml : hasMany
+    AlokasiHonor --> Mitra : belongsTo
+    AlokasiHonor --> Kegiatan : belongsTo
+    AlokasiHonor --> Periode : belongsTo
+```
+
+#### 📝 Penjelasan Class Diagram:
+1. `Mitra` memiliki method pembantu untuk menghitung akumulasi total honor dan sisa pagu SBML dalam periode tertentu.
+2. `AlokasiHonor` bertindak sebagai model relasi many-to-many berbobot (*pivot with attributes*) antara `Mitra`, `Kegiatan`, dan `Periode`.
+3. `DocumentTemplate` menyediakan abstraksi untuk memproses parsing placeholder variabel ke dalam format dokumen final.
+
+---
+
+### 7. State Machine Diagram (Siklus Status Alokasi & Dokumen)
+Diagram status yang menunjukkan siklus hidup satu alokasi honor sejak awal input sampai penerbitan dokumen legalitas selesai.
+
+```mermaid
+stateDiagram-v2
+    [*] --> DraftInput: Operator Memilih Mitra & Kegiatan
+    
+    state ValidasiLimit {
+        DraftInput --> CekPagu: Evaluasi Akumulasi Honor
+        CekPagu --> StatusAman: Total <= Limit SBML
+        CekPagu --> StatusWarning: Total > Limit SBML
+        StatusWarning --> DraftInput: Revisi Nominal
+        StatusWarning --> Terkonfirmasi: Konfirmasi Override
+        StatusAman --> Terkonfirmasi: Simpan Alokasi
+    }
+
+    Terkonfirmasi --> AlokasiTersimpan: Data Masuk Basis Data
+    AlokasiTersimpan --> SPKDiterbitkan: Generate Nomor & Cetak SPK
+    SPKDiterbitkan --> BASTSelesai: Kegiatan Selesai & BAST Dicetak
+    BASTSelesai --> Terbayar: Proses Pencairan Honor Selesai
+    Terbayar --> [*]
+```
+
+#### 📝 Penjelasan State Machine:
+1. Setiap entri penugasan berawal dari status **DraftInput**.
+2. Sistem mengevaluasi kondisi batas honor: jika aman maka langsung masuk **Terkonfirmasi**, jika melebihi pagu maka beralih ke **StatusWarning**.
+3. Setelah data tersimpan, dokumen **SPK** dapat diterbitkan. Saat pelaksanaan kegiatan usai, dokumen **BAST** disahkan untuk pencairan honor (*Terbayar*).
+
+---
+
+### 8. Diagram Arsitektur & Deployment Sistem
+Diagram yang menggambarkan susunan infrastruktur server dan interaksi lapisan software pada lingkungan operasional SIMANTRA.
 
 ```mermaid
 graph TD
-    subgraph ClientLayer [" 🖥️ Client Layer (Frontend) "]
-        Browser["Web Browser (User / Admin)"]
-        BladeUI["Laravel Blade Views & Components"]
-        TailwindVite["Tailwind CSS 3 + Vite Asset Pipeline"]
-        Browser <--> BladeUI
-        BladeUI <--> TailwindVite
+    subgraph ClientEnv [" 🌐 Client Tier "]
+        UserClient["Pengguna / Operator / Admin Browser (Chrome, Edge, Firefox)"]
     end
 
-    subgraph AppLayer [" ⚙️ Application Layer (Laravel 12 Backend) "]
-        Router["Routing & Middleware (Auth, PreventBackHistory, AdminMiddleware)"]
+    subgraph WebServerTier [" 🚀 Web & Application Server Tier "]
+        WebServer["Web Server (Nginx / Apache)"]
+        PHPEngine["PHP 8.2+ Runtime (PHP-FPM)"]
+        LaravelApp["Laravel 12 Application Engine"]
         
-        subgraph Controllers [" Controllers "]
-            DashCtrl["Dashboard & Landing Controller"]
-            MitraCtrl["Mitra & Wilayah Controller"]
-            KegCtrl["Kegiatan & Jadwal Controller"]
-            MonCtrl["Monitoring & Alokasi Controller"]
-            SpkCtrl["SPK & BAST Document Generator"]
-            ImpExpCtrl["Import & Export Controller"]
-            AdmCtrl["User Management & SBML Controller"]
+        subgraph LaravelComponents [" Komponen Internal Laravel "]
+            RoutingMW["Routing & Security Middleware"]
+            ControllersLayer["Controllers (Mitra, SPK, Monitoring, Rekap)"]
+            ServiceLayer["Service Layer (SBML Validator, SPK Engine)"]
+            EloquentORM["Eloquent ORM Layer"]
         end
 
-        subgraph Services [" Logic & Utility "]
-            SbmlValidator["SBML Limit Real-time Validator"]
-            SpkNumbering["Dynamic SPK/BAST Numbering Engine"]
-            ExcelEngine["PhpSpreadsheet Importer / Exporter"]
-        end
-
-        Router --> Controllers
-        Controllers --> Services
+        WebServer --> PHPEngine
+        PHPEngine --> LaravelApp
+        LaravelApp --> RoutingMW
+        RoutingMW --> ControllersLayer
+        ControllersLayer --> ServiceLayer
+        ServiceLayer --> EloquentORM
     end
 
-    subgraph DataLayer [" 🗄️ Database & Storage Layer "]
-        Eloquent["Eloquent ORM Models"]
-        MySQL[("Database (MySQL 8 / SQLite)")]
-        Storage[("Local / Public Storage (Templates & Exports)")]
-        
-        Services --> Eloquent
-        Controllers --> Eloquent
-        Eloquent <--> MySQL
-        SpkCtrl <--> Storage
-        ImpExpCtrl <--> Storage
+    subgraph StorageTier [" 🗄️ Database & Storage Tier "]
+        MySQLDB[("Database Server (MySQL 8.0 / MariaDB)")]
+        FileStorage[("Local / Public Storage (Templates, Exports, Avatars)")]
     end
 
-    BladeUI <--> Router
+    UserClient <-->|HTTPS / HTTP Requests| WebServer
+    EloquentORM <-->|SQL Queries| MySQLDB
+    ControllersLayer <-->|Read / Write File| FileStorage
 ```
+
+#### 📝 Penjelasan Arsitektur & Deployment:
+1. **Client Tier**: Menjalankan aplikasi berbasis web responsif dengan Tailwind CSS dan Vite.
+2. **Application Server Tier**: Memproses request melalui Nginx/Apache dan diteruskan ke PHP-FPM Laravel 12 yang mengeksekusi middleware keamanan, controller, dan business logic service.
+3. **Database & Storage Tier**: Mengelola penyimpanan data relasional terstruktur pada MySQL dan berkas dokumen/template pada filesystem storage.
 
 ---
 
 ## 💻 Persyaratan Sistem
 
-Sebelum melakukan instalasi, pastikan lingkungan server/komputer Anda memenuhi spesifikasi berikut:
+Sebelum melakukan instalasi, pastikan lingkungan komputer atau server Anda memenuhi persyaratan berikut:
 
 - **PHP**: Versi `>= 8.2`
 - **Ekstensi PHP Wajib**:
@@ -338,7 +578,7 @@ Sebelum melakukan instalasi, pastikan lingkungan server/komputer Anda memenuhi s
 
 ## 🛠️ Panduan Instalasi & Setup
 
-Ikuti langkah-langkah berikut untuk menginstal SIMANTRA secara lokal pada komputer atau server pengembangan:
+Ikuti langkah-langkah di bawah ini untuk menginstal dan menjalankan SIMANTRA secara lokal:
 
 ### 1. Kloning Repositori
 ```bash
@@ -357,7 +597,7 @@ npm install
 ```
 
 ### 4. Konfigurasi File Environment (`.env`)
-Salin file template environment dan buat application key:
+Salin file `.env.example` menjadi `.env`:
 ```bash
 # Untuk Linux / macOS / Git Bash:
 cp .env.example .env
@@ -366,7 +606,7 @@ cp .env.example .env
 copy .env.example .env
 ```
 
-Buka file `.env` dengan teks editor, lalu sesuaikan koneksi database Anda:
+Buka file `.env` dan sesuaikan pengaturan koneksi database Anda:
 ```env
 APP_NAME="SIMANTRA"
 APP_ENV=local
@@ -374,7 +614,7 @@ APP_KEY=
 APP_DEBUG=true
 APP_URL=http://localhost:8000
 
-# Konfigurasi Database (Contoh MySQL)
+# Konfigurasi Database MySQL
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
@@ -382,7 +622,7 @@ DB_DATABASE=simantra_db
 DB_USERNAME=root
 DB_PASSWORD=
 ```
-*(Catatan: Buat database baru bernama `simantra_db` pada phpMyAdmin / MySQL client Anda jika menggunakan MySQL).*
+*(Catatan: Buat database kosong bernama `simantra_db` pada phpMyAdmin / MySQL client sebelum menjalankan migrasi).*
 
 Kemudian generate application key:
 ```bash
@@ -411,13 +651,14 @@ npm run build
 ```
 
 ### 8. Jalankan Server Aplikasi
-Buka terminal baru dan jalankan server lokal Laravel:
+Buka terminal dan jalankan server lokal Laravel:
 ```bash
 php artisan serve
 ```
-Aplikasi sekarang dapat diakses melalui browser di alamat: **`http://localhost:8000`** 🚀
+Aplikasi sekarang dapat diakses melalui browser di: **`http://localhost:8000`** 🚀
 
-> 💡 **Tip:** Anda juga dapat menjalankan server dan asset watcher secara bersamaan menggunakan perintah:
+> 💡 **Tips Menjalankan Sekaligus:**
+> Anda dapat menjalankan server PHP dan Vite watcher secara bersamaan dengan perintah:
 > ```bash
 > composer run dev
 > ```
@@ -446,7 +687,7 @@ php artisan test
 # Menjalankan pengujian fitur penomoran SPK
 php artisan test --filter=SpkNumberingTest
 
-# Menjalankan pengujian otentikasi & keamanan riwayat halaman
+# Menjalankan pengujian keamanan riwayat halaman & otentikasi
 php artisan test --filter=SecurityBackHistoryTest
 ```
 
