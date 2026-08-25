@@ -13,7 +13,7 @@
   <img src="https://img.shields.io/badge/PHP-%3E%3D8.2-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP >= 8.2">
   <img src="https://img.shields.io/badge/TailwindCSS-3.x-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS">
   <img src="https://img.shields.io/badge/Vite-6.x-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite">
-  <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL">
+  <img src="https://img.shields.io/badge/SQLite-3.35-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite">
   <img src="https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge" alt="License MIT">
 </p>
 
@@ -536,7 +536,7 @@ graph TD
     end
 
     subgraph StorageTier [" 🗄️ Database & Storage Tier "]
-        MySQLDB[("Database Server (MySQL 8.0 / MariaDB)")]
+        MySQLDB[("Database Server (SQLite / MySQL / MariaDB)")]
         FileStorage[("Local / Public Storage (Templates, Exports, Avatars)")]
     end
 
@@ -572,7 +572,7 @@ Ikuti langkah-langkah di bawah ini untuk menginstal dan menjalankan SIMANTRA sec
 
 ### 1. Kloning Repositori
 ```bash
-git clone https://github.com/username/SIMANTRA.git
+git clone https://github.com/supyan1403/SIMANTRA.git
 cd SIMANTRA
 ```
 
@@ -596,7 +596,7 @@ cp .env.example .env
 copy .env.example .env
 ```
 
-Buka file `.env` dan sesuaikan pengaturan koneksi database Anda:
+Buka file `.env` dan pastikan koneksi database menggunakan SQLite (pengaturan default project):
 ```env
 APP_NAME="SIMANTRA"
 APP_ENV=local
@@ -604,15 +604,11 @@ APP_KEY=
 APP_DEBUG=true
 APP_URL=http://localhost:8000
 
-# Konfigurasi Database MySQL
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=simantra_db
-DB_USERNAME=root
-DB_PASSWORD=
+# Konfigurasi Database SQLite (default SIMANTRA)
+DB_CONNECTION=sqlite
+# Tidak perlu DB_HOST / DB_PORT / DB_USERNAME / DB_PASSWORD
 ```
-*(Catatan: Buat database kosong bernama `simantra_db` pada phpMyAdmin / MySQL client sebelum menjalankan migrasi).*
+*(Catatan: File basis data `database/database.sqlite` akan dibuat otomatis saat migrasi dijalankan. Tidak perlu menginstal atau mengonfigurasi server database seperti MySQL/MariaDB atau phpMyAdmin.)*
 
 Kemudian generate application key:
 ```bash
@@ -624,6 +620,7 @@ Perintah ini akan membuat seluruh tabel basis data, mengisi data master bidang, 
 ```bash
 php artisan migrate --seed
 ```
+> 💡 **Data MANTRA otomatis**: Data mitra, kegiatan, dan honor diambil dari `database/seeders/mantra_db.json` secara otomatis melalui migration auto-seed — Anda **tidak perlu** melakukan import Excel manual untuk mendapatkan data awal.
 
 ### 6. Buat Symbolic Link Storage
 Untuk memastikan berkas profil dan dokumen template dapat diakses:
