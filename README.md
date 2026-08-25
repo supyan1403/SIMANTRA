@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="300" alt="SIMANTRA Banner">
+  <img src="public/images/logo_kendi_aesthetic.png" width="160" alt="SIMANTRA Logo" style="border-radius: 12px;">
 </p>
 
 <h1 align="center">✨ SIMANTRA ✨</h1>
@@ -17,25 +17,14 @@
   <img src="https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge" alt="License MIT">
 </p>
 
----
+## 📌 Navigasi & Daftar Isi
 
-## 📌 Daftar Isi
-1. [Tentang SIMANTRA](#-tentang-simantra)
-2. [Fitur Unggulan](#-fitur-unggulan)
-3. [Diagram Sistem & Penjelasan Lengkap](#-diagram-sistem--penjelasan)
-   - [1. Use Case Diagram](#1-use-case-diagram)
-   - [2. Activity Diagram (Alokasi Honor & Validasi SBML)](#2-activity-diagram-alokasi-honor--validasi-sbml)
-   - [3. Sequence Diagram (Validasi Real-time Limit SBML)](#3-sequence-diagram-validasi-real-time-limit-sbml)
-   - [4. Sequence Diagram (Generate & Cetak Dokumen SPK/BAST)](#4-sequence-diagram-generate--cetak-dokumen-spkbast)
-   - [5. Entity-Relationship Diagram (ERD)](#5-entity-relationship-diagram-erd)
-   - [6. Class Diagram (Domain Model Eloquent)](#6-class-diagram-domain-model-eloquent)
-   - [7. State Machine Diagram (Siklus Status Alokasi & Dokumen)](#7-state-machine-diagram-siklus-status-alokasi--dokumen)
-   - [8. Diagram Arsitektur & Deployment Sistem](#8-diagram-arsitektur--deployment-sistem)
-4. [Persyaratan Sistem (Prerequisites)](#-persyaratan-sistem)
-5. [Panduan Instalasi & Setup](#-panduan-instalasi--setup)
-6. [Akun Pengguna Default (Default Credentials)](#-akun-pengguna-default)
-7. [Panduan Menjalankan Pengujian (Testing)](#-pengujian-otomatis)
-8. [Lisensi](#-lisensi)
+| 📂 Kategori | 🔗 Pintasan Bagian & Diagram | 📝 Deskripsi |
+| :--- | :--- | :--- |
+| **🌟 Ringkasan Proyek** | • [Tentang SIMANTRA](#-tentang-simantra)<br>• [Fitur Unggulan](#-fitur-unggulan)<br>• [Struktur Direktori](#-struktur-direktori-utama) | Ikhtisar sistem BPS, keunggulan fitur, dan hierarki folder. |
+| **📐 Diagram Rancang Bangun** | **Alur & Wewenang:**<br>• [1. Use Case Diagram](#1-use-case-diagram)<br>• [2. Activity Diagram (Alokasi & SBML)](#2-activity-diagram-alokasi-honor--validasi-sbml)<br>• [3. Sequence Validasi Limit SBML](#3-sequence-diagram-validasi-real-time-limit-sbml)<br>• [4. Sequence Cetak SPK/BAST](#4-sequence-diagram-generate--cetak-dokumen-spkbast)<br><br>**Data & Arsitektur:**<br>• [5. Entity-Relationship Diagram (ERD)](#5-entity-relationship-diagram-erd)<br>• [6. Class Diagram (Model Eloquent)](#6-class-diagram-domain-model-eloquent)<br>• [7. State Machine Status Alokasi](#7-state-machine-diagram-siklus-status-alokasi--dokumen)<br>• [8. Arsitektur & Deployment Server](#8-diagram-arsitektur--deployment-sistem) | Kumpulan 8 diagram visualisasi alur bisnis, database relasional, dan arsitektur sistem. |
+| **🛠️ Instalasi & Konfigurasi** | • [Persyaratan Sistem](#-persyaratan-sistem)<br>• [Panduan Instalasi Langkah-demi-Langkah](#-panduan-instalasi--setup)<br>• [Kredensial Akun Default](#-akun-pengguna-default) | Petunjuk instalasi lokal, migrasi database, dan data akun login. |
+| **🧪 Testing & Legalitas** | • [Pengujian Otomatis (PHPUnit)](#-pengujian-otomatis)<br>• [Lisensi Proyek](#-lisensi) | Perintah eksekusi test cases dan lisensi open-source MIT. |
 
 ---
 
