@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIMANTRA - Sistem Monitoring Alokasi Pekerjaan & Honor Mitra BPS Kab. Tasikmalaya</title>
+    <title>SIMANTRA - Sistem Informasi Monitoring Alokasi Pekerjaan dan Honor Mitra BPS Kab. Tasikmalaya</title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/logo_kendi_trans.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/logo_kendi_trans.png') }}">
 
     <!-- Google Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,8 +18,9 @@
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js & Chart.js DataLabels Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 
     <style>
         body {
@@ -25,37 +30,26 @@
             font-size: 0.875rem;
         }
 
-        .navbar-brand-logo {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 1rem;
-            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
-        }
-
         .glass-pill {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.12);
             color: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 50rem;
-            padding: 0.2rem 0.65rem;
-            font-size: 0.7rem;
+            padding: 0.35rem 0.85rem;
+            font-size: 0.725rem;
             font-weight: 600;
+            backdrop-filter: blur(8px);
         }
 
         .hero-banner {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            background: linear-gradient(135deg, #0b1329 0%, #1e293b 50%, #0f172a 100%);
             color: #ffffff;
-            border-radius: 20px;
-            padding: 2.5rem 2rem;
-            margin-bottom: 2rem;
+            border-radius: 16px;
+            padding: 2.5rem 2.5rem;
+            margin-top: 0.5rem;
+            margin-bottom: 1.75rem;
             box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             position: relative;
             overflow: hidden;
         }
@@ -65,9 +59,9 @@
             position: absolute;
             top: -50%;
             right: -10%;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.22) 0%, rgba(255, 255, 255, 0) 70%);
             pointer-events: none;
         }
 
@@ -76,6 +70,13 @@
             border-radius: 0.85rem;
             overflow: hidden;
             position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
         }
 
         .metric-card-primary { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%) !important; color: #ffffff !important; }
@@ -88,7 +89,7 @@
             width: 44px;
             height: 44px;
             border-radius: 0.65rem;
-            background: rgba(255, 255, 255, 0.22);
+            background: rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(4px);
             display: flex;
             align-items: center;
@@ -97,107 +98,133 @@
             color: #ffffff;
         }
 
-        .badge-soft-primary {
-            background-color: rgba(37, 99, 235, 0.1);
-            color: #2563eb;
-        }
-
         .extra-small {
             font-size: 0.75rem;
+        }
+
+        /* Spacing for left stat cards inside 3-bar comparison (Modern Clean Floating Pill Style) */
+        .stat-item-card {
+            padding: 1.1rem 1.25rem;
+            border-radius: 1rem;
+            background: #ffffff;
+            border: 1px solid #edf2f7;
+            box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .stat-item-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.08);
+        }
+        .stat-badge-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
         }
     </style>
 </head>
 <body>
 
-    <!-- NAVBAR PUBLIC -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top py-2 shadow-sm">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ route('landing') }}">
-                <div class="p-1 rounded-3 bg-white border shadow-sm d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-                    <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <ellipse cx="50" cy="50" rx="44" ry="20" transform="rotate(-25 50 50)" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="6 3 18 3" fill="none"/>
-                        <path d="M40 15 H60 V24 C60 24 74 34 74 58 C74 78 62 88 50 88 C38 88 26 78 26 58 C26 34 40 24 40 24 Z" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.25"/>
-                        <path d="M42 17 H58 V26 C58 26 72 36 72 60 C72 78 60 86 50 86 C40 86 28 78 28 60 C28 36 42 26 42 26 Z" fill="#f0fdf4" stroke="#0f172a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M65 44 L80 37 V47 L69 51 Z" fill="#f97316" stroke="#0f172a" stroke-width="2.5" stroke-linejoin="round"/>
-                        <path d="M31 35 C20 35 18 54 28 62" stroke="#16a34a" stroke-width="3.5" stroke-linecap="round" fill="none"/>
-                        <path d="M43 37 H57 L48 48 L57 59 H43" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                        <path d="M37 71 H45 M41 67 V75" stroke="#16a34a" stroke-width="3" stroke-linecap="round"/>
-                        <path d="M55 71 H63 M59 66 A1 1 0 1 1 59 65 M59 76 A1 1 0 1 1 59 75" stroke="#f97316" stroke-width="3" stroke-linecap="round"/>
-                    </svg>
-                </div>
-                <div>
-                    <div class="fw-extrabold text-dark lh-1" style="font-size: 1rem; letter-spacing: -0.3px;">SIMANTRA</div>
-                    <div class="text-muted extra-small fw-bold text-uppercase mt-0.5" style="font-size: 0.65rem; letter-spacing: 0.5px;">BPS KABUPATEN TASIKMALAYA</div>
-                </div>
-            </a>
-
-            <div class="d-flex align-items-center gap-2 ms-auto">
-                <a href="{{ route('login') }}" class="btn btn-primary btn-sm fw-semibold rounded-pill px-3 py-1.5 shadow-sm" style="font-size: 0.825rem;">
-                    <i class="bi bi-box-arrow-in-right me-1"></i> LOGIN ADMIN / OPERATOR
-                </a>
-            </div>
-        </div>
-    </nav>
-
     <!-- MAIN CONTAINER -->
     <div class="container py-4" style="max-width: 1240px;">
 
-        <!-- HERO TITLE -->
+        <!-- HERO TITLE (CLEAN WITHOUT TOP LOGO/TEXT) -->
         <div class="hero-banner">
-            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
-                <span class="glass-pill d-inline-flex align-items-center" style="background: rgba(37, 99, 235, 0.25); border: 1px solid rgba(59, 130, 246, 0.4); padding: 0.35rem 0.85rem;">
-                    <i class="bi bi-shield-check text-info me-2 fs-6"></i><span>Portal Eksekutif Informasi Publik</span>
+            <h1 class="fw-extrabold text-white mb-2" style="letter-spacing: -0.5px; font-size: 2.35rem; line-height: 1.15;">
+                Selamat Datang di <span style="font-weight: 900 !important; color: #ffffff;">SIMANTRA</span>
+            </h1>
+
+            <h5 class="fw-semibold mb-2" style="font-size: 1.05rem; color: #93c5fd !important;">
+                Sistem Informasi Monitoring Alokasi Pekerjaan dan Honor Mitra
+            </h5>
+            <p class="text-white-50 mb-3" style="font-size: 0.875rem; max-width: 860px; line-height: 1.6;">
+                Ringkasan eksekutif pagu kegiatan, realisasi pengeluaran honor mitra, serta visualisasi agregat statistik beban kerja per bidang Badan Pusat Statistik Kabupaten Tasikmalaya.
+            </p>
+
+            <!-- BADGES MOVED BELOW DESCRIPTION -->
+            <div class="d-flex align-items-center gap-2 pt-1 flex-wrap">
+                <span class="glass-pill d-inline-flex align-items-center">
+                    <i class="bi bi-shield-check text-info me-2 fs-6"></i><span>Portal Informasi Publik & Transparansi Anggaran</span>
                 </span>
-                <span class="glass-pill d-inline-flex align-items-center" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.35); padding: 0.35rem 0.85rem;">
-                    <i class="bi bi-broadcast text-success me-2 fs-6"></i><span>Real-time Database {{ number_format($totalMitra) }} Mitra</span>
+                <span class="glass-pill d-inline-flex align-items-center" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.35);">
+                    <i class="bi bi-broadcast text-success me-2 fs-6"></i><span>Database Resmi {{ number_format($totalMitra) }} Mitra Terdaftar</span>
                 </span>
             </div>
-            <h2 class="fw-extrabold text-white mb-2" style="letter-spacing: -0.5px;">Sistem Monitoring Alokasi Pekerjaan & Honor Mitra</h2>
-            <p class="text-white-50 mb-0" style="font-size: 0.95rem; max-width: 820px;">
-                Ringkasan eksekutif pagu kegiatan, realisasi honor mitra, serta rekapitulasi beban kerja per bidang Badan Pusat Statistik Kabupaten Tasikmalaya.
-            </p>
         </div>
 
-        <!-- MACRO FILTER BAR -->
+        <!-- MACRO FILTER BAR WITH DROPDOWN CHECKBOX -->
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body p-3.5">
-                <form method="GET" action="{{ route('landing') }}" class="row g-2 align-items-end">
+                <form method="GET" action="{{ route('landing') }}" id="formFilterLanding" class="row g-2 align-items-end">
                     <div class="col-6 col-md-2">
                         <label class="form-label text-muted extra-small fw-bold mb-1">TAHUN</label>
-                        <select name="tahun" class="form-select form-select-sm" style="height: 35px;" onchange="this.form.submit()">
+                        <select name="tahun" class="form-select form-select-sm" style="height: 38px;" onchange="submitLandingClean(this.form)">
                             @foreach($tahunList as $t)
                                 <option value="{{ $t }}" {{ $t == $tahun ? 'selected' : '' }}>{{ $t }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-6 col-md-2">
-                        <label class="form-label text-muted extra-small fw-bold mb-1">BULAN AWAL</label>
-                        <select name="bulan_awal" class="form-select form-select-sm" style="height: 35px;" onchange="this.form.submit()">
-                            @foreach($monthOptions as $angka => $nm)
-                                <option value="{{ $angka }}" {{ $bulanAwal == $angka ? 'selected' : '' }}>{{ $nm }}</option>
-                            @endforeach
-                        </select>
+
+                    <!-- Filter Dropdown Checkbox Bulan Pencairan -->
+                    <div class="col-6 col-md-4">
+                        <label class="form-label text-muted extra-small fw-bold mb-1">BULAN PENCAIRAN</label>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-white border text-dark w-100 text-start d-flex justify-content-between align-items-center bg-white shadow-none dropdown-toggle" type="button" id="dropdownBulanBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="height: 38px; border-color: #dee2e6 !important;">
+                                <span class="text-truncate text-dark fw-medium" id="labelBulanSelected">
+                                    <i class="bi bi-calendar-check text-primary me-1"></i>
+                                    @if(count($bulanPencairan) === 12)
+                                        1 Tahun Penuh (12 Bulan)
+                                    @elseif(count($bulanPencairan) === 1)
+                                        {{ $monthOptions[$bulanPencairan[0]] }}
+                                    @else
+                                        {{ count($bulanPencairan) }} Bulan Terpilih
+                                    @endif
+                                </span>
+                                <span class="badge bg-primary rounded-pill ms-2">{{ count($bulanPencairan) }}</span>
+                            </button>
+                            <div class="dropdown-menu p-3 shadow-lg" aria-labelledby="dropdownBulanBtn" style="min-width: 300px; max-height: 380px; overflow-y: auto;">
+                                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                    <span class="fw-bold small text-dark">Pilih Bulan Pencairan</span>
+                                    <div class="btn-group btn-group-sm">
+                                        <button type="button" class="btn btn-link p-0 text-primary text-decoration-none extra-small me-2" id="btnSelectAllMonths">Pilih Semua</button>
+                                        <button type="button" class="btn btn-link p-0 text-muted text-decoration-none extra-small" id="btnClearAllMonths">Reset</button>
+                                    </div>
+                                </div>
+                                <div class="row g-2">
+                                    @foreach($monthOptions as $num => $nama)
+                                    <div class="col-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input check-bulan-item" type="checkbox" name="bulan_pencairan[]" value="{{ $num }}" id="cbBulan_{{ $num }}" {{ in_array($num, $bulanPencairan) ? 'checked' : '' }}>
+                                            <label class="form-check-label small" for="cbBulan_{{ $num }}">
+                                                {{ $nama }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                                <div class="mt-3 pt-2 border-top">
+                                    <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-filter"></i> Terapkan Filter Bulan</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-6 col-md-2">
-                        <label class="form-label text-muted extra-small fw-bold mb-1">BULAN AKHIR</label>
-                        <select name="bulan_akhir" class="form-select form-select-sm" style="height: 35px;" onchange="this.form.submit()">
-                            @foreach($monthOptions as $angka => $nm)
-                                <option value="{{ $angka }}" {{ $bulanAkhir == $angka ? 'selected' : '' }}>{{ $nm }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+
                     <div class="col-6 col-md-3">
                         <label class="form-label text-muted extra-small fw-bold mb-1">BIDANG</label>
-                        <select name="bidang_id" class="form-select form-select-sm" style="height: 35px;" onchange="this.form.submit()">
+                        <select name="bidang_id" class="form-select form-select-sm" style="height: 38px;" onchange="submitLandingClean(this.form)">
                             <option value="">Semua Bidang</option>
                             @foreach($bidangOptions as $b)
                                 <option value="{{ $b->id }}" {{ $bidangId == $b->id ? 'selected' : '' }}>{{ $b->nama }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-12 col-md-3">
+                    <div class="col-6 col-md-3">
                         <label class="form-label text-muted extra-small fw-bold mb-1">KEGIATAN</label>
-                        <select name="kegiatan_id" class="form-select form-select-sm" style="height: 35px;" onchange="this.form.submit()">
+                        <select name="kegiatan_id" class="form-select form-select-sm" style="height: 38px;" onchange="submitLandingClean(this.form)">
                             <option value="">Semua Kegiatan</option>
                             @foreach($kegiatanOptions as $k)
                                 <option value="{{ $k->id }}" {{ $kegiatanId == $k->id ? 'selected' : '' }}>{{ $k->nama }}</option>
@@ -226,9 +253,9 @@
                 <div class="card metric-card metric-card-success shadow-sm h-100">
                     <div class="card-body d-flex align-items-center justify-content-between p-3.5">
                         <div>
-                            <span class="text-white-50 small fw-bold text-uppercase" style="font-size: 0.7rem;">Realisasi Honor</span>
+                            <span class="text-white-50 small fw-bold text-uppercase" style="font-size: 0.7rem;">Realisasi Pengeluaran</span>
                             <h3 class="fw-extrabold text-white mt-1 mb-0 text-nowrap" style="font-size: 1.3rem;" data-counter-value="{{ $realisasiHonor }}" data-counter-prefix="Rp ">Rp {{ number_format($realisasiHonor, 0, ',', '.') }}</h3>
-                            <span class="text-white-50 extra-small">{{ $monthOptions[$bulanAwal] }} - {{ $monthOptions[$bulanAkhir] }} {{ $tahun }}</span>
+                            <span class="text-white-50 extra-small">{{ count($bulanPencairan) }} Bulan Terpilih ({{ $tahun }})</span>
                         </div>
                         <div class="metric-icon-bg"><i class="bi bi-wallet2 fs-3"></i></div>
                     </div>
@@ -260,63 +287,61 @@
             </div>
         </div>
 
-        <!-- Row 2: Operational Counters -->
-        <div class="row g-3 mb-4">
-            <div class="col-6 col-md-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body d-flex align-items-center justify-content-between">
-                        <div>
-                            <span class="text-muted small fw-bold text-uppercase">Total Mitra</span>
-                            <h4 class="fw-extrabold text-dark mb-0" data-counter-value="{{ $totalMitra }}">{{ number_format($totalMitra) }}</h4>
-                        </div>
-                        <i class="bi bi-people-fill fs-3 text-primary"></i>
-                    </div>
+        <!-- ============================================================== -->
+        <!-- VISUALISASI 3 DIAGRAM BATANG MITRA BERDAMPINGAN               -->
+        <!-- ============================================================== -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="fw-bold text-dark mb-0"><i class="bi bi-people-fill text-primary me-2"></i>Visualisasi Statistik Kemitraan Kabupaten Tasikmalaya ({{ $tahun }})</h6>
+                    <span class="text-muted extra-small">Perbandingan total mitra, mitra yang sudah dipekerjakan, dan yang belum dipekerjakan</span>
                 </div>
+                <span class="badge bg-light text-dark border"><i class="bi bi-info-circle me-1"></i> Data Agregat Publik</span>
             </div>
-            <div class="col-6 col-md-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body d-flex align-items-center justify-content-between">
-                        <div>
-                            <span class="text-muted small fw-bold text-uppercase">Total Transaksi</span>
-                            <h4 class="fw-extrabold text-dark mb-0" data-counter-value="{{ $totalTransaksi }}">{{ number_format($totalTransaksi) }}</h4>
+            <div class="card-body p-4">
+                <div class="row g-4 align-items-center">
+                    <div class="col-md-4">
+                        <div class="d-flex flex-column">
+                            <!-- Card 1: Total Mitra -->
+                            <div class="p-3 rounded-3 bg-light border-start border-4 border-primary mb-3">
+                                <span class="text-muted extra-small fw-bold text-uppercase">1. Total Mitra (1 Tahun)</span>
+                                <h3 class="fw-extrabold text-primary mb-0 mt-1">{{ number_format($totalMitra) }} <span class="fs-6 fw-normal text-muted">Orang</span></h3>
+                                <span class="text-muted extra-small">Total basis data mitra BPS Kab. Tasikmalaya</span>
+                            </div>
+
+                            <!-- Card 2: Sudah Dipekerjakan -->
+                            <div class="p-3 rounded-3 bg-light border-start border-4 border-success mb-3">
+                                <span class="text-muted extra-small fw-bold text-uppercase">2. Sudah Dipekerjakan</span>
+                                <h3 class="fw-extrabold text-success mb-0 mt-1">{{ number_format($sudahDipekerjakanCount) }} <span class="fs-6 fw-normal text-muted">Orang ({{ $totalMitra > 0 ? round(($sudahDipekerjakanCount / $totalMitra) * 100, 1) : 0 }}%)</span></h3>
+                                <span class="text-muted extra-small">Memiliki alokasi honor pada filter terpilih</span>
+                            </div>
+
+                            <!-- Card 3: Belum Dipekerjakan -->
+                            <div class="p-3 rounded-3 bg-light border-start border-4 border-warning">
+                                <span class="text-muted extra-small fw-bold text-uppercase">3. Belum Dipekerjakan</span>
+                                <h3 class="fw-extrabold text-warning mb-0 mt-1">{{ number_format($belumDipekerjakanCount) }} <span class="fs-6 fw-normal text-muted">Orang ({{ $totalMitra > 0 ? round(($belumDipekerjakanCount / $totalMitra) * 100, 1) : 0 }}%)</span></h3>
+                                <span class="text-muted extra-small">Belum mendapat alokasi tugas pada rentang ini</span>
+                            </div>
                         </div>
-                        <i class="bi bi-card-checklist fs-3 text-info"></i>
                     </div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body d-flex align-items-center justify-content-between">
-                        <div>
-                            <span class="text-muted small fw-bold text-uppercase">Total Operator</span>
-                            <h4 class="fw-extrabold text-dark mb-0" data-counter-value="{{ $totalOperator }}">{{ number_format($totalOperator) }}</h4>
+                    <div class="col-md-8">
+                        <div style="min-height: 280px; height: 280px;">
+                            <canvas id="chartMitra3BatangCanvas" style="width: 100%; height: 100%;"></canvas>
                         </div>
-                        <i class="bi bi-person-badge-fill fs-3 text-success"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body d-flex align-items-center justify-content-between">
-                        <div>
-                            <span class="text-muted small fw-bold text-uppercase">Bidang Aktif</span>
-                            <h4 class="fw-extrabold text-dark mb-0">{{ $bidangId ? ($bidangOptions->where('id', $bidangId)->first()->nama ?? '-') : 'Semua' }}</h4>
-                        </div>
-                        <i class="bi bi-diagram-3-fill fs-3 text-warning"></i>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 2 EXECUTIVE CHARTS -->
+        <!-- 2 EXECUTIVE FINANCIAL CHARTS WITH DATA LABELS -->
         <div class="row g-3 mb-4">
             <div class="col-md-8">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
-                        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-graph-up text-primary me-2"></i>Realisasi Honor per Bulan</h6>
-                        <span class="text-muted extra-small">{{ $monthOptions[$bulanAwal] }} - {{ $monthOptions[$bulanAkhir] }} {{ $tahun }}</span>
+                        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-graph-up text-primary me-2"></i>Pengeluaran Anggaran Honor per Bulan (Label Angka Nominal)</h6>
+                        <span class="text-muted extra-small">{{ count($bulanPencairan) }} Bulan ({{ $tahun }})</span>
                     </div>
-                    <div class="card-body p-3" style="min-height: 320px;">
+                    <div class="card-body p-3" style="min-height: 340px;">
                         <canvas id="chartBulanCanvas" style="width: 100%; height: 100%;"></canvas>
                     </div>
                 </div>
@@ -326,7 +351,7 @@
                     <div class="card-header bg-white border-bottom py-3">
                         <h6 class="fw-bold text-dark mb-0"><i class="bi bi-pie-chart text-primary me-2"></i>Proporsi Honor per Bidang</h6>
                     </div>
-                    <div class="card-body p-3 d-flex flex-column align-items-center justify-content-center" style="min-height: 320px;">
+                    <div class="card-body p-3 d-flex flex-column align-items-center justify-content-center" style="min-height: 340px;">
                         <canvas id="chartBidangCanvas" style="width: 100%; height: 100%;"></canvas>
                     </div>
                 </div>
@@ -338,35 +363,210 @@
     <!-- FOOTER -->
     <footer class="py-4 text-center text-muted extra-small border-top bg-white mt-5">
         <div class="container">
-            &copy; {{ date('Y') }} SIMANTRA - BPS Kabupaten Tasikmalaya. All rights reserved.
+            &copy; {{ date('Y') }} <strong>SIMANTRA</strong> (Sistem Informasi Monitoring Alokasi Pekerjaan dan Honor Mitra) - Badan Pusat Statistik Kabupaten Tasikmalaya.
         </div>
     </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Chart.js Scripts -->
     <script>
     (function() {
+        // Register DataLabels Plugin
+        if (typeof ChartDataLabels !== 'undefined') {
+            Chart.register(ChartDataLabels);
+        }
+
+        // Setup Dropdown Checkbox Quick Actions
+        const btnSelectAll = document.getElementById('btnSelectAllMonths');
+        const btnClearAll = document.getElementById('btnClearAllMonths');
+        const checkItems = document.querySelectorAll('.check-bulan-item');
+
+        if (btnSelectAll) {
+            btnSelectAll.addEventListener('click', function() {
+                checkItems.forEach(cb => cb.checked = true);
+            });
+        }
+        if (btnClearAll) {
+            btnClearAll.addEventListener('click', function() {
+                checkItems.forEach(cb => cb.checked = false);
+            });
+        }
+
+        // Clean & Short Query String URL Handler on Submit
+        const filterForm = document.getElementById('formFilterLanding');
+        
+        window.submitLandingClean = function(formEl) {
+            const form = formEl || filterForm;
+            if (!form) return;
+            cleanAndCompressForm(form);
+            form.submit();
+        };
+
+        if (filterForm) {
+            filterForm.addEventListener('submit', function(e) {
+                cleanAndCompressForm(filterForm);
+            });
+        }
+
+        function cleanAndCompressForm(form) {
+            const selectedMonths = Array.from(form.querySelectorAll('.check-bulan-item:checked')).map(cb => parseInt(cb.value)).sort((a,b) => a-b);
+            
+            // Disable individual checkbox inputs so they don't produce bulan_pencairan%5B%5D=... in URL
+            form.querySelectorAll('.check-bulan-item').forEach(cb => cb.disabled = true);
+            
+            // Strip empty selects
+            form.querySelectorAll('select').forEach(sel => {
+                if (!sel.value || sel.value.trim() === '') sel.disabled = true;
+            });
+
+            // Create compressed single 'bulan' parameter
+            if (selectedMonths.length > 0) {
+                let compactValue = '';
+                if (selectedMonths.length === 12) {
+                    compactValue = '1-12';
+                } else if (selectedMonths.length > 1 && isConsecutive(selectedMonths)) {
+                    compactValue = `${selectedMonths[0]}-${selectedMonths[selectedMonths.length - 1]}`;
+                } else {
+                    compactValue = selectedMonths.join(',');
+                }
+
+                // Remove previous hidden if exists
+                form.querySelectorAll('input[name="bulan"]').forEach(el => el.remove());
+
+                let hiddenBulan = document.createElement('input');
+                hiddenBulan.type = 'hidden';
+                hiddenBulan.name = 'bulan';
+                hiddenBulan.value = compactValue;
+                form.appendChild(hiddenBulan);
+            }
+        }
+
+        function isConsecutive(arr) {
+            for (let i = 0; i < arr.length - 1; i++) {
+                if (arr[i+1] !== arr[i] + 1) return false;
+            }
+            return true;
+        }
+
         function initCharts() {
             if (typeof Chart === 'undefined') {
                 setTimeout(initCharts, 100);
                 return;
             }
 
-            // Chart Bar Bulan
+            // 1. Chart 3 Batang Mitra Berdampingan
+            const canvasMitra = document.getElementById('chartMitra3BatangCanvas');
+            if (canvasMitra) {
+                const totalMitraVal = {{ $totalMitra }};
+                const sudahVal = {{ $sudahDipekerjakanCount }};
+                const belumVal = {{ $belumDipekerjakanCount }};
+
+                new Chart(canvasMitra.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Status Kemitraan ({{ $tahun }})'],
+                        datasets: [
+                            {
+                                label: 'Total Mitra (1 Tahun)',
+                                data: [totalMitraVal],
+                                backgroundColor: '#2563eb',
+                                borderColor: '#1d4ed8',
+                                borderWidth: 1.5,
+                                borderRadius: 8,
+                                barPercentage: 0.75,
+                                categoryPercentage: 0.85
+                            },
+                            {
+                                label: 'Sudah Dipekerjakan',
+                                data: [sudahVal],
+                                backgroundColor: '#10b981',
+                                borderColor: '#059669',
+                                borderWidth: 1.5,
+                                borderRadius: 8,
+                                barPercentage: 0.75,
+                                categoryPercentage: 0.85
+                            },
+                            {
+                                label: 'Belum Dipekerjakan',
+                                data: [belumVal],
+                                backgroundColor: '#f59e0b',
+                                borderColor: '#d97706',
+                                borderWidth: 1.5,
+                                borderRadius: 8,
+                                barPercentage: 0.75,
+                                categoryPercentage: 0.85
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: { font: { family: 'Plus Jakarta Sans', size: 12, weight: '600' }, boxWidth: 14 }
+                            },
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'top',
+                                color: '#1e293b',
+                                font: { weight: 'bold', size: 12, family: 'Plus Jakarta Sans' },
+                                formatter: function(val) {
+                                    return new Intl.NumberFormat('id-ID').format(val) + ' Org';
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return ' ' + context.dataset.label + ': ' + new Intl.NumberFormat('id-ID').format(context.raw) + ' Orang';
+                                    }
+                                }
+                            }
+                        },
+                        layout: {
+                            padding: {
+                                left: 15,
+                                right: 15,
+                                top: 20,
+                                bottom: 5
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: '#f1f5f9' },
+                                grace: '15%',
+                                ticks: {
+                                    font: { family: 'Plus Jakarta Sans', size: 11 },
+                                    padding: 8,
+                                    callback: (val) => new Intl.NumberFormat('id-ID').format(val)
+                                }
+                            },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            }
+
+            // 2. Chart Bar Bulan (With Nominal Labels on Top)
             const canvasBulan = document.getElementById('chartBulanCanvas');
             if (canvasBulan) {
                 const data = @json($honorPerBulan);
                 const labels = data.map(d => d.bulan);
                 const values = data.map(d => d.total);
                 const ctx = canvasBulan.getContext('2d');
-                const gradient = ctx.createLinearGradient(0, 0, 0, 260);
-                gradient.addColorStop(0, 'rgba(37, 99, 235, 0.85)');
-                gradient.addColorStop(1, 'rgba(37, 99, 235, 0.15)');
+                const gradient = ctx.createLinearGradient(0, 0, 0, 280);
+                gradient.addColorStop(0, 'rgba(37, 99, 235, 0.9)');
+                gradient.addColorStop(1, 'rgba(37, 99, 235, 0.2)');
+
                 new Chart(ctx, {
                     type: 'bar',
                     data: {
                         labels: labels,
                         datasets: [{
-                            label: 'Total Realisasi Honor (Rp)',
+                            label: 'Realisasi Honor (Rp)',
                             data: values,
                             backgroundColor: gradient,
                             borderColor: '#2563eb',
@@ -380,6 +580,18 @@
                         maintainAspectRatio: false,
                         plugins: {
                             legend: { display: false },
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'top',
+                                color: '#1e3a8a',
+                                font: { weight: 'bold', size: 11, family: 'Plus Jakarta Sans' },
+                                formatter: function(value) {
+                                    if (!value || value === 0) return 'Rp 0';
+                                    if (value >= 1000000000) return 'Rp ' + (value / 1000000000).toFixed(2) + ' M';
+                                    if (value >= 1000000) return 'Rp ' + (value / 1000000).toFixed(1) + ' Jt';
+                                    return 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
+                                }
+                            },
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
@@ -392,9 +604,10 @@
                             y: {
                                 beginAtZero: true,
                                 grid: { color: '#f1f5f9' },
+                                grace: '18%',
                                 ticks: {
                                     callback: function(value) {
-                                        return 'Rp ' + (value >= 1000000 ? (value / 1000000).toFixed(0) + 'M' : value);
+                                        return 'Rp ' + (value >= 1000000 ? (value / 1000000).toFixed(0) + ' Jt' : value);
                                     }
                                 }
                             },
@@ -404,7 +617,7 @@
                 });
             }
 
-            // Chart Doughnut Bidang
+            // 3. Chart Doughnut Bidang
             const canvasBidang = document.getElementById('chartBidangCanvas');
             if (canvasBidang) {
                 const data = @json($honorPerBidang);
@@ -417,7 +630,7 @@
                         labels: labels,
                         datasets: [{
                             data: values,
-                            backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
+                            backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'],
                             borderWidth: 2,
                             borderColor: '#ffffff'
                         }]
@@ -428,12 +641,15 @@
                         plugins: {
                             legend: {
                                 position: 'bottom',
-                                labels: { boxWidth: 10, padding: 12, font: { family: 'Plus Jakarta Sans', size: 11 } }
+                                labels: { boxWidth: 10, padding: 10, font: { family: 'Plus Jakarta Sans', size: 11 } }
+                            },
+                            datalabels: {
+                                display: false
                             },
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
-                                        return ' Rp ' + new Intl.NumberFormat('id-ID').format(context.raw || 0);
+                                        return ' ' + context.label + ': Rp ' + new Intl.NumberFormat('id-ID').format(context.raw || 0);
                                     }
                                 }
                             }
@@ -451,7 +667,7 @@
                 const prefix = el.getAttribute('data-counter-prefix') || '';
                 const isNegative = rawVal < 0;
                 const targetVal = Math.abs(rawVal);
-                const duration = 1400;
+                const duration = 1200;
                 const startTime = performance.now();
 
                 function step(currentTime) {

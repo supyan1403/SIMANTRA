@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>SIMANTRA - {{ $title ?? 'Sistem Monitoring Alokasi Pekerjaan & Honor Mitra' }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/logo_kendi_trans.png') }}">
+    <title>SIMANTRA - {{ $title ?? 'Sistem Informasi Monitoring Alokasi Pekerjaan dan Honor Mitra' }}</title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/logo_kendi_trans.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/logo_kendi_trans.png') }}">
     <script>
         // Anti-BFCache: Force server revalidation on Back/Forward browser navigation after logout
         window.addEventListener('pageshow', function (event) {
@@ -34,8 +37,8 @@
     <style>
         :root {
             --bs-body-font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-            --sidebar-width: 250px;
-            --sidebar-collapsed-width: 68px;
+            --sidebar-width: 270px;
+            --sidebar-collapsed-width: 72px;
             --bg-slate: #f8fafc;
             --sidebar-bg: #0f172a;
         }
@@ -341,10 +344,10 @@
         }
 
         .main-container {
-            max-width: 1240px;
+            max-width: 1650px;
             width: 100%;
             margin: 0 auto;
-            padding: 1.15rem 1.5rem;
+            padding: 1.25rem 1.25rem;
         }
 
         /* Base Card Styling */
@@ -528,20 +531,24 @@
         .badge-soft-danger { background: #fee2e2; color: #991b1b; }
 
         .page-header {
-            margin-bottom: 1.15rem;
+            margin-bottom: 1.25rem;
+            padding-left: 0.5rem;
         }
 
         .page-title {
             font-weight: 800;
-            font-size: 1.25rem;
+            font-size: 1.35rem;
             color: #0f172a;
             letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
         }
 
         .page-subtitle {
-            font-size: 0.825rem;
+            font-size: 0.85rem;
             color: #64748b;
-            margin-top: 0.1rem;
+            margin-top: 0.2rem;
+            padding-left: 0.1rem;
         }
 
         @media (max-width: 991.98px) {
@@ -601,8 +608,18 @@
             </a>
 
             <a href="{{ route('monitoring.index') }}" class="sidebar-link {{ request()->routeIs('monitoring.*') ? 'active' : '' }}" title="Monitoring Honor">
-                <i class="bi bi-eye-fill"></i>
+                <i class="bi bi-wallet2"></i>
                 <span class="nav-text">Monitoring Honor</span>
+            </a>
+
+            <a href="{{ route('spk.penomoran.index') }}" class="sidebar-link {{ request()->routeIs('spk.penomoran.*') ? 'active' : '' }}" title="Penomoran SPK & BAST">
+                <i class="bi bi-sort-numeric-down"></i>
+                <span class="nav-text">Penomoran SPK & BAST</span>
+            </a>
+
+            <a href="{{ route('spk.index') }}" class="sidebar-link {{ request()->routeIs('spk.index') || request()->routeIs('spk.cetak*') ? 'active' : '' }}" title="Cetak & Unduh SPK/BAST">
+                <i class="bi bi-printer-fill"></i>
+                <span class="nav-text">Cetak & Unduh Dokumen</span>
             </a>
 
             <a href="{{ route('rekap.index') }}" class="sidebar-link {{ request()->routeIs('rekap.*') ? 'active' : '' }}" title="Rekap Tahunan">
@@ -610,10 +627,7 @@
                 <span class="nav-text">Rekap Tahunan</span>
             </a>
 
-            <a href="{{ route('spk.index') }}" class="sidebar-link {{ request()->routeIs('spk.*') ? 'active' : '' }}" title="Cetak SPK">
-                <i class="bi bi-file-earmark-pdf-fill text-danger"></i>
-                <span class="nav-text">Cetak SPK</span>
-            </a>
+
 
             <div class="sidebar-group-title mt-3">Alat & Pengaturan</div>
 
@@ -662,50 +676,41 @@
 
     <!-- Content Wrapper -->
     <div id="content-wrapper">
-        <!-- Clean Top Header Bar -->
-        <header class="top-header-bar">
-            <div class="d-flex align-items-center gap-3">
-                <button class="btn btn-sm btn-light border d-lg-none" id="mobileMenuBtn">
-                    <i class="bi bi-list fs-5"></i>
-                </button>
-                <div class="d-flex align-items-center gap-2">
-                    <!-- Logo Kendi BPS in Topbar -->
-                    <img src="{{ asset('images/logo_kendi_trans.png') }}" alt="SIMANTRA" style="width: 22px; height: 22px; object-fit: contain;">
-                    <span class="badge bg-primary bg-opacity-10 text-primary fw-bold px-2.5 py-1">SIMANTRA BPS</span>
-                    <span class="text-muted small">/</span>
-                    <span class="fw-bold text-dark small">{{ $title ?? 'Sistem Monitoring Alokasi Pekerjaan & Honor Mitra' }}</span>
-                </div>
-            </div>
-
-            <div class="d-flex align-items-center gap-3">
-                <div class="d-flex align-items-center gap-2 text-muted small">
-                    <i class="bi bi-clock me-1 text-primary"></i>
-                    <span>{{ date('d M Y') }}</span>
-                </div>
-            </div>
-        </header>
+        <!-- Mobile Hamburger Trigger (Visible only on mobile screen) -->
+        <div class="d-lg-none p-3 pb-0 d-flex align-items-center justify-content-between">
+            <button class="btn btn-sm btn-white border shadow-sm rounded-3 d-flex align-items-center gap-2 fw-bold text-dark px-3 py-2" id="mobileMenuBtn">
+                <i class="bi bi-list fs-5 text-primary"></i> Menu SIMANTRA
+            </button>
+            <span class="text-muted extra-small"><i class="bi bi-clock me-1 text-primary"></i>{{ date('d M Y') }}</span>
+        </div>
 
         <!-- Main Body Container -->
         <main class="main-container flex-grow-1">
             @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 d-flex align-items-center gap-2 mb-3 py-2" role="alert">
-                    <i class="bi bi-check-circle-fill fs-6 text-success"></i>
-                    <div class="small fw-semibold">{{ session('success') }}</div>
-                    <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
+                <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 d-flex align-items-center justify-content-between mb-3 px-3.5 py-2.5" role="alert">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-check-circle-fill fs-5 text-success"></i>
+                        <span class="small fw-semibold text-dark">{{ session('success') }}</span>
+                    </div>
+                    <button type="button" class="btn-close position-static p-2 m-0" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
             @if(session('warning'))
-                <div class="alert alert-warning alert-dismissible fade show border-0 shadow-sm rounded-3 d-flex align-items-center gap-2 mb-3 py-2 text-dark" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill fs-5 text-warning me-1"></i>
-                    <div class="small fw-bold">{{ session('warning') }}</div>
-                    <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
+                <div class="alert alert-warning alert-dismissible fade show border-0 shadow-sm rounded-3 d-flex align-items-center justify-content-between mb-3 px-3.5 py-2.5 text-dark" role="alert">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-exclamation-triangle-fill fs-5 text-warning"></i>
+                        <span class="small fw-bold">{{ session('warning') }}</span>
+                    </div>
+                    <button type="button" class="btn-close position-static p-2 m-0" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
             @if(session('error'))
-                <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3 d-flex align-items-center gap-2 mb-3 py-2" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill fs-6 text-danger"></i>
-                    <div class="small fw-semibold">{{ session('error') }}</div>
-                    <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
+                <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3 d-flex align-items-center justify-content-between mb-3 px-3.5 py-2.5" role="alert">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-x-circle-fill fs-5 text-danger"></i>
+                        <span class="small fw-semibold text-dark">{{ session('error') }}</span>
+                    </div>
+                    <button type="button" class="btn-close position-static p-2 m-0" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
             
@@ -720,6 +725,20 @@
 
     <script>
     document.addEventListener("DOMContentLoaded", function() {
+        // Universal Auto-dismiss for all alerts after 4 seconds with smooth fade
+        const autoDismissAlerts = document.querySelectorAll('.alert-dismissible');
+        autoDismissAlerts.forEach(function(alertEl) {
+            setTimeout(function() {
+                try {
+                    const bsAlert = bootstrap.Alert.getOrCreateInstance(alertEl);
+                    if (bsAlert) bsAlert.close();
+                } catch(e) {
+                    alertEl.classList.remove('show');
+                    setTimeout(() => alertEl.remove(), 300);
+                }
+            }, 4000);
+        });
+
         const sidebar = document.getElementById('sidebar');
         const contentWrapper = document.getElementById('content-wrapper');
         const toggleBtn = document.getElementById('sidebarToggleBtn');
@@ -798,6 +817,17 @@
             });
         }
         initAnimatedCounters();
+
+        // Global Clean GET Form submit: strip empty inputs automatically across all modules
+        document.querySelectorAll('form[method="GET"], form[method="get"]').forEach(form => {
+            form.addEventListener('submit', function() {
+                form.querySelectorAll('input:not([type="submit"]):not([type="hidden"]), select').forEach(input => {
+                    if (!input.value || input.value.trim() === '') {
+                        input.disabled = true;
+                    }
+                });
+            });
+        });
     });
     </script>
     <!-- Modal Konfirmasi Logout (Executive Centered Dialog) -->

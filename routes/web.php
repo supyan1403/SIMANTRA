@@ -34,17 +34,25 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
     Route::post('/import-kegiatan/process', [KegiatanController::class, 'importProcess'])->name('kegiatan.import.process');
     Route::resource('periode', PeriodeController::class);
     Route::get('/monitoring/check-limit', [MonitoringController::class, 'checkLimit'])->name('monitoring.check-limit');
+    Route::post('/monitoring/update-spk', [MonitoringController::class, 'updateSpkManual'])->name('monitoring.update-spk');
     Route::resource('monitoring', MonitoringController::class);
 
     Route::get('/rekap', [RekapController::class, 'index'])->name('rekap.index');
     Route::get('/rekap/export', [RekapController::class, 'export'])->name('rekap.export');
 
-    // Modul Cetak SPK & BAST
+    // Modul Penomoran SPK & BAST (Khusus Alokasi & Penetapan Nomor)
+    Route::get('/penomoran-spk', [\App\Http\Controllers\SpkController::class, 'penomoranIndex'])->name('spk.penomoran.index');
+    Route::post('/penomoran-spk/terapkan', [\App\Http\Controllers\SpkController::class, 'terapkanPenomoran'])->name('spk.penomoran.terapkan');
+    Route::post('/penomoran-spk/reset', [\App\Http\Controllers\SpkController::class, 'resetNomor'])->name('spk.penomoran.reset');
+
+    // Modul Cetak & Unduh Dokumen SPK & BAST (Khusus Output / Print / Download)
     Route::get('/spk', [\App\Http\Controllers\SpkController::class, 'index'])->name('spk.index');
     Route::post('/spk/cetak-massal', [\App\Http\Controllers\SpkController::class, 'cetakMassal'])->name('spk.cetak-massal');
+    Route::post('/spk/reset-nomor', [\App\Http\Controllers\SpkController::class, 'resetNomor'])->name('spk.reset-nomor');
     Route::get('/spk/{mitra}/cetak-utama', [\App\Http\Controllers\SpkController::class, 'cetakUtama'])->name('spk.cetak-utama');
+    Route::get('/spk/{mitra}/download-pdf', [\App\Http\Controllers\SpkController::class, 'downloadPdf'])->name('spk.download-pdf');
     Route::get('/spk/{mitra}/cetak-lampiran', [\App\Http\Controllers\SpkController::class, 'cetakLampiran'])->name('spk.cetak-lampiran');
-    Route::get('/spk/{mitra}/download-docx', [\App\Http\Controllers\SpkController::class, 'downloadDocx'])->name('spk.download-docx');
+    Route::get('/spk/{mitra}/download-lampiran-pdf', [\App\Http\Controllers\SpkController::class, 'downloadLampiranPdf'])->name('spk.download-lampiran-pdf');
     Route::get('/spk-templates', [\App\Http\Controllers\SpkController::class, 'templateIndex'])->name('spk.templates.index');
     Route::post('/spk-templates', [\App\Http\Controllers\SpkController::class, 'templateStore'])->name('spk.templates.store');
     Route::put('/spk-templates/{id}', [\App\Http\Controllers\SpkController::class, 'templateUpdate'])->name('spk.templates.update');

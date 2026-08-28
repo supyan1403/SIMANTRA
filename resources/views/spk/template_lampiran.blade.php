@@ -23,9 +23,16 @@
 </head>
 <body>
 
-<div class="no-print text-center py-3 bg-dark text-white sticky-top">
-    <button onclick="window.print()" class="btn btn-primary font-monospace px-4"><i class="bi bi-printer me-2"></i>CETAK LAMPIRAN SPK (PDF / PRINTER)</button>
-    <button onclick="window.close()" class="btn btn-outline-light px-3 ms-2">Tutup</button>
+<div class="no-print text-center py-3 bg-dark text-white sticky-top d-flex align-items-center justify-content-center gap-2">
+    <button onclick="window.print()" class="btn btn-danger fw-bold px-4 shadow-sm">
+        <i class="bi bi-printer-fill me-1.5"></i> CETAK LAMPIRAN (PRINTER)
+    </button>
+    <button onclick="window.print()" class="btn btn-primary fw-bold px-4 shadow-sm" title="Pilih 'Save as PDF' pada jendela cetak untuk menyimpan berkas">
+        <i class="bi bi-file-earmark-pdf-fill me-1.5"></i> SIMPAN / UNDUH PDF
+    </button>
+    <button onclick="window.close()" class="btn btn-outline-light px-3 ms-2">
+        <i class="bi bi-x-lg me-1"></i> Tutup
+    </button>
 </div>
 
 <div class="page">

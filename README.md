@@ -44,11 +44,12 @@ Sistem ini hadir untuk mengatasi tantangan operasional seperti:
 
 | Modul / Fitur | Rincian Fungsionalitas |
 | :--- | :--- |
-| 📊 **Executive Dashboard** | Grafik distribusi honor per bidang, statistik beban kerja mitra, dan indikator peringatan mitra yang mendekati/melebihi pagu SBML. |
-| 👥 **Master Mitra & Wilayah** | Data lengkap mitra statistik (ID Sobat, Nama, NIK/No HP, Jenis Kelamin, Wilayah Kecamatan & Desa) dengan fitur batch Import Excel. |
+| 📊 **Executive Dashboard** | Grafik distribusi honor per bidang, statistik beban kerja mitra, animasi counter angka, dan indikator peringatan pagu SBML. |
+| 👥 **Master Mitra & Wilayah** | Data lengkap mitra statistik (ID Sobat, Nama, NIK/No HP, Jenis Kelamin, Wilayah Kecamatan & Desa) dengan pagination tabel (15 data/hal) dan batch Import Excel. |
 | 📋 **Master Kegiatan & Jadwal** | Pengelompokan kegiatan per bidang statistik (Distribusi, Neraca, Produksi, Sosial, Cadangan), kode mata anggaran, dan matriks jadwal bulanan. |
 | 🛡️ **Validasi Limit SBML** | Pengecekan real-time nominal honor kumulatif bulanan per mitra untuk mencegah kelebihan bayar (*over-budgeting*). |
-| 📄 **Generator SPK & BAST** | Penomoran surat otomatis yang dinamis, unduh DOCX, serta cetak langsung SPK Utama, Lampiran Kegiatan, dan BAST secara satuan atau massal. |
+| 🔢 **Penomoran Fleksibel & CRUD Pola** | Modul penomoran SPK/BAST dengan pengelolaan pola nomor dinamis (Tambah, Edit, Hapus, Reset ke Standar BPS), live preview nomor pertama, dan deteksi nomor terakhir di database. |
+| 📄 **Generator SPK & BAST (Word & PDF)** | Pembuatan dokumen SPK Utama, Lampiran Rincian Tugas, dan BAST dalam format cetak browser, berkas Microsoft Word (.docx), dan berkas PDF otentik siap pakai satuan maupun massal. |
 | 📥 **Import & Export Excel** | Dukungan impor master data mitra/kegiatan dan ekspor rekap honor format Excel (.xlsx) menggunakan PhpSpreadsheet. |
 | 🔐 **Manajemen Hak Akses (RBAC)** | Pemisahan peran antara **Administrator** (Full System & User Control) dan **Operator** (Operasional Alokasi & Pencetakan). |
 

@@ -11,13 +11,6 @@
     </a>
 </div>
 
-@if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-@endif
-
 <div class="row g-4">
     <!-- Form Upload Template Baru -->
     <div class="col-md-4">
@@ -38,15 +31,6 @@
                         <select name="jenis_dokumen" class="form-select" required>
                             <option value="spk">SPK (Surat Perjanjian Kerja)</option>
                             <option value="bast">BAST (Berita Acara Serah Terima)</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label text-muted small fw-bold mb-1">KATEGORI KEGIATAN</label>
-                        <select name="kategori_kegiatan" class="form-select" required>
-                            <option value="sensus">Kegiatan Sensus</option>
-                            <option value="survei">Kegiatan Survei</option>
-                            <option value="umum" selected>Umum / Rutin</option>
                         </select>
                     </div>
 
@@ -83,7 +67,6 @@
                                 <th class="ps-3" style="width: 40px;">NO</th>
                                 <th>NAMA TEMPLATE</th>
                                 <th>JENIS DOKUMEN</th>
-                                <th>KATEGORI</th>
                                 <th class="text-center pe-3" style="width: 130px;">AKSI</th>
                             </tr>
                         </thead>
@@ -98,11 +81,6 @@
                                     <td>
                                         <span class="badge {{ $tmpl->jenis_dokumen === 'spk' ? 'bg-danger' : 'bg-primary' }} bg-opacity-10 text-{{ $tmpl->jenis_dokumen === 'spk' ? 'danger' : 'primary' }} fw-bold px-2 py-1">
                                             {{ strtoupper($tmpl->jenis_dokumen) }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-secondary bg-opacity-10 text-secondary fw-bold px-2 py-1 text-capitalize">
-                                            {{ $tmpl->kategori_kegiatan }}
                                         </span>
                                     </td>
                                     <td class="text-center pe-3">

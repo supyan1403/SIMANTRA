@@ -3,13 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cetak Massal SPK Multi-Petugas (Presisi Bookman Old Style & Landscape Lampiran)</title>
+    <title>Cetak Massal SPK Multi-Petugas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         @page { size: 215.9mm 330.2mm; margin: 0; }
         @page landscapePage { size: 330.2mm 215.9mm; margin: 0; }
         
-        body { font-family: 'Bookman Old Style', 'Book Antiqua', Georgia, serif; font-size: 11pt; line-height: 1.45; color: #000; background: #f8fafc; margin: 0; padding: 0; }
+        body, table, th, td, p, div, span, strong, b, h1, h2, h3, h4, h5, h6, input, select, textarea {
+            font-family: 'Bookman Old Style', 'Book Antiqua', Georgia, serif !important;
+        }
+        
+        body { font-size: 11pt; line-height: 1.45; color: #000; background: #f8fafc; margin: 0; padding: 0; }
         
         .page-portrait { width: 215.9mm; min-height: 330.2mm; padding: 18mm 17mm 18mm 25.4mm; margin: 15px auto; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 4px; box-sizing: border-box; page-break-after: always; position: relative; }
         .page-landscape { page: landscapePage; width: 330.2mm; min-height: 215.9mm; padding: 12.5mm 25.4mm 17mm 25.4mm; margin: 15px auto; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 4px; box-sizing: border-box; page-break-after: always; position: relative; font-size: 11pt; }
@@ -42,7 +46,7 @@
 <body>
 
 <div class="no-print text-center py-3 bg-dark text-white sticky-top">
-    <button onclick="window.print()" class="btn btn-danger font-monospace px-4"><i class="bi bi-printer me-2"></i>CETAK SEMUA SPK MULTI-PETUGAS (PRESISI IDENTIK DOCX BPS)</button>
+    <button onclick="window.print()" class="btn btn-danger font-monospace px-4"><i class="bi bi-printer me-2"></i>CETAK SEMUA SPK MULTI-PETUGAS</button>
     <button onclick="window.close()" class="btn btn-outline-light px-3 ms-2">Tutup</button>
 </div>
 
@@ -54,18 +58,18 @@
     <div class="spk-title">PERJANJIAN KERJA PETUGAS PENDATAAN LAPANGAN KEGIATAN SURVEI/SENSUS TAHUN {{ $tahun }} PADA BADAN PUSAT STATISTIK KABUPATEN TASIKMALAYA</div>
     <div class="spk-nomor">NOMOR: {{ $b->nomor_dokumen }}</div>
 
-    <p class="mb-2">Pada hari ini, bertempat di Tasikmalaya, yang bertanda tangan di bawah ini:</p>
+    <p class="mb-3">{{ $tanggalTerbilang['full_text'] ?? "Pada hari ini, bertempat di Tasikmalaya, yang bertanda tangan di bawah ini::" }}</p>
 
-    <table class="ms-2 mb-3" style="width: 100%; font-size: 11pt;">
+    <table class="mb-3" style="width: 100%; font-size: 11pt; border-collapse: collapse;">
         <tr valign="top">
-            <td style="width: 25px;">1.</td>
-            <td style="width: 175px;"><strong>Dindin Muldiana, S.ST. MP.</strong></td>
-            <td>: Pejabat Pembuat Komitmen Badan Pusat Statistik Kabupaten Tasikmalaya; berkedudukan di Jl. Raya Timur Singaparna KM4 Cintaraja Tasikmalaya, bertindak untuk dan atas nama Badan Pusat Statistik Kabupaten Tasikmalaya, selanjutnya disebut sebagai <strong>PIHAK PERTAMA</strong>.</td>
+            <td style="width: 35%; padding-bottom: 8px;">1. Dindin Muldiana, S.ST. MP.</td>
+            <td style="width: 2%; text-align: center; padding-bottom: 8px;">:</td>
+            <td style="width: 63%; text-align: justify; padding-bottom: 8px;">Pejabat Pembuat Komitmen Badan Pusat Statistik Kabupaten Tasikmalaya; berkedudukan di  Jl. Raya Timur Singaparna KM4 Cintaraja Tasikmalaya, bertindak untuk dan atas nama Badan Pusat Statistik Kabupaten Tasikmalaya, selanjutnya disebut sebagai <strong>PIHAK PERTAMA</strong>.</td>
         </tr>
         <tr valign="top">
-            <td>2.</td>
-            <td><strong>{{ strtoupper($b->mitra->nama) }}</strong></td>
-            <td>: {{ $b->mitra->pekerjaan_clean }}, berkedudukan di {{ $b->mitra->alamat_clean }}, bertindak untuk dan atas nama diri sendiri, selanjutnya disebut <strong>PIHAK KEDUA</strong>.</td>
+            <td style="padding-bottom: 0;">2. {{ strtoupper($b->mitra->nama) }}</td>
+            <td style="text-align: center; padding-bottom: 0;">:</td>
+            <td style="text-align: justify; padding-bottom: 0;">{{ $b->mitra->pekerjaan_clean }}, berkedudukan di {{ $b->mitra->alamat_clean }}, bertindak untuk dan atas nama diri sendiri, selanjutnya disebut <strong>PIHAK KEDUA</strong>.</td>
         </tr>
     </table>
 
@@ -78,7 +82,7 @@
     <p>Ruang lingkup pekerjaan dalam Perjanjian ini mengacu pada wilayah kerja dan beban kerja sebagaimana tertuang dalam lampiran Perjanjian. Pedoman Petugas Pendataan Lapangan Wilayah Kegiatan Survei/Sensus Tahun {{ $tahun }} pada Badan Pusat Statistik Kabupaten Tasikmalaya, dan ketentuan-ketentuan yang ditetapkan oleh <strong>PIHAK PERTAMA</strong>.</p>
 
     <div class="pasal-title">Pasal 3</div>
-    <p>Jangka Waktu Perjanjian terhitung sejak periode <strong>{{ $periodeLabel }}</strong>.</p>
+    <p>Jangka Waktu Perjanjian terhitung sejak tanggal 1 Maret {{ $tahun }} sampai dengan tanggal 31 Maret {{ $tahun }}.</p>
 
     <div class="pasal-title">Pasal 4</div>
     <p><strong>PIHAK KEDUA</strong> berkewajiban melaksanakan seluruh pekerjaan yang diberikan oleh <strong>PIHAK PERTAMA</strong> sampai selesai, sesuai ruang lingkup pekerjaan sebagaimana dimaksud dalam Pasal 2, dengan menerapkan protokol kesehatan pencegahan Covid-19 yang berlaku di wilayah kerja masing-masing.</p>
@@ -113,19 +117,19 @@
         <li class="mb-2">Dikecualikan tidak membayar ganti rugi sebagaimana dimaksud pada ayat (1) kepada <strong>PIHAK PERTAMA</strong>, apabila <strong>PIHAK KEDUA</strong> meninggal dunia, mengundurkan diri karena sakit dengan keterangan rawat inap, terindikasi terinfeksi virus Covid-19, kecelakaan dengan keterangan kepolisian, dan/atau telah diberikan Surat Pemutusan Perjanjian Kerja dari <strong>PIHAK PERTAMA</strong>.</li>
         <li>Dalam hal terjadi peristiwa sebagaimana dimaksud pada ayat (2), <strong>PIHAK PERTAMA</strong> membayarkan honorarium kepada <strong>PIHAK KEDUA</strong> secara proporsional sesuai pekerjaan yang telah dilaksanakan.</li>
     </ol>
-
-    <div class="pasal-title">Pasal 10</div>
-    <ol class="ps-3 mb-2">
-        <li class="mb-2">Apabila terjadi Keadaan Kahar, yang meliputi bencana alam dan bencana sosial, <strong>PIHAK KEDUA</strong> memberitahukan kepada <strong>PIHAK PERTAMA</strong> dalam waktu paling lambat 7 (tujuh) hari sejak mengetahui atas kejadian Keadaan Kahar dengan menyertakan bukti.</li>
-        <li>Pada saat terjadi Keadaan Kahar, pelaksanaan pekerjaan oleh <strong>PIHAK KEDUA</strong> dihentikan sementara dan dilanjutkan kembali setelah Keadaan Kahar berakhir, namun apabila akibat Keadaan Kahar tidak memungkinkan dilanjutkan/diselesaikannya pelaksanaan pekerjaan, <strong>PIHAK KEDUA</strong> berhak menerima honorarium secara proporsional sesuai pekerjaan yang telah dilaksanakan.</li>
-    </ol>
 </div>
 
 <!-- ========================================== -->
 <!-- HALAMAN 3 DARI 4 (PORTRAIT)                 -->
 <!-- ========================================== -->
 <div class="page-portrait">
-    <div class="pasal-title mt-0">Pasal 11</div>
+    <div class="pasal-title mt-0">Pasal 10</div>
+    <ol class="ps-3 mb-2">
+        <li class="mb-2">Apabila terjadi Keadaan Kahar, yang meliputi bencana alam dan bencana sosial, <strong>PIHAK KEDUA</strong> memberitahukan kepada <strong>PIHAK PERTAMA</strong> dalam waktu paling lambat 7 (tujuh) hari sejak mengetahui atas kejadian Keadaan Kahar dengan menyertakan bukti.</li>
+        <li>Pada saat terjadi Keadaan Kahar, pelaksanaan pekerjaan oleh <strong>PIHAK KEDUA</strong> dihentikan sementara dan dilanjutkan kembali setelah Keadaan Kahar berakhir, namun apabila akibat Keadaan Kahar tidak memungkinkan dilanjutkan/diselesaikannya pelaksanaan pekerjaan, <strong>PIHAK KEDUA</strong> berhak menerima honorarium secara proporsional sesuai pekerjaan yang telah dilaksanakan.</li>
+    </ol>
+
+    <div class="pasal-title">Pasal 11</div>
     <p>Segala sesuatu yang belum atau tidak cukup diatur dalam Perjanjian ini, dituangkan dalam perjanjian tambahan/<em>addendum</em> dan merupakan bagian tidak terpisahkan dari perjanjian ini.</p>
 
     <div class="pasal-title">Pasal 12</div>
@@ -137,16 +141,16 @@
     <p class="mb-4">Demikian Perjanjian ini dibuat dan ditandatangani oleh <strong>PARA PIHAK</strong> dalam 2 (dua) rangkap asli bermeterai cukup, tanpa paksaan dari <strong>PIHAK</strong> manapun dan untuk dilaksanakan oleh <strong>PARA PIHAK</strong>.</p>
 
     <!-- LEMBAR TTD PASAL HALAMAN 3 -->
-    <table class="ttd-table">
+    <table class="ttd-table" style="margin-top: 40px;">
         <tr valign="top">
             <td>
                 <p><strong>PIHAK KEDUA,</strong></p>
-                <div style="border: 1px dashed #777; width: 80px; height: 48px; margin: 0 auto 15px auto; font-size: 8pt; display: flex; align-items: center; justify-content: center; color: #555; text-align: center;">Materai<br>10.000</div>
+                <div style="border: 1px dashed #777; width: 80px; height: 48px; margin: 15px auto 15px auto; font-size: 8pt; display: flex; align-items: center; justify-content: center; color: #555; text-align: center;">Materai<br>10.000</div>
                 <p><u>{{ strtoupper($b->mitra->nama) }}</u></p>
             </td>
             <td>
                 <p><strong>PIHAK PERTAMA,</strong></p>
-                <div style="height: 73px;"></div>
+                <div style="height: 80px;"></div>
                 <p><u>Dindin Muldiana, S.ST. MP.</u></p>
             </td>
         </tr>
@@ -157,11 +161,15 @@
 <!-- HALAMAN 4 DARI 4 (LANDSCAPE MENDATAR)       -->
 <!-- ========================================== -->
 <div class="page-landscape">
-    <div class="text-end extra-small text-muted mb-1">Lampiran: {{ strtoupper($b->mitra->nama) }}</div>
+    <div class="d-flex justify-content-end mb-2" style="font-size: 9.5pt; color: #7f7f7f;">
+        <div class="text-start" style="width: 250px;">
+            <div>Lampiran {{ strtoupper($b->mitra->nama) }}</div>
+        </div>
+    </div>
     <div class="spk-title" style="font-size: 11pt;">PERJANJIAN KERJA PETUGAS PENCACAHAN/PENDATAAN LAPANGAN KEGIATAN SURVEI/SENSUS TAHUN {{ $tahun }} PADA BADAN PUSAT STATISTIK KABUPATEN TASIKMALAYA</div>
     <div class="spk-nomor" style="font-size: 10.5pt;">NOMOR: {{ $b->nomor_dokumen }}</div>
 
-    <div class="fw-bold mb-2 small text-center">DAFTAR URAIAN TUGAS, JANGKA WAKTU, NILAI PERJANJIAN, DAN BEBAN ANGGARAN</div>
+    <div class="fw-bold mb-2 small text-center" style="font-size: 10pt; letter-spacing: 0.2px;">DAFTAR URAIAN TUGAS, JANGKA WAKTU, NILAI PERJANJIAN, DAN BEBAN ANGGARAN</div>
 
     <table class="table table-bordered align-middle text-center mb-3">
         <thead class="table-light">
@@ -210,16 +218,20 @@
                     <td></td>
                     <td></td>
                     <td></td>
-                    <td class="text-end">Rp 0</td>
-                    <td class="text-end">Rp 0</td>
+                    <td class="text-end">Rp. 00</td>
+                    <td class="text-end">Rp. 00</td>
                     <td></td>
                 </tr>
             @endfor
         </tbody>
         <tfoot>
-            <tr class="fw-bold table-light">
-                <td colspan="6" class="text-end">TOTAL NILAI PERJANJIAN:</td>
-                <td class="text-end text-success">Rp {{ number_format($b->total_honor, 0, ',', '.') }}</td>
+            <tr class="fw-bold" style="background: #f8fafc;">
+                <td colspan="6" class="text-start ps-3" style="font-style: italic; font-weight: normal;">
+                    <em>Terbilang: {{ \App\Http\Controllers\SpkController::terbilang($b->total_honor) . ' Rupiah' }}</em>
+                </td>
+                <td class="text-end fw-bold" style="color: #000;">
+                    Rp. {{ number_format($b->total_honor, 0, ',', '.') }}, 00
+                </td>
                 <td></td>
             </tr>
         </tfoot>

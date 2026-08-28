@@ -9,6 +9,7 @@ use App\Models\Kegiatan;
 use App\Models\Mitra;
 use App\Models\Periode;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 
 class SpkController extends Controller
@@ -68,7 +69,7 @@ class SpkController extends Controller
         $alokasis = $query->get();
 
         // Grouping per Mitra
-        $spkList = $alokasis->groupBy('mitra_id')->map(function ($items, $mitraId) {
+        $allSpkList = $alokasis->groupBy('mitra_id')->map(function ($items, $mitraId) {
             $mitra = $items->first()->mitra;
             $totalHonor = (float) $items->sum('nominal');
             $kegiatans = $items->pluck('kegiatan.nama')->unique()->values();
@@ -83,16 +84,214 @@ class SpkController extends Controller
             ];
         })->values();
 
+        // Paginate 15 items per page
+        $perPage = 15;
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $currentItems = $allSpkList->slice(($currentPage - 1) * $perPage, $perPage)->values();
+        $spkList = new LengthAwarePaginator(
+            $currentItems,
+            $allSpkList->count(),
+            $perPage,
+            $currentPage,
+            ['path' => LengthAwarePaginator::resolveCurrentPath(), 'query' => $request->query()]
+        );
+
+        $tanggalDokumen = $request->tanggal_dokumen ?? date('Y-m-d');
+
         $selectedTemplate = $request->template_id ? DocumentTemplate::find($request->template_id) : ($templates->first() ?? null);
         $currentTemplateId = $selectedTemplate ? $selectedTemplate->id : null;
 
         return view('spk.index', compact(
             'tahunList', 'tahun', 'monthOptions', 'bulanAwal', 'bulanAkhir',
             'bidangOptions', 'bidangId', 'kegiatanOptions', 'kegiatanId', 'search',
-            'jenisDokumen', 'kategoriKegiatan', 'formatSpk', 'nomorAwal', 'bulanSpk', 'tahunSpk',
-            'templates', 'selectedTemplate', 'currentTemplateId',
+            'jenisDokumen', 'formatSpk', 'nomorAwal', 'bulanSpk', 'tahunSpk',
+            'templates', 'selectedTemplate', 'currentTemplateId', 'tanggalDokumen',
             'spkList'
         ));
+    }
+
+    public function penomoranIndex(Request $request)
+    {
+        $user = auth()->user();
+        $isAdmin = $user->role === 'admin';
+        $isOperatorScoped = ($user->role === 'operator' && $user->bidang_id);
+
+        $tahunList = Periode::select('tahun')->distinct()->orderBy('tahun', 'desc')->pluck('tahun');
+        $tahun = $request->tahun ?? Periode::whereHas('alokasiHonors')->orderBy('tahun', 'desc')->value('tahun') ?? date('Y');
+
+        $monthOptions = $this->bulanNama;
+        $bulanAwal = (int) ($request->bulan_awal ?? 1);
+        $bulanAkhir = (int) ($request->bulan_akhir ?? 12);
+        $bulanAwal = max(1, min(12, $bulanAwal));
+        $bulanAkhir = max(1, min(12, $bulanAkhir));
+        if ($bulanAkhir < $bulanAwal) { $bulanAkhir = $bulanAwal; }
+
+        $bidangId = ($isOperatorScoped) ? $user->bidang_id : ($request->bidang_id ?? null);
+        if ($bidangId === '' || $bidangId === 'all') $bidangId = null;
+
+        $kegiatanId = $request->kegiatan_id ?: null;
+        $jenisDokumen = $request->jenis_dokumen ?? 'spk';
+        $kategoriKegiatan = $request->kategori_kegiatan ?? 'sensus';
+        $formatSpk = $request->format_spk ?? '';
+        $nomorAwal = (int) ($request->nomor_awal ?? 1);
+        $bulanSpk = (int) ($request->bulan_spk ?? $bulanAwal);
+        $tahunSpk = $request->tahun_spk ?? $tahun;
+        $search = trim($request->search ?? '');
+
+        $bidangOptions = $isAdmin ? Bidang::orderBy('nama')->get() : Bidang::where('id', $user->bidang_id)->get();
+        $kegiatanOptions = Kegiatan::when($bidangId, fn($q) => $q->where('bidang_id', $bidangId))->orderBy('nama')->get();
+
+        $periodeIds = Periode::where('tahun', $tahun)
+            ->where('bulan_angka', '>=', $bulanAwal)
+            ->where('bulan_angka', '<=', $bulanAkhir)
+            ->pluck('id');
+
+        $query = AlokasiHonor::with(['mitra', 'kegiatan.bidang', 'periode'])
+            ->whereIn('periode_id', $periodeIds)
+            ->when($kegiatanId, fn($q) => $q->where('kegiatan_id', $kegiatanId))
+            ->when($bidangId && !$kegiatanId, fn($q) => $q->whereHas('kegiatan', fn($qq) => $qq->where('bidang_id', $bidangId)))
+            ->when($search !== '', function ($q) use ($search) {
+                $q->whereHas('mitra', fn($m) => $m->where('nama', 'like', "%{$search}%")->orWhere('id_sobat', 'like', "%{$search}%"));
+            });
+
+        $alokasis = $query->get();
+
+        // Cari nomor urut tertinggi yang sudah ada di database untuk periode & tahun ini
+        $allSpkNumbers = AlokasiHonor::whereIn('periode_id', $periodeIds)
+            ->whereNotNull('nomor_spk')
+            ->pluck('nomor_spk')
+            ->unique();
+        
+        $allBastNumbers = AlokasiHonor::whereIn('periode_id', $periodeIds)
+            ->whereNotNull('nomor_bast')
+            ->pluck('nomor_bast')
+            ->unique();
+
+        $extractMaxSeq = function ($numbers) {
+            $maxSeq = 0;
+            $lastFullNum = null;
+            foreach ($numbers as $num) {
+                // Pola format B-0001/... atau angka dalam string nomor
+                if (preg_match('/(?:B-|[^\d]|^)(\d{1,6})(?:[^\d]|$)/i', $num, $matches)) {
+                    $seq = (int) $matches[1];
+                    if ($seq > $maxSeq) {
+                        $maxSeq = $seq;
+                        $lastFullNum = $num;
+                    }
+                }
+            }
+            return ['max_seq' => $maxSeq, 'last_num' => $lastFullNum];
+        };
+
+        $spkSeqInfo = $extractMaxSeq($allSpkNumbers);
+        $bastSeqInfo = $extractMaxSeq($allBastNumbers);
+
+        $maxSpkSeq = $spkSeqInfo['max_seq'];
+        $lastSpkDoc = $spkSeqInfo['last_num'];
+
+        $maxBastSeq = $bastSeqInfo['max_seq'];
+        $lastBastDoc = $bastSeqInfo['last_num'];
+
+        // Jika nomorAwal tidak dikirim user secara spesifik, otomatis gunakan lanjutan jika ada
+        if (!$request->has('nomor_awal')) {
+            $activeMax = ($jenisDokumen === 'bast') ? $maxBastSeq : $maxSpkSeq;
+            if ($activeMax > 0) {
+                $nomorAwal = $activeMax + 1;
+            }
+        }
+
+        $allSpkList = $alokasis->groupBy('mitra_id')->map(function ($items, $mitraId) {
+            $mitra = $items->first()->mitra;
+            $totalHonor = (float) $items->sum('nominal');
+            $kegiatans = $items->pluck('kegiatan.nama')->unique()->values();
+            $firstSpk = $items->firstWhere('nomor_spk', '!=', null)?->nomor_spk;
+            $firstBast = $items->firstWhere('nomor_bast', '!=', null)?->nomor_bast;
+
+            return (object) [
+                'mitra_id' => $mitraId,
+                'mitra' => $mitra,
+                'total_honor' => $totalHonor,
+                'total_kegiatan' => $kegiatans->count(),
+                'list_kegiatan' => $kegiatans->join(', '),
+                'nomor_spk' => $firstSpk,
+                'nomor_bast' => $firstBast,
+                'items' => $items,
+            ];
+        })->values();
+
+        // Paginate 15 items per page
+        $perPage = 15;
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $currentItems = $allSpkList->slice(($currentPage - 1) * $perPage, $perPage)->values();
+        $spkList = new LengthAwarePaginator(
+            $currentItems,
+            $allSpkList->count(),
+            $perPage,
+            $currentPage,
+            ['path' => LengthAwarePaginator::resolveCurrentPath(), 'query' => $request->query()]
+        );
+
+        return view('spk.penomoran', compact(
+            'tahunList', 'tahun', 'monthOptions', 'bulanAwal', 'bulanAkhir',
+            'bidangOptions', 'bidangId', 'kegiatanOptions', 'kegiatanId', 'search',
+            'jenisDokumen', 'formatSpk', 'nomorAwal', 'bulanSpk', 'tahunSpk',
+            'maxSpkSeq', 'lastSpkDoc', 'maxBastSeq', 'lastBastDoc',
+            'spkList', 'allSpkList'
+        ));
+    }
+
+    public function terapkanPenomoran(Request $request)
+    {
+        $mitraIds = $request->mitra_ids ?? [];
+        if (empty($mitraIds)) {
+            return redirect()->back()->with('error', 'Pilih minimal 1 mitra untuk diterapkan nomornya.');
+        }
+
+        $jenisDokumen = $request->jenis_dokumen ?? 'spk';
+        $formatSpk = $request->format_spk ?? 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}';
+        $tahun = $request->tahun ?? date('Y');
+        $bulanAwal = (int) ($request->bulan_awal ?? 1);
+        $bulanAkhir = (int) ($request->bulan_akhir ?? 12);
+        $nomorStart = (int) ($request->nomor_awal ?? 1);
+        $bulanSpk = (int) ($request->bulan_spk ?? $bulanAwal);
+        $tahunSpk = $request->tahun_spk ?? $tahun;
+        $kegiatanId = $request->kegiatan_id ?: null;
+        $customNomors = $request->custom_nomors ?? [];
+
+        $periodeIds = Periode::where('tahun', $tahun)
+            ->where('bulan_angka', '>=', $bulanAwal)
+            ->where('bulan_angka', '<=', $bulanAkhir)
+            ->pluck('id');
+
+        $counter = $nomorStart;
+        $savedCount = 0;
+
+        foreach ($mitraIds as $mId) {
+            $items = AlokasiHonor::where('mitra_id', $mId)
+                ->whereIn('periode_id', $periodeIds)
+                ->when($kegiatanId, fn($q) => $q->where('kegiatan_id', $kegiatanId))
+                ->get();
+
+            if ($items->isEmpty()) continue;
+
+            if (!empty($customNomors[$mId])) {
+                $nomorDoc = trim($customNomors[$mId]);
+            } else {
+                $nomorDoc = $this->generateNomorDokumen($formatSpk, $counter, $bulanSpk, $tahunSpk, $jenisDokumen);
+                $counter++;
+            }
+
+            foreach ($items as $item) {
+                if ($jenisDokumen === 'bast') {
+                    $item->update(['nomor_bast' => $nomorDoc]);
+                } else {
+                    $item->update(['nomor_spk' => $nomorDoc]);
+                }
+            }
+            $savedCount++;
+        }
+
+        return redirect()->back()->with('success', "Berhasil menerapkan & menyimpan nomor resmi untuk {$savedCount} mitra ke database.");
     }
 
     public function generateNomorDokumen(string $format, int $nomorUrut, int $bulan, string $tahun, string $jenisDokumen = 'SPK'): string
@@ -128,6 +327,72 @@ class SpkController extends Controller
         return $romawi[$bulan] ?? 'I';
     }
 
+    public static function terbilang(float|int $nilai): string
+    {
+        $nilai = abs($nilai);
+        $huruf = ['', 'Satu', 'Dua', 'Tiga', 'Empat', 'Lima', 'Enam', 'Tujuh', 'Delapan', 'Sembilan', 'Sepuluh', 'Sebelas'];
+        $temp = '';
+
+        if ($nilai < 12) {
+            $temp = ' ' . $huruf[(int)$nilai];
+        } else if ($nilai < 20) {
+            $temp = self::terbilang($nilai - 10) . ' Belas';
+        } else if ($nilai < 100) {
+            $temp = self::terbilang((int)($nilai / 10)) . ' Puluh ' . self::terbilang($nilai % 10);
+        } else if ($nilai < 200) {
+            $temp = ' Seratus ' . self::terbilang($nilai - 100);
+        } else if ($nilai < 1000) {
+            $temp = self::terbilang((int)($nilai / 100)) . ' Ratus ' . self::terbilang($nilai % 100);
+        } else if ($nilai < 2000) {
+            $temp = ' Seribu ' . self::terbilang($nilai - 1000);
+        } else if ($nilai < 1000000) {
+            $temp = self::terbilang((int)($nilai / 1000)) . ' Ribu ' . self::terbilang($nilai % 1000);
+        } else if ($nilai < 1000000000) {
+            $temp = self::terbilang((int)($nilai / 1000000)) . ' Juta ' . self::terbilang($nilai % 1000000);
+        } else if ($nilai < 1000000000000) {
+            $temp = self::terbilang((int)($nilai / 1000000000)) . ' Milyar ' . self::terbilang(fmod($nilai, 1000000000));
+        }
+
+        return trim(preg_replace('/\s+/', ' ', $temp));
+    }
+
+    public static function formatTanggalTerbilang(string $dateStr): array
+    {
+        try {
+            $carbon = \Carbon\Carbon::parse($dateStr);
+        } catch (\Exception $e) {
+            $carbon = \Carbon\Carbon::now();
+        }
+
+        $namaHari = [
+            'Sunday' => 'Minggu', 'Monday' => 'Senin', 'Tuesday' => 'Selasa',
+            'Wednesday' => 'Rabu', 'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu'
+        ];
+
+        $namaBulan = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+
+        $hari = $namaHari[$carbon->format('l')] ?? 'Senin';
+        $tglAngka = (int)$carbon->format('j');
+        $blnAngka = (int)$carbon->format('n');
+        $thnAngka = (int)$carbon->format('Y');
+
+        $tglTeks = 'tanggal ' . strtolower(self::terbilang($tglAngka));
+        $blnTeks = 'bulan ' . ($namaBulan[$blnAngka] ?? 'Januari');
+        $thnTeks = 'tahun ' . strtolower(self::terbilang($thnAngka));
+
+        return [
+            'hari' => $hari,
+            'tanggal_teks' => $tglTeks,
+            'bulan_teks' => $blnTeks,
+            'tahun_teks' => $thnTeks,
+            'full_text' => "Pada hari ini {$hari}, {$tglTeks}, {$blnTeks}, {$thnTeks}, bertempat di Tasikmalaya, yang bertanda tangan di bawah ini::"
+        ];
+    }
+
     public function cetakUtama(Request $request, $mitraId)
     {
         $mitra = Mitra::findOrFail($mitraId);
@@ -161,10 +426,25 @@ class SpkController extends Controller
             ->when($kegiatanId, fn($q) => $q->where('kegiatan_id', $kegiatanId))
             ->get();
 
+        if ($items->isEmpty()) {
+            return redirect()->back()->with('error', "Tidak ada alokasi honor untuk {$mitra->nama} pada periode ini.");
+        }
+
         $totalHonor = (float) $items->sum('nominal');
+        $terbilangHonor = self::terbilang($totalHonor) . ' Rupiah';
         $periodeLabel = $this->bulanNama[$bulanAwal] . ($bulanAwal !== $bulanAkhir ? ' s.d ' . $this->bulanNama[$bulanAkhir] : '') . ' ' . $tahun;
         
-        $nomorDokumen = $this->generateNomorDokumen($formatSpk, $nomorAwal, $bulanSpk, $tahunSpk, $jenisDokumen);
+        // Cek validasi nomor resmi di database
+        $nomorDokumen = ($jenisDokumen === 'bast') 
+            ? $items->firstWhere('nomor_bast', '!=', null)?->nomor_bast
+            : $items->firstWhere('nomor_spk', '!=', null)?->nomor_spk;
+
+        if (empty($nomorDokumen)) {
+            return redirect()->route('spk.penomoran.index')->with('error', "Mitra {$mitra->nama} belum memiliki nomor resmi. Silakan tetapkan nomor di halaman Penomoran terlebih dahulu.");
+        }
+
+        $tanggalSpkInput = $request->tanggal_spk ?? $request->tanggal_dokumen ?? date('Y-m-d');
+        $tanggalTerbilang = self::formatTanggalTerbilang($tanggalSpkInput);
 
         if ($jenisDokumen === 'bast') {
             $batchList = collect([(object)[
@@ -172,11 +452,231 @@ class SpkController extends Controller
                 'nomor_dokumen' => $nomorDokumen,
                 'items' => $items,
                 'total_honor' => $totalHonor,
+                'terbilang_honor' => $terbilangHonor,
             ]]);
-            return view('spk.template_bast', compact('batchList', 'tahun', 'periodeLabel'));
+            return view('spk.template_bast', compact('batchList', 'tahun', 'periodeLabel', 'tanggalTerbilang'));
         }
 
-        return view('spk.template_utama', compact('mitra', 'items', 'totalHonor', 'tahun', 'periodeLabel', 'nomorDokumen'));
+        return view('spk.template_utama', compact('mitra', 'items', 'totalHonor', 'terbilangHonor', 'tahun', 'periodeLabel', 'nomorDokumen', 'tanggalTerbilang'));
+    }
+
+    public function downloadPdf(Request $request, $mitraId)
+    {
+        $mitra = Mitra::findOrFail($mitraId);
+        $tahun = $request->tahun ?? date('Y');
+        $bulanAwal = (int) ($request->bulan_awal ?? 1);
+        $bulanAkhir = (int) ($request->bulan_akhir ?? 12);
+        $templateId = $request->template_id;
+
+        $jenisDokumen = 'spk';
+        if ($templateId) {
+            $docTmpl = DocumentTemplate::find($templateId);
+            if ($docTmpl && $docTmpl->jenis_dokumen) {
+                $jenisDokumen = $docTmpl->jenis_dokumen;
+            }
+        }
+
+        $periodeIds = Periode::where('tahun', $tahun)
+            ->where('bulan_angka', '>=', $bulanAwal)
+            ->where('bulan_angka', '<=', $bulanAkhir)
+            ->pluck('id');
+
+        $kegiatanId = $request->kegiatan_id ?: null;
+
+        $items = AlokasiHonor::with(['kegiatan.bidang', 'periode'])
+            ->where('mitra_id', $mitraId)
+            ->whereIn('periode_id', $periodeIds)
+            ->when($kegiatanId, fn($q) => $q->where('kegiatan_id', $kegiatanId))
+            ->get();
+
+        if ($items->isEmpty()) {
+            return redirect()->back()->with('error', "Tidak ada alokasi honor untuk {$mitra->nama} pada periode ini.");
+        }
+
+        $nomorDokumen = ($jenisDokumen === 'bast') 
+            ? $items->firstWhere('nomor_bast', '!=', null)?->nomor_bast
+            : $items->firstWhere('nomor_spk', '!=', null)?->nomor_spk;
+
+        if (empty($nomorDokumen)) {
+            return redirect()->route('spk.penomoran.index')->with('error', "Mitra {$mitra->nama} belum memiliki nomor resmi.");
+        }
+
+        $totalHonor = (float) $items->sum('nominal');
+        $terbilangHonor = self::terbilang($totalHonor) . ' Rupiah';
+        $periodeLabel = $this->bulanNama[$bulanAwal] . ($bulanAwal !== $bulanAkhir ? ' s.d ' . $this->bulanNama[$bulanAkhir] : '') . ' ' . $tahun;
+
+        // =========================================================================
+        // NATIVE MS WORD INJECTION (MAIL MERGE .DOCX / .PDF) -> 100% IDENTIK
+        // =========================================================================
+        $docTmpl = $templateId ? DocumentTemplate::find($templateId) : null;
+        if ($docTmpl && $docTmpl->jenis_dokumen) {
+            $jenisDokumen = $docTmpl->jenis_dokumen;
+        }
+
+        $isBast = ($jenisDokumen === 'bast');
+        $defaultTemplate = $isBast ? 'BAST PETUGAS (Sumber -2).docx' : 'File SPK (Sumber -2).docx';
+        $templatePath = base_path($defaultTemplate);
+
+        if ($docTmpl && $docTmpl->file_path && Storage::disk('public')->exists($docTmpl->file_path)) {
+            $templatePath = Storage::disk('public')->path($docTmpl->file_path);
+        }
+
+        if (file_exists($templatePath)) {
+            $tempDir = storage_path('app/temp_spk');
+            if (!file_exists($tempDir)) {
+                mkdir($tempDir, 0777, true);
+            }
+
+            $uniqueId = uniqid($isBast ? 'bast_' : 'spk_');
+            $tempDocx = $tempDir . '/' . $uniqueId . '.docx';
+            $tempJson = $tempDir . '/' . $uniqueId . '.json';
+
+            $tanggalSpkInput = $request->tanggal_spk ?? $request->tanggal_dokumen ?? date('Y-m-d');
+            $tanggalInfo = self::formatTanggalTerbilang($tanggalSpkInput);
+
+            $nomorSpkRef = $items->firstWhere('nomor_spk', '!=', null)?->nomor_spk ?? '';
+            $nomorBastRef = $items->firstWhere('nomor_bast', '!=', null)?->nomor_bast ?? $nomorDokumen;
+
+            if ($isBast) {
+                $payload = [
+                    'nomor_bast' => $nomorBastRef,
+                    'nomor_spk' => $nomorSpkRef ?: str_replace('BAST', 'SPK', $nomorBastRef),
+                    'nama_mitra' => strtoupper($mitra->nama),
+                    'pekerjaan_mitra' => $mitra->pekerjaan_clean,
+                    'alamat_mitra' => $mitra->alamat_clean,
+                    'tahun' => $tahun,
+                    'hari' => $tanggalInfo['hari'],
+                    'tanggal_teks' => $tanggalInfo['tanggal_teks'],
+                    'bulan_teks' => $tanggalInfo['bulan_teks'],
+                    'tahun_teks' => $tanggalInfo['tahun_teks'],
+                    'tanggal_angka' => date('j', strtotime($tanggalSpkInput)) . ' ' . $this->bulanNama[(int)date('n', strtotime($tanggalSpkInput))] . ' ' . date('Y', strtotime($tanggalSpkInput)),
+                    'tanggal_spk_text' => date('j', strtotime($tanggalSpkInput)) . ' ' . $this->bulanNama[(int)date('n', strtotime($tanggalSpkInput))],
+                ];
+                $pyScript = base_path('scripts/export_bast_docx.py');
+                $docPrefix = 'BAST_';
+            } else {
+                $itemsData = [];
+                foreach ($items as $it) {
+                    $itemsData[] = [
+                        'nama' => $it->kegiatan->nama,
+                        'periode' => $it->periode->bulan . ' ' . $it->periode->tahun,
+                        'volume' => $it->volume ?? 1,
+                        'satuan' => $it->satuan ?? 'dokumen',
+                        'harga_satuan' => 'Rp. ' . number_format($it->nominal, 0, ',', '.') . ',00',
+                        'nilai_perjanjian' => 'Rp. ' . number_format($it->nominal, 0, ',', '.') . ', 00',
+                        'mak' => $it->kegiatan->kode_mata_anggaran ?? '054.01.GG.2903.BMA.009.005.A.521213',
+                    ];
+                }
+                $payload = [
+                    'nomor_spk' => $nomorDokumen,
+                    'nama_mitra' => strtoupper($mitra->nama),
+                    'pekerjaan_mitra' => $mitra->pekerjaan_clean,
+                    'alamat_mitra' => $mitra->alamat_clean,
+                    'periode_label' => $periodeLabel,
+                    'total_honor' => 'Rp. ' . number_format($totalHonor, 0, ',', '.'),
+                    'terbilang_honor' => $terbilangHonor,
+                    'tahun' => $tahun,
+                    'hari' => $tanggalInfo['hari'],
+                    'tanggal_teks' => $tanggalInfo['tanggal_teks'],
+                    'bulan_teks' => $tanggalInfo['bulan_teks'],
+                    'tahun_teks' => $tanggalInfo['tahun_teks'],
+                    'full_pembuka' => $tanggalInfo['full_text'],
+                    'items' => $itemsData,
+                ];
+                $pyScript = base_path('scripts/export_spk_docx.py');
+                $docPrefix = 'SPK_';
+            }
+
+            file_put_contents($tempJson, json_encode($payload));
+
+            $isPdfReq = ($request->format === 'pdf');
+            $pdfFlag = $isPdfReq ? ' --pdf' : '';
+            
+            exec("python \"{$pyScript}\" \"{$templatePath}\" \"{$tempDocx}\" \"{$tempJson}\"{$pdfFlag}");
+
+            if ($isPdfReq) {
+                $tempPdf = $tempDir . '/' . $uniqueId . '.pdf';
+                if (file_exists($tempPdf)) {
+                    @unlink($tempJson);
+                    @unlink($tempDocx);
+                    $downloadName = $docPrefix . preg_replace('/[^a-zA-Z0-9]/', '_', $mitra->nama) . '.pdf';
+                    return response()->download($tempPdf, $downloadName, [
+                        'Content-Type' => 'application/pdf'
+                    ])->deleteFileAfterSend(true);
+                }
+            }
+
+            if (file_exists($tempDocx)) {
+                @unlink($tempJson);
+                $downloadName = $docPrefix . preg_replace('/[^a-zA-Z0-9]/', '_', $mitra->nama) . '.docx';
+                return response()->download($tempDocx, $downloadName)->deleteFileAfterSend(true);
+            }
+        }
+
+        // Fallback jika tidak lewat python
+        $html = view('spk.pdf_utama', compact('mitra', 'items', 'totalHonor', 'terbilangHonor', 'tahun', 'periodeLabel', 'nomorDokumen'))->render();
+        $filename = 'SPK_' . \Illuminate\Support\Str::slug($mitra->nama) . '_' . $tahun . '.pdf';
+
+        $options = new \Dompdf\Options();
+        $options->set('isRemoteEnabled', true);
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('defaultFont', 'serif');
+
+        $dompdf = new \Dompdf\Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper([0, 0, 612.00, 936.00], 'portrait');
+        $dompdf->render();
+
+        return response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
+    public function downloadLampiranPdf(Request $request, $mitraId)
+    {
+        $mitra = Mitra::findOrFail($mitraId);
+        $tahun = $request->tahun ?? date('Y');
+        $bulanAwal = (int) ($request->bulan_awal ?? 1);
+        $bulanAkhir = (int) ($request->bulan_akhir ?? 12);
+
+        $periodeIds = Periode::where('tahun', $tahun)
+            ->where('bulan_angka', '>=', $bulanAwal)
+            ->where('bulan_angka', '<=', $bulanAkhir)
+            ->pluck('id');
+
+        $kegiatanId = $request->kegiatan_id ?: null;
+
+        $items = AlokasiHonor::with(['kegiatan.bidang', 'periode'])
+            ->where('mitra_id', $mitraId)
+            ->whereIn('periode_id', $periodeIds)
+            ->when($kegiatanId, fn($q) => $q->where('kegiatan_id', $kegiatanId))
+            ->get();
+
+        if ($items->isEmpty()) {
+            return redirect()->back()->with('error', "Tidak ada alokasi honor untuk {$mitra->nama} pada periode ini.");
+        }
+
+        $totalHonor = (float) $items->sum('nominal');
+        $periodeLabel = $this->bulanNama[$bulanAwal] . ($bulanAwal !== $bulanAkhir ? ' s.d ' . $this->bulanNama[$bulanAkhir] : '') . ' ' . $tahun;
+
+        $html = view('spk.pdf_lampiran', compact('mitra', 'items', 'totalHonor', 'tahun', 'periodeLabel'))->render();
+        $filename = 'Lampiran_SPK_' . \Illuminate\Support\Str::slug($mitra->nama) . '_' . $tahun . '.pdf';
+
+        $options = new \Dompdf\Options();
+        $options->set('isRemoteEnabled', true);
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('defaultFont', 'times');
+
+        $dompdf = new \Dompdf\Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        return response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
     }
 
     public function cetakLampiran(Request $request, $mitraId)
@@ -198,6 +698,10 @@ class SpkController extends Controller
             ->whereIn('periode_id', $periodeIds)
             ->when($kegiatanId, fn($q) => $q->where('kegiatan_id', $kegiatanId))
             ->get();
+
+        if ($items->isEmpty()) {
+            return redirect()->back()->with('error', "Tidak ada alokasi honor untuk {$mitra->nama} pada periode ini.");
+        }
 
         $totalHonor = (float) $items->sum('nominal');
         $periodeLabel = $this->bulanNama[$bulanAwal] . ($bulanAwal !== $bulanAkhir ? ' s.d ' . $this->bulanNama[$bulanAkhir] : '') . ' ' . $tahun;
@@ -222,13 +726,9 @@ class SpkController extends Controller
         }
 
         $kategoriKegiatan = $request->kategori_kegiatan ?? 'sensus';
-        $formatSpk = $request->format_spk ?? 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}';
         $tahun = $request->tahun ?? date('Y');
         $bulanAwal = (int) ($request->bulan_awal ?? 1);
         $bulanAkhir = (int) ($request->bulan_akhir ?? 12);
-        $nomorStart = (int) ($request->nomor_awal ?? 1);
-        $bulanSpk = (int) ($request->bulan_spk ?? $bulanAwal);
-        $tahunSpk = $request->tahun_spk ?? $tahun;
         $kegiatanId = $request->kegiatan_id ?: null;
 
         $periodeIds = Periode::where('tahun', $tahun)
@@ -239,7 +739,6 @@ class SpkController extends Controller
         $periodeLabel = $this->bulanNama[$bulanAwal] . ($bulanAwal !== $bulanAkhir ? ' s.d ' . $this->bulanNama[$bulanAkhir] : '') . ' ' . $tahun;
 
         $batchList = collect();
-        $counter = $nomorStart;
 
         foreach ($mitraIds as $mId) {
             $mitra = Mitra::find($mId);
@@ -253,7 +752,15 @@ class SpkController extends Controller
 
             if ($items->isEmpty()) continue;
 
-            $nomorDoc = $this->generateNomorDokumen($formatSpk, $counter, $bulanSpk, $tahunSpk, $jenisDokumen);
+            $nomorDoc = ($jenisDokumen === 'bast')
+                ? $items->firstWhere('nomor_bast', '!=', null)?->nomor_bast
+                : $items->firstWhere('nomor_spk', '!=', null)?->nomor_spk;
+
+            // Proteksi: Lewati atau tolak jika nomor belum ditetapkan
+            if (empty($nomorDoc)) {
+                return redirect()->route('spk.penomoran.index')->with('error', "Gagal mencetak massal: Mitra {$mitra->nama} belum memiliki nomor {$jenisDokumen} resmi. Silakan tetapkan nomor terlebih dahulu.");
+            }
+
             $totalHonor = (float) $items->sum('nominal');
 
             $batchList->push((object) [
@@ -262,13 +769,47 @@ class SpkController extends Controller
                 'total_honor' => $totalHonor,
                 'nomor_dokumen' => $nomorDoc,
             ]);
-
-            $counter++;
         }
+
+        $tanggalSpkInput = $request->tanggal_spk ?? $request->tanggal_dokumen ?? date('Y-m-d');
+        $tanggalTerbilang = self::formatTanggalTerbilang($tanggalSpkInput);
 
         $viewName = ($jenisDokumen === 'bast') ? 'spk.template_bast' : 'spk.cetak_massal';
 
-        return view($viewName, compact('batchList', 'jenisDokumen', 'kategoriKegiatan', 'tahun', 'periodeLabel'));
+        return view($viewName, compact('batchList', 'jenisDokumen', 'kategoriKegiatan', 'tahun', 'periodeLabel', 'tanggalTerbilang'));
+    }
+
+    public function resetNomor(Request $request)
+    {
+        $mitraIds = $request->mitra_ids ?? [];
+        if (empty($mitraIds)) {
+            return redirect()->back()->with('error', 'Pilih minimal 1 mitra yang ingin direset nomornya.');
+        }
+
+        $tahun = $request->tahun ?? date('Y');
+        $bulanAwal = (int) ($request->bulan_awal ?? 1);
+        $bulanAkhir = (int) ($request->bulan_akhir ?? 12);
+        $kegiatanId = $request->kegiatan_id ?: null;
+        $jenis = $request->jenis_reset ?? 'semua'; // 'spk', 'bast', atau 'semua'
+
+        $periodeIds = Periode::where('tahun', $tahun)
+            ->where('bulan_angka', '>=', $bulanAwal)
+            ->where('bulan_angka', '<=', $bulanAkhir)
+            ->pluck('id');
+
+        $query = AlokasiHonor::whereIn('mitra_id', $mitraIds)
+            ->whereIn('periode_id', $periodeIds)
+            ->when($kegiatanId, fn($q) => $q->where('kegiatan_id', $kegiatanId));
+
+        if ($jenis === 'spk') {
+            $query->update(['nomor_spk' => null, 'tanggal_spk' => null]);
+        } elseif ($jenis === 'bast') {
+            $query->update(['nomor_bast' => null]);
+        } else {
+            $query->update(['nomor_spk' => null, 'nomor_bast' => null, 'tanggal_spk' => null]);
+        }
+
+        return redirect()->back()->with('success', count($mitraIds) . ' mitra terpilih berhasil direset nomor SPK & BAST-nya menjadi kosong.');
     }
 
     public function downloadDocx(Request $request, $mitraId)
@@ -424,21 +965,6 @@ class SpkController extends Controller
 
         $downloadName = 'SPK_' . preg_replace('/[^a-zA-Z0-9]/', '_', $mitra->nama) . '.docx';
         return response()->download($tempFile, $downloadName)->deleteFileAfterSend(true);
-    }
-
-    private function terbilang($angka)
-    {
-        $angka = abs((float)$angka);
-        $baca = ['', 'Satu', 'Dua', 'Tiga', 'Empat', 'Lima', 'Enam', 'Tujuh', 'Delapan', 'Sembilan', 'Sepuluh', 'Sebelas'];
-        if ($angka < 12) return ' ' . $baca[(int)$angka];
-        if ($angka < 20) return $this->terbilang($angka - 10) . ' Belas';
-        if ($angka < 100) return $this->terbilang($angka / 10) . ' Puluh' . $this->terbilang($angka % 10);
-        if ($angka < 200) return ' Seratus' . $this->terbilang($angka - 100);
-        if ($angka < 1000) return $this->terbilang($angka / 100) . ' Ratus' . $this->terbilang($angka % 100);
-        if ($angka < 2000) return ' Seribu' . $this->terbilang($angka - 1000);
-        if ($angka < 1000000) return $this->terbilang($angka / 1000) . ' Ribu' . $this->terbilang($angka % 1000);
-        if ($angka < 1000000000) return $this->terbilang($angka / 1000000) . ' Juta' . $this->terbilang($angka % 1000000);
-        return trim((string)$angka) . ' Rupiah';
     }
 
     public function templateIndex()

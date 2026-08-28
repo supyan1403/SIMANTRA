@@ -6,17 +6,20 @@
     <title>Berita Acara Serah Terima (BAST) - {{ $periodeLabel }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { font-family: 'Times New Roman', Times, serif; font-size: 11pt; line-height: 1.5; color: #000; background: #f8fafc; }
-        .page { width: 210mm; min-height: 297mm; padding: 25mm 25mm 20mm 25mm; margin: 15px auto; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 4px; page-break-after: always; }
-        .bast-header { text-align: center; font-weight: bold; margin-bottom: 25px; }
+        body, table, th, td, p, div, span, strong, b, h1, h2, h3, h4, h5, h6, input, select, textarea {
+            font-family: 'Bookman Old Style', 'Book Antiqua', Georgia, serif !important;
+        }
+        body { font-size: 11pt; line-height: 1.5; color: #000; background: #f8fafc; margin: 0; padding: 0; }
+        .page { width: 210mm; min-height: 297mm; padding: 25mm 25mm 20mm 25mm; margin: 15px auto; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 4px; page-break-after: always; box-sizing: border-box; }
+        .bast-header { text-align: center; font-weight: bold; margin-bottom: 20px; }
         .bast-title { font-size: 11pt; font-weight: bold; text-align: center; text-transform: uppercase; margin-bottom: 0; line-height: 1.3; }
-        .bast-nomor { text-align: center; font-size: 11pt; margin-top: 15px; margin-bottom: 25px; }
-        p { text-align: justify; text-justify: inter-word; margin-bottom: 12px; }
-        .party-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        .bast-nomor { text-align: center; font-size: 11pt; margin-top: 15px; margin-bottom: 20px; }
+        p { text-align: justify; text-justify: inter-word; margin-bottom: 10px; line-height: 1.45; }
+        .party-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
         .party-table td { vertical-align: top; padding: 2px 0; }
-        ol.bast-list { padding-left: 25px; margin-bottom: 15px; }
-        ol.bast-list li { margin-bottom: 5px; text-align: justify; }
-        .ttd-box { margin-top: 60px; text-align: center; }
+        ol.bast-list { padding-left: 25px; margin-bottom: 12px; }
+        ol.bast-list li { margin-bottom: 4px; text-align: justify; }
+        .ttd-box { margin-top: 50px; text-align: center; }
         .ttd-col { width: 50%; display: inline-block; float: left; }
         .clearfix::after { content: ""; clear: both; display: table; }
         @media print {
@@ -28,9 +31,13 @@
 </head>
 <body>
 
-<div class="no-print text-center py-3 bg-dark text-white sticky-top">
-    <button onclick="window.print()" class="btn btn-primary font-monospace px-4"><i class="bi bi-printer me-2"></i>CETAK BERITA ACARA SERAH TERIMA (BAST)</button>
-    <button onclick="window.close()" class="btn btn-outline-light px-3 ms-2">Tutup</button>
+<div class="no-print text-center py-3 bg-dark text-white sticky-top d-flex align-items-center justify-content-center gap-2">
+    <button onclick="window.print()" class="btn btn-danger fw-bold px-4 shadow-sm">
+        <i class="bi bi-printer-fill me-1.5"></i> CETAK BAST (PRINTER)
+    </button>
+    <button onclick="window.close()" class="btn btn-outline-light px-3 ms-2">
+        <i class="bi bi-x-lg me-1"></i> Tutup
+    </button>
 </div>
 
 @foreach($batchList as $b)
@@ -43,7 +50,16 @@
         <div class="bast-nomor">Nomor: {{ $b->nomor_dokumen }}</div>
     </div>
 
-    <p>Pada hari ini Jum’at, tanggal tiga puluh satu bulan Maret tahun dua ribu dua puluh tiga (31 Maret 2023), bertempat di Kantor BPS Kabupaten Tasikmalaya dengan alamat Jalan R.A.A Kusumahsubrata Komplek Perkantoran Kertasari, Kabupaten Tasikmalaya, yang bertanda tangan di bawah ini:</p>
+    @php
+        $tglInfo = $tanggalTerbilang ?? [
+            'hari' => 'Jumat',
+            'tanggal_teks' => 'tiga puluh satu',
+            'bulan_teks' => 'Maret',
+            'tahun_teks' => 'dua ribu dua puluh lima',
+        ];
+    @endphp
+
+    <p>Pada hari ini {{ $tglInfo['hari'] }}, tanggal {{ $tglInfo['tanggal_teks'] }} bulan {{ $tglInfo['bulan_teks'] }} tahun {{ $tglInfo['tahun_teks'] }}, bertempat di Kantor BPS Kabupaten Tasikmalaya dengan alamat Jalan R.A.A Kusumahsubrata Komplek Perkantoran Kertasari, Kabupaten Tasikmalaya, yang bertanda tangan di bawah ini:</p>
 
     <table class="party-table ms-1">
         <tr>

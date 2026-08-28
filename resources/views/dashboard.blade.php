@@ -14,8 +14,8 @@
 <!-- ========================================== -->
 <div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
     <div>
-        <h2 class="page-title"><i class="bi bi-shield-lock-fill text-primary me-2"></i>{{ $isAdmin ? 'Dashboard Executive Admin' : 'Dashboard Operator' }}</h2>
-        <p class="page-subtitle">Ringkasan pagu anggaran, realisasi honor, dan beban kerja mitra BPS Kab. Tasikmalaya</p>
+        <h2 class="page-title"><i class="bi bi-shield-lock-fill text-primary me-2"></i>SIMANTRA Kabupaten Tasikmalaya</h2>
+        <p class="page-subtitle">Sistem Informasi Monitoring Alokasi Pekerjaan dan Honor Mitra - {{ $isAdmin ? 'Dashboard Eksekutif Administrator' : 'Dashboard Operator Bidang' }}</p>
     </div>
     <div class="d-flex align-items-center gap-2 flex-wrap">
         @if($isAdmin)
@@ -34,36 +34,65 @@
 <!-- ========================================== -->
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body p-3">
-        <form method="GET" action="{{ route('dashboard') }}" class="row g-2 align-items-end">
+        <form method="GET" action="{{ route('dashboard') }}" id="formFilterDashboard" class="row g-2 align-items-end">
             @if($mitraId)<input type="hidden" name="mitra_id" value="{{ $mitraId }}">@endif
             @if($mKegiatanId)<input type="hidden" name="m_kegiatan_id" value="{{ $mKegiatanId }}">@endif
             
-            <div class="col-6 col-md-1">
+            <div class="col-6 col-md-2">
                 <label class="form-label text-muted small fw-bold mb-1">TAHUN</label>
-                <select name="tahun" class="form-select px-2" onchange="this.form.submit()">
+                <select name="tahun" class="form-select px-2" onchange="submitDashClean(this.form)">
                     @foreach($tahunList as $t)
                         <option value="{{ $t }}" {{ $t == $tahun ? 'selected' : '' }}>{{ $t }}</option>
                     @endforeach
                 </select>
             </div>
-            <div class="col-6 col-md-2">
-                <label class="form-label text-muted small fw-bold mb-1">BULAN AWAL</label>
-                <select name="bulan_awal" class="form-select px-2" onchange="this.form.submit()">
-                    @foreach($monthOptions as $angka => $nm)
-                        <option value="{{ $angka }}" {{ $bulanAwal == $angka ? 'selected' : '' }}>{{ $nm }}</option>
-                    @endforeach
-                </select>
+
+            <!-- Dropdown Checkbox Bulan Pencairan -->
+            <div class="col-6 col-md-3">
+                <label class="form-label text-muted small fw-bold mb-1">BULAN PENCAIRAN</label>
+                <div class="dropdown">
+                    <button class="btn btn-white border text-dark dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center bg-white shadow-none" type="button" id="dropdownBulanDashBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="border-color: #dee2e6 !important;">
+                        <span class="text-truncate text-dark fw-medium">
+                            <i class="bi bi-calendar-check text-primary me-1"></i>
+                            @if(count($bulanPencairan) === 12)
+                                1 Tahun (12 Bulan)
+                            @elseif(count($bulanPencairan) === 1)
+                                {{ $monthOptions[$bulanPencairan[0]] }}
+                            @else
+                                {{ count($bulanPencairan) }} Bulan
+                            @endif
+                        </span>
+                        <span class="badge bg-primary rounded-pill ms-2">{{ count($bulanPencairan) }}</span>
+                    </button>
+                    <div class="dropdown-menu p-3 shadow-lg" aria-labelledby="dropdownBulanDashBtn" style="min-width: 290px; max-height: 380px; overflow-y: auto;">
+                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                            <span class="fw-bold small text-dark">Bulan Pencairan</span>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-link p-0 text-primary text-decoration-none extra-small me-2" id="btnDashSelectAllMonths">Pilih Semua</button>
+                                <button type="button" class="btn btn-link p-0 text-muted text-decoration-none extra-small" id="btnDashClearAllMonths">Reset</button>
+                            </div>
+                        </div>
+                        <div class="row g-2">
+                            @foreach($monthOptions as $num => $nama)
+                            <div class="col-6">
+                                <div class="form-check">
+                                    <input class="form-check-input check-dash-bulan" type="checkbox" name="bulan_pencairan[]" value="{{ $num }}" id="cbDashBulan_{{ $num }}" {{ in_array($num, $bulanPencairan) ? 'checked' : '' }}>
+                                    <label class="form-check-label small" for="cbDashBulan_{{ $num }}">
+                                        {{ $nama }}
+                                    </label>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                        <div class="mt-3 pt-2 border-top">
+                            <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-filter"></i> Terapkan Filter Bulan</button>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="col-6 col-md-2">
-                <label class="form-label text-muted small fw-bold mb-1">BULAN AKHIR</label>
-                <select name="bulan_akhir" class="form-select px-2" onchange="this.form.submit()">
-                    @foreach($monthOptions as $angka => $nm)
-                        <option value="{{ $angka }}" {{ $bulanAkhir == $angka ? 'selected' : '' }}>{{ $nm }}</option>
-                    @endforeach
-                </select>
-            </div>
+
             @if(!$isOperatorScoped)
-            <div class="col-6 col-md-2">
+            <div class="col-6 col-md-3">
                 <label class="form-label text-muted small fw-bold mb-1">BIDANG</label>
                 <select name="bidang_id" class="form-select px-2" onchange="this.form.submit()">
                     <option value="">Semua Bidang</option>
@@ -72,7 +101,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-3">
                 <label class="form-label text-muted small fw-bold mb-1">KEGIATAN</label>
                 <select name="kegiatan_id" class="form-select px-2" onchange="this.form.submit()">
                     <option value="">Semua Kegiatan</option>
@@ -201,20 +230,61 @@
     </div>
 </div>
 
+<!-- ============================================================== -->
+<!-- VISUALISASI 3 DIAGRAM BATANG MITRA BERDAMPINGAN               -->
+<!-- ============================================================== -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
+        <div>
+            <h6 class="fw-bold text-dark mb-0"><i class="bi bi-people-fill text-primary me-2"></i>Statistik Kemitraan Kabupaten Tasikmalaya ({{ $tahun }})</h6>
+            <p class="text-muted small mb-0">Visualisasi 3 diagram batang berdampingan: Total Mitra, Sudah Dipekerjakan, dan Belum Dipekerjakan</p>
+        </div>
+        <span class="badge bg-primary bg-opacity-10 text-primary fw-bold"><i class="bi bi-check2-circle me-1"></i> Data Real-Time</span>
+    </div>
+    <div class="card-body p-3">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-4">
+                <div class="d-flex flex-column">
+                    <div class="p-3 rounded-3 bg-light border-start border-4 border-primary mb-3 shadow-xs">
+                        <span class="text-muted extra-small fw-bold text-uppercase">1. Total Mitra (1 Tahun)</span>
+                        <h3 class="fw-extrabold text-primary mb-0 mt-1">{{ number_format($totalMitra) }} <span class="fs-6 fw-normal text-muted">Orang</span></h3>
+                        <span class="text-muted extra-small">Total basis data mitra BPS Kab. Tasikmalaya</span>
+                    </div>
+                    <div class="p-3 rounded-3 bg-light border-start border-4 border-success mb-3 shadow-xs">
+                        <span class="text-muted extra-small fw-bold text-uppercase">2. Sudah Dipekerjakan</span>
+                        <h3 class="fw-extrabold text-success mb-0 mt-1">{{ number_format($sudahDipekerjakanCount) }} <span class="fs-6 fw-normal text-muted">Orang ({{ $totalMitra > 0 ? round(($sudahDipekerjakanCount / $totalMitra) * 100, 1) : 0 }}%)</span></h3>
+                        <span class="text-muted extra-small">Memiliki alokasi honor pada filter terpilih</span>
+                    </div>
+                    <div class="p-3 rounded-3 bg-light border-start border-4 border-warning shadow-xs">
+                        <span class="text-muted extra-small fw-bold text-uppercase">3. Belum Dipekerjakan</span>
+                        <h3 class="fw-extrabold text-warning mb-0 mt-1">{{ number_format($belumDipekerjakanCount) }} <span class="fs-6 fw-normal text-muted">Orang ({{ $totalMitra > 0 ? round(($belumDipekerjakanCount / $totalMitra) * 100, 1) : 0 }}%)</span></h3>
+                        <span class="text-muted extra-small">Belum mendapat alokasi tugas pada rentang ini</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div style="min-height: 280px; height: 280px;">
+                    <canvas id="chartMitra3BatangDashCanvas" style="width: 100%; height: 100%;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- ========================================== -->
-<!-- GRAFIK                                      -->
+<!-- GRAFIK KEUANGAN DENGAN LABEL NOMINAL       -->
 <!-- ========================================== -->
 <div class="row g-3 mb-4">
     <div class="col-lg-8">
         <div class="card h-100 border-0 shadow-sm">
             <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
                 <div>
-                    <h6 class="fw-bold text-dark mb-0"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Realisasi Honor per Bulan</h6>
-                    <p class="text-muted small mb-0">{{ $monthOptions[$bulanAwal] }} - {{ $monthOptions[$bulanAkhir] }} {{ $tahun }}</p>
+                    <h6 class="fw-bold text-dark mb-0"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Pengeluaran Anggaran Honor per Bulan (Label Angka Nominal)</h6>
+                    <p class="text-muted small mb-0">{{ count($bulanPencairan) }} Bulan ({{ $tahun }})</p>
                 </div>
                 <a href="{{ route('rekap.index') }}" class="btn btn-sm btn-light border"><i class="bi bi-arrow-right"></i> Rekap Detail</a>
             </div>
-            <div class="card-body pt-2" style="position: relative; height: 300px;">
+            <div class="card-body pt-2" style="position: relative; height: 320px;">
                 <canvas id="chartBulanCanvas" style="width: 100%; height: 100%;"></canvas>
             </div>
         </div>
@@ -792,207 +862,404 @@
                 <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Tutup</button>
             </div>
         </div>
-    </div>
-</div>
-@endforeach
+                    @if($mItem->jumlah_alokasi_periode > 0)
+                                <a href="{{ route('spk.cetak-utama', array_filter(['mitra' => $mItem->id, 'tahun' => $sTahun, 'bulan_awal' => $sBulanAwal, 'bulan_akhir' => $sBulanAkhir, 'kegiatan_id' => $sKegiatanId])) }}" target="_blank" class="btn btn-sm btn-danger fw-bold me-auto">
+                                    <i class="bi bi-printer me-1"></i> Cetak SPK
+                                </a>
+                            @endif
+                            <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endforeach
 
-@endsection
+            @endsection
+            @push('scripts')
+            <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+            <script>
+            (function() {
+                if (typeof ChartDataLabels !== 'undefined') {
+                    Chart.register(ChartDataLabels);
+                }
 
-@push('scripts')
-<script>
-(function() {
-    function initDashboardCharts() {
-        if (typeof Chart === 'undefined') {
-            setTimeout(initDashboardCharts, 100);
-            return;
-        }
+                // Dropdown Checkbox Quick Buttons in Dashboard
+                const btnSelectAll = document.getElementById('btnDashSelectAllMonths');
+                const btnClearAll = document.getElementById('btnDashClearAllMonths');
+                const checkItems = document.querySelectorAll('.check-dash-bulan');
 
-        const canvasBulan = document.getElementById('chartBulanCanvas');
-        if (canvasBulan) {
-            const data = {!! json_encode($honorPerBulan) !!};
-            const labels = data.map(d => d.bulan);
-            const values = data.map(d => d.total);
-            const ctx = canvasBulan.getContext('2d');
-            const gradient = ctx.createLinearGradient(0, 0, 0, 260);
-            gradient.addColorStop(0, 'rgba(37, 99, 235, 0.85)');
-            gradient.addColorStop(1, 'rgba(37, 99, 235, 0.15)');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Total Realisasi Honor (Rp)',
-                        data: values,
-                        backgroundColor: gradient,
-                        borderColor: '#2563eb',
-                        borderWidth: 2,
-                        borderRadius: 6,
-                        borderSkipped: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return ' Total: Rp ' + new Intl.NumberFormat('id-ID').format(context.raw || 0);
-                                }
-                            }
+                if (btnSelectAll) {
+                    btnSelectAll.addEventListener('click', function() {
+                        checkItems.forEach(cb => cb.checked = true);
+                    });
+                }
+                if (btnClearAll) {
+                    btnClearAll.addEventListener('click', function() {
+                        checkItems.forEach(cb => cb.checked = false);
+                    });
+                }
+
+                // Clean & Short Query String URL Handler on Submit
+                const dashFilterForm = document.getElementById('formFilterDashboard');
+                
+                window.submitDashClean = function(formEl) {
+                    const form = formEl || dashFilterForm;
+                    if (!form) return;
+                    cleanAndCompressDashForm(form);
+                    form.submit();
+                };
+
+                if (dashFilterForm) {
+                    dashFilterForm.addEventListener('submit', function(e) {
+                        cleanAndCompressDashForm(dashFilterForm);
+                    });
+                }
+
+                function cleanAndCompressDashForm(form) {
+                    const selectedMonths = Array.from(form.querySelectorAll('.check-dash-bulan:checked')).map(cb => parseInt(cb.value)).sort((a,b) => a-b);
+                    
+                    // Disable individual checkbox inputs so they don't produce bulan_pencairan%5B%5D=... in URL
+                    form.querySelectorAll('.check-dash-bulan').forEach(cb => cb.disabled = true);
+                    
+                    // Strip empty inputs and selects
+                    form.querySelectorAll('select, input').forEach(el => {
+                        if (!el.value && el.type !== 'submit') el.disabled = true;
+                    });
+
+                    // Create compressed single 'bulan' parameter
+                    if (selectedMonths.length > 0) {
+                        let compactValue = '';
+                        if (selectedMonths.length === 12) {
+                            compactValue = '1-12';
+                        } else if (selectedMonths.length > 1 && isConsecutive(selectedMonths)) {
+                            compactValue = `${selectedMonths[0]}-${selectedMonths[selectedMonths.length - 1]}`;
+                        } else {
+                            compactValue = selectedMonths.join(',');
                         }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: '#f1f5f9' },
-                            ticks: {
-                                callback: function(value) {
-                                    return 'Rp ' + (value >= 1000000 ? (value / 1000000).toFixed(0) + 'M' : value);
-                                }
-                            }
-                        },
-                        x: { grid: { display: false } }
+
+                        // Remove previous hidden if exists
+                        form.querySelectorAll('input[name="bulan"]').forEach(el => el.remove());
+
+                        let hiddenBulan = document.createElement('input');
+                        hiddenBulan.type = 'hidden';
+                        hiddenBulan.name = 'bulan';
+                        hiddenBulan.value = compactValue;
+                        form.appendChild(hiddenBulan);
                     }
                 }
-            });
-        }
 
-        const canvasBidang = document.getElementById('chartBidangCanvas');
-        if (canvasBidang) {
-            const data = {!! json_encode($honorPerBidang) !!};
-            const labels = data.map(b => b.nama);
-            const values = data.map(b => b.total);
-            const ctx = canvasBidang.getContext('2d');
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: values,
-                        backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: { boxWidth: 10, padding: 12, font: { family: 'Plus Jakarta Sans', size: 11 } }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return ' Rp ' + new Intl.NumberFormat('id-ID').format(context.raw || 0);
+                function isConsecutive(arr) {
+                    for (let i = 0; i < arr.length - 1; i++) {
+                        if (arr[i+1] !== arr[i] + 1) return false;
+                    }
+                    return true;
+                }
+
+                function initDashboardCharts() {
+                    if (typeof Chart === 'undefined') {
+                        setTimeout(initDashboardCharts, 100);
+                        return;
+                    }
+
+                    // 1. Chart 3 Batang Mitra Berdampingan (Dashboard Admin)
+                    const ctxMitra3 = document.getElementById('chartMitra3BatangDashCanvas');
+                    if (ctxMitra3) {
+                        new Chart(ctxMitra3.getContext('2d'), {
+                            type: 'bar',
+                            data: {
+                                labels: ['Status Kemitraan ({{ $tahun }})'],
+                                datasets: [
+                                    {
+                                        label: 'Total Mitra (1 Tahun)',
+                                        data: [{{ $totalMitra }}],
+                                        backgroundColor: '#2563eb',
+                                        borderColor: '#1d4ed8',
+                                        borderWidth: 1.5,
+                                        borderRadius: 8,
+                                        barPercentage: 0.75,
+                                        categoryPercentage: 0.85
+                                    },
+                                    {
+                                        label: 'Sudah Dipekerjakan',
+                                        data: [{{ $sudahDipekerjakanCount }}],
+                                        backgroundColor: '#10b981',
+                                        borderColor: '#059669',
+                                        borderWidth: 1.5,
+                                        borderRadius: 8,
+                                        barPercentage: 0.75,
+                                        categoryPercentage: 0.85
+                                    },
+                                    {
+                                        label: 'Belum Dipekerjakan',
+                                        data: [{{ $belumDipekerjakanCount }}],
+                                        backgroundColor: '#f59e0b',
+                                        borderColor: '#d97706',
+                                        borderWidth: 1.5,
+                                        borderRadius: 8,
+                                        barPercentage: 0.75,
+                                        categoryPercentage: 0.85
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: 'top',
+                                        labels: { font: { family: 'Plus Jakarta Sans', size: 12, weight: '600' }, boxWidth: 14 }
+                                    },
+                                    datalabels: {
+                                        anchor: 'end',
+                                        align: 'top',
+                                        color: '#1e293b',
+                                        font: { weight: 'bold', size: 12, family: 'Plus Jakarta Sans' },
+                                        formatter: function(val) {
+                                            return new Intl.NumberFormat('id-ID').format(val) + ' Org';
+                                        }
+                                    },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                return ' ' + context.dataset.label + ': ' + new Intl.NumberFormat('id-ID').format(context.raw) + ' Orang';
+                                            }
+                                        }
+                                    }
+                                },
+                                layout: {
+                                    padding: {
+                                        left: 15,
+                                        right: 15,
+                                        top: 20,
+                                        bottom: 5
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        grid: { color: '#f1f5f9' },
+                                        grace: '15%',
+                                        ticks: {
+                                            font: { family: 'Plus Jakarta Sans', size: 11 },
+                                            padding: 8,
+                                            callback: (val) => new Intl.NumberFormat('id-ID').format(val)
+                                        }
+                                    },
+                                    x: { grid: { display: false } }
                                 }
                             }
-                        }
-                    },
-                    cutout: '68%'
-                }
-            });
-        }
+                        });
+                    }
 
-        // Chart Status Mitra (Doughnut)
-        const ctxMitraStatus = document.getElementById('chartMitraStatusCanvas');
-        if (ctxMitraStatus) {
-            new Chart(ctxMitraStatus, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Sudah di-Pekerjakan', 'Belum di-Pekerjakan'],
-                    datasets: [{
-                        data: [{{ $sudahDipekerjakanCount }}, {{ $belumDipekerjakanCount }}],
-                        backgroundColor: ['#10b981', '#f59e0b'],
-                        hoverBackgroundColor: ['#059669', '#d97706'],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: { boxWidth: 10, padding: 10, font: { family: 'Plus Jakarta Sans', size: 11 } }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const total = {{ $totalMitra }};
-                                    const value = context.raw || 0;
-                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                                    return ' ' + context.label + ': ' + value.toLocaleString('id-ID') + ' Mitra (' + percentage + '%)';
+                    // 2. Chart Bar Bulan (With Nominal Data Labels directly on top)
+                    const ctxBulan = document.getElementById('chartBulanCanvas');
+                    if (ctxBulan) {
+                        const dataHonorPerBulan = @json($honorPerBulan);
+                        const labels = dataHonorPerBulan.map(item => item.bulan);
+                        const dataValues = dataHonorPerBulan.map(item => item.total);
+
+                        const chartCtx = ctxBulan.getContext('2d');
+                        const gradient = chartCtx.createLinearGradient(0, 0, 0, 280);
+                        gradient.addColorStop(0, 'rgba(37, 99, 235, 0.9)');
+                        gradient.addColorStop(1, 'rgba(37, 99, 235, 0.15)');
+
+                        new Chart(chartCtx, {
+                            type: 'bar',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    label: 'Realisasi Honor (Rp)',
+                                    data: dataValues,
+                                    backgroundColor: gradient,
+                                    borderColor: '#2563eb',
+                                    borderWidth: 2,
+                                    borderRadius: 6,
+                                    borderSkipped: false
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { display: false },
+                                    datalabels: {
+                                        anchor: 'end',
+                                        align: 'top',
+                                        color: '#1e3a8a',
+                                        font: { weight: 'bold', size: 11, family: 'Plus Jakarta Sans' },
+                                        formatter: function(value) {
+                                            if (!value || value === 0) return 'Rp 0';
+                                            if (value >= 1000000000) return 'Rp ' + (value / 1000000000).toFixed(2) + ' M';
+                                            if (value >= 1000000) return 'Rp ' + (value / 1000000).toFixed(1) + ' Jt';
+                                            return 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
+                                        }
+                                    },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                return ' Total: Rp ' + new Intl.NumberFormat('id-ID').format(context.raw || 0);
+                                            }
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        grid: { color: '#f1f5f9' },
+                                        grace: '18%',
+                                        ticks: {
+                                            callback: function(value) {
+                                                return 'Rp ' + (value >= 1000000 ? (value / 1000000).toFixed(0) + ' Jt' : value);
+                                            }
+                                        }
+                                    },
+                                    x: { grid: { display: false } }
                                 }
                             }
+                        });
+                    }
+
+                    // 3. Chart Doughnut Bidang
+                    const ctxBidang = document.getElementById('chartBidangCanvas');
+                    if (ctxBidang) {
+                        const dataHonorPerBidang = @json($honorPerBidang);
+                        const labelsBidang = dataHonorPerBidang.map(item => item.nama);
+                        const dataValuesBidang = dataHonorPerBidang.map(item => item.total);
+
+                        new Chart(ctxBidang.getContext('2d'), {
+                            type: 'doughnut',
+                            data: {
+                                labels: labelsBidang,
+                                datasets: [{
+                                    data: dataValuesBidang,
+                                    backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'],
+                                    borderWidth: 2,
+                                    borderColor: '#ffffff'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: 'bottom',
+                                        labels: { boxWidth: 10, padding: 8, font: { family: 'Plus Jakarta Sans', size: 11 } }
+                                    },
+                                    datalabels: {
+                                        display: false
+                                    },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                return ' ' + context.label + ': Rp ' + new Intl.NumberFormat('id-ID').format(context.raw || 0);
+                                            }
+                                        }
+                                    }
+                                },
+                                cutout: '68%'
+                            }
+                        });
+                    }
+
+                    // Chart Status Mitra (Doughnut)
+                    const ctxMitraStatus = document.getElementById('chartMitraStatusCanvas');
+                    if (ctxMitraStatus) {
+                        new Chart(ctxMitraStatus, {
+                            type: 'doughnut',
+                            data: {
+                                labels: ['Sudah di-Pekerjakan', 'Belum di-Pekerjakan'],
+                                datasets: [{
+                                    data: [{{ $sudahDipekerjakanCount }}, {{ $belumDipekerjakanCount }}],
+                                    backgroundColor: ['#10b981', '#f59e0b'],
+                                    hoverBackgroundColor: ['#059669', '#d97706'],
+                                    borderWidth: 2,
+                                    borderColor: '#ffffff'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: 'bottom',
+                                        labels: { boxWidth: 10, padding: 10, font: { family: 'Plus Jakarta Sans', size: 11 } }
+                                    },
+                                    datalabels: {
+                                        display: false
+                                    },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                const total = {{ $totalMitra }};
+                                                const value = context.raw || 0;
+                                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                                return ' ' + context.label + ': ' + value.toLocaleString('id-ID') + ' Mitra (' + percentage + '%)';
+                                            }
+                                        }
+                                    }
+                                },
+                                cutout: '65%'
+                            }
+                        });
+                    }
+                }
+
+                if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                    initDashboardCharts();
+                } else {
+                    document.addEventListener('DOMContentLoaded', initDashboardCharts);
+                }
+            })();
+
+            // Select2 AJAX Live Search Mitra
+            $(document).ready(function() {
+                // Auto-scroll smooth ke section terkait jika hash URL atau query params terdeteksi
+                if (window.location.hash === '#status-mitra-section' || window.location.search.includes('s_')) {
+                    setTimeout(function() {
+                        const el = document.getElementById('status-mitra-section');
+                        if (el) {
+                            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }
-                    },
-                    cutout: '65%'
+                    }, 200);
+                } else if (window.location.hash === '#mitra-section' || window.location.search.includes('mitra_id=') || window.location.search.includes('m_')) {
+                    setTimeout(function() {
+                        const el = document.getElementById('mitra-section');
+                        if (el) {
+                            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }, 200);
+                }
+
+                if ($.fn.select2) {
+                    $('#selectMitraSearch').select2({
+                        theme: 'bootstrap-5',
+                        placeholder: 'Ketik nama / ID Mitra...',
+                        allowClear: true,
+                        width: '100%',
+                        ajax: {
+                            url: "{{ route('dashboard.mitra-options') }}",
+                            dataType: 'json',
+                            delay: 250,
+                            data: function (params) {
+                                return {
+                                    q: params.term,
+                                    kegiatan_id: $('select[name="m_kegiatan_id"]').val() || $('select[name="kegiatan_id"]').val()
+                                };
+                            },
+                            processResults: function (data) {
+                                return {
+                                    results: data.results
+                                };
+                            },
+                            cache: true
+                        },
+                        minimumInputLength: 1
+                    }).on('select2:select select2:clear', function () {
+                        var form = $(this).closest('form');
+                        form.attr('action', "{{ route('dashboard') }}#mitra-section");
+                        form.submit();
+                    });
                 }
             });
-        }
-    }
-
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        initDashboardCharts();
-    } else {
-        document.addEventListener('DOMContentLoaded', initDashboardCharts);
-    }
-})();
-
-// Select2 AJAX Live Search Mitra
-$(document).ready(function() {
-    // Auto-scroll smooth ke section terkait jika hash URL atau query params terdeteksi
-    if (window.location.hash === '#status-mitra-section' || window.location.search.includes('s_')) {
-        setTimeout(function() {
-            const el = document.getElementById('status-mitra-section');
-            if (el) {
-                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        }, 200);
-    } else if (window.location.hash === '#mitra-section' || window.location.search.includes('mitra_id=') || window.location.search.includes('m_')) {
-        setTimeout(function() {
-            const el = document.getElementById('mitra-section');
-            if (el) {
-                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        }, 200);
-    }
-
-    if ($.fn.select2) {
-        $('#selectMitraSearch').select2({
-            theme: 'bootstrap-5',
-            placeholder: 'Ketik nama / ID Mitra...',
-            allowClear: true,
-            width: '100%',
-            ajax: {
-                url: "{{ route('dashboard.mitra-options') }}",
-                dataType: 'json',
-                delay: 250,
-                data: function (params) {
-                    return {
-                        q: params.term,
-                        kegiatan_id: $('select[name="m_kegiatan_id"]').val() || $('select[name="kegiatan_id"]').val()
-                    };
-                },
-                processResults: function (data) {
-                    return {
-                        results: data.results
-                    };
-                },
-                cache: true
-            },
-            minimumInputLength: 1
-        }).on('select2:select select2:clear', function () {
-            var form = $(this).closest('form');
-            form.attr('action', "{{ route('dashboard') }}#mitra-section");
-            form.submit();
-        });
-    }
-});
-</script>
-@endpush
+            </script>
+            @endpush

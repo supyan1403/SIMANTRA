@@ -26,6 +26,6 @@ class SecurityBackHistoryTest extends TestCase
     {
         $response = $this->get('/dashboard');
 
-        $response->assertRedirect('/login');
+        $response->assertRedirect(route('login'));
     }
 }

@@ -25,3 +25,6 @@ Thumbs.db
 *.docx
 *.xlsx
 *.xls
+*.pdf
+*.xml
+/scratch

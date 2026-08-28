@@ -33,6 +33,9 @@ class MonitoringController extends Controller
         if ($request->periode_id) {
             $query->where('periode_id', $request->periode_id);
         }
+        if ($request->kegiatan_id) {
+            $query->where('kegiatan_id', $request->kegiatan_id);
+        }
         if ($request->search) {
             $query->whereHas('mitra', fn ($q) => $q->where('nama', 'like', '%' . $request->search . '%'));
         }
@@ -51,7 +54,13 @@ class MonitoringController extends Controller
             }
         }
 
-        return view('monitoring.index', compact('alokasis', 'periodes', 'bidangs', 'tahunList', 'sbmlWarnings'));
+        $kegiatansQuery = Kegiatan::query();
+        if ($user && $user->role === 'operator' && $user->bidang_id) {
+            $kegiatansQuery->where('bidang_id', $user->bidang_id);
+        }
+        $kegiatans = $kegiatansQuery->orderBy('nama')->get();
+
+        return view('monitoring.index', compact('alokasis', 'periodes', 'bidangs', 'tahunList', 'sbmlWarnings', 'kegiatans'));
     }
 
     public function create()
@@ -225,5 +234,91 @@ class MonitoringController extends Controller
             'formatted_limit' => 'Rp ' . number_format($sbmlLimit, 0, ',', '.'),
             'available_mitras' => $availableMitras
         ]);
+    }
+
+    public function updateSpkManual(Request $request)
+    {
+        $validated = $request->validate([
+            'kegiatan_id'   => 'required|exists:kegiatans,id',
+            'periode_id'    => 'required|exists:periodes,id',
+            'mode_penomoran'=> 'nullable|in:berurutan,seragam',
+            'nomor_awal'    => 'nullable|integer|min:1',
+            'format_spk'    => 'nullable|string|max:150',
+            'format_bast'   => 'nullable|string|max:150',
+            'nomor_spk'     => 'nullable|string|max:100',
+            'nomor_bast'    => 'nullable|string|max:100',
+            'tanggal_spk'   => 'nullable|date',
+        ]);
+
+        $user = auth()->user();
+        if ($user && $user->role === 'operator' && $user->bidang_id) {
+            $kegiatan = Kegiatan::find($validated['kegiatan_id']);
+            if ($kegiatan && $kegiatan->bidang_id != $user->bidang_id) {
+                return redirect()->back()->with('error', 'Anda tidak memiliki izin mengedit SPK pada kegiatan di luar bidang Anda.');
+            }
+        }
+
+        $kegiatan = Kegiatan::find($validated['kegiatan_id']);
+        $periode = Periode::find($validated['periode_id']);
+        $mode = $request->input('mode_penomoran');
+        if (!$mode) {
+            $mode = (!empty($validated['nomor_spk']) && empty($validated['format_spk'])) ? 'seragam' : 'berurutan';
+        }
+
+        $alokasis = AlokasiHonor::where('kegiatan_id', $validated['kegiatan_id'])
+            ->where('periode_id', $validated['periode_id'])
+            ->join('mitras', 'alokasi_honors.mitra_id', '=', 'mitras.id')
+            ->orderBy('mitras.nama', 'asc')
+            ->select('alokasi_honors.*')
+            ->get();
+
+        $bulanAngka = $periode->bulan_angka ?? date('n');
+        $tahun = $periode->tahun ?? date('Y');
+        $tanggalSpk = $validated['tanggal_spk'] ?? null;
+        $count = 0;
+
+        if ($mode === 'berurutan') {
+            $formatSpk = $request->input('format_spk') ?: 'B-{nomor}/BPS/3206/SPK/{bulan}/{tahun}';
+            $formatBast = $request->input('format_bast') ?: 'B-{nomor}/BPS/3206/BAST/{bulan}/{tahun}';
+            $counter = (int) ($request->input('nomor_awal') ?: 1);
+
+            foreach ($alokasis as $alokasi) {
+                $noSpk = str_replace(
+                    ['{nomor}', '{nomor_raw}', '{bulan}', '{tahun}'],
+                    [sprintf('%04d', $counter), (string) $counter, sprintf('%02d', $bulanAngka), $tahun],
+                    $formatSpk
+                );
+
+                $noBast = str_replace(
+                    ['{nomor}', '{nomor_raw}', '{bulan}', '{tahun}'],
+                    [sprintf('%04d', $counter), (string) $counter, sprintf('%02d', $bulanAngka), $tahun],
+                    $formatBast
+                );
+
+                $alokasi->update([
+                    'nomor_spk'   => $noSpk,
+                    'nomor_bast'  => $noBast,
+                    'tanggal_spk' => $tanggalSpk,
+                ]);
+
+                $counter++;
+                $count++;
+            }
+        } else {
+            // Mode Seragam (Satu nomor sama untuk semua mitra)
+            $noSpk = trim($request->input('nomor_spk') ?: '');
+            $noBast = $request->input('nomor_bast') ? trim($request->input('nomor_bast')) : null;
+
+            foreach ($alokasis as $alokasi) {
+                $alokasi->update([
+                    'nomor_spk'   => $noSpk ?: $alokasi->nomor_spk,
+                    'nomor_bast'  => $noBast,
+                    'tanggal_spk' => $tanggalSpk,
+                ]);
+                $count++;
+            }
+        }
+
+        return redirect()->back()->with('success', "Nomor SPK berurutan berhasil dibuat untuk kegiatan '{$kegiatan->nama}' periode {$periode->bulan} {$periode->tahun}. Sebanyak {$count} mitra telah diberikan nomor urut SPK yang unik.");
     }
 }

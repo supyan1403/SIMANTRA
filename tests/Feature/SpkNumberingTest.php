@@ -20,15 +20,18 @@ class SpkNumberingTest extends TestCase
         $user = User::factory()->create(['role' => 'admin']);
         $this->actingAs($user);
 
-        $response = $this->get(route('spk.index', [
-            'kategori_kegiatan' => 'sensus',
+        // Test halaman penomoran memuat POLA / FORMAT NOMOR
+        $responsePenomoran = $this->get(route('spk.penomoran.index', [
             'format_spk' => 'B-{nomor}/BPS/3206/SENSUS/{bulan}/{tahun}',
             'nomor_awal' => 10,
         ]));
+        $responsePenomoran->assertStatus(200);
+        $responsePenomoran->assertSee('POLA / FORMAT NOMOR');
 
-        $response->assertStatus(200);
-        $response->assertSee('POLA / FORMAT NO. SPK');
-        $response->assertSee('KATEGORI KEGIATAN');
+        // Test halaman cetak memuat TEMPLATE DOKUMEN
+        $responseCetak = $this->get(route('spk.index'));
+        $responseCetak->assertStatus(200);
+        $responseCetak->assertSee('PILIH TEMPLATE DOKUMEN YANG AKAN DICETAK');
     }
 
     public function test_cetak_utama_with_custom_format_spk(): void
@@ -44,6 +47,7 @@ class SpkNumberingTest extends TestCase
             'periode_id' => $periode->id,
             'kegiatan_id' => $kegiatan->id,
             'nominal' => 2500000,
+            'nomor_spk' => 'B-0005/BPS/3206/SENSUS/01/2026',
         ]);
 
         $this->actingAs($user);
@@ -53,8 +57,6 @@ class SpkNumberingTest extends TestCase
             'tahun' => 2026,
             'bulan_awal' => 1,
             'bulan_akhir' => 1,
-            'nomor_awal' => 5,
-            'format_spk' => 'B-{nomor}/BPS/3206/SENSUS/{bulan}/{tahun}',
         ]));
 
         $response->assertStatus(200);
@@ -75,6 +77,7 @@ class SpkNumberingTest extends TestCase
             'periode_id' => $periode->id,
             'kegiatan_id' => $kegiatan->id,
             'nominal' => 1500000,
+            'nomor_spk' => 'B-0101/BPS/3206/SURVEI/02/2026',
         ]);
 
         AlokasiHonor::create([
@@ -82,6 +85,7 @@ class SpkNumberingTest extends TestCase
             'periode_id' => $periode->id,
             'kegiatan_id' => $kegiatan->id,
             'nominal' => 1500000,
+            'nomor_spk' => 'B-0102/BPS/3206/SURVEI/02/2026',
         ]);
 
         $this->actingAs($user);
@@ -91,9 +95,7 @@ class SpkNumberingTest extends TestCase
             'tahun' => 2026,
             'bulan_awal' => 2,
             'bulan_akhir' => 2,
-            'nomor_awal' => 101,
             'kategori_kegiatan' => 'survei',
-            'format_spk' => 'B-{nomor}/BPS/3206/SURVEI/{bulan}/{tahun}',
         ]);
 
         $response->assertStatus(200);
@@ -114,26 +116,49 @@ class SpkNumberingTest extends TestCase
             'periode_id' => $periode->id,
             'kegiatan_id' => $kegiatan->id,
             'nominal' => 3000000,
+            'nomor_spk' => 'B-0088/BPS/3206/SPK/04/2027',
         ]);
 
         $this->actingAs($user);
 
-        // Filter periode kerja: Januari s.d Maret 2026 (bulan_awal: 1, bulan_akhir: 3, tahun: 2026)
-        // Nomor SPK khusus: bulan_spk: 4 (April), tahun_spk: 2027
         $response = $this->get(route('spk.cetak-utama', [
             'mitra' => $mitra->id,
             'tahun' => 2026,
             'bulan_awal' => 1,
             'bulan_akhir' => 3,
-            'bulan_spk' => 4,
-            'tahun_spk' => 2027,
-            'nomor_awal' => 88,
-            'format_spk' => 'B-{nomor}/BPS/3206/SPK/{bulan}/{tahun}',
         ]));
 
         $response->assertStatus(200);
-        // Nomor SPK must use bulan_spk: 04 and tahun_spk: 2027
         $response->assertSee('B-0088/BPS/3206/SPK/04/2027');
     }
-}
 
+    public function test_cetak_without_spk_number_is_rejected(): void
+    {
+        $user = User::factory()->create(['role' => 'admin']);
+        $mitra = Mitra::create(['nama' => 'Mitra Belum Ada Nomor', 'alamat' => 'Tasikmalaya', 'pekerjaan' => 'Mitra', 'jk' => 'L']);
+        $periode = Periode::create(['tahun' => 2026, 'bulan' => 'Januari', 'bulan_angka' => 1]);
+        $bidang = Bidang::create(['nama' => 'Statistik Distribusi']);
+        $kegiatan = Kegiatan::create(['nama' => 'Survei Rutin', 'bidang_id' => $bidang->id]);
+
+        AlokasiHonor::create([
+            'mitra_id' => $mitra->id,
+            'periode_id' => $periode->id,
+            'kegiatan_id' => $kegiatan->id,
+            'nominal' => 1000000,
+            'nomor_spk' => null,
+        ]);
+
+        $this->actingAs($user);
+
+        // Harus dialihkan ke halaman penomoran dengan pesan error
+        $response = $this->get(route('spk.cetak-utama', [
+            'mitra' => $mitra->id,
+            'tahun' => 2026,
+            'bulan_awal' => 1,
+            'bulan_akhir' => 1,
+        ]));
+
+        $response->assertRedirect(route('spk.penomoran.index'));
+        $response->assertSessionHas('error');
+    }
+}
