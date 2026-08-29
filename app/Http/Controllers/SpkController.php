@@ -255,46 +255,42 @@ class SpkController extends Controller
 
     public function getCounter(Request $request)
     {
-        $formatPattern = $request->query('format', '');
+        $kegiatanId = $request->query('kegiatan_id', null);
         $tahun = $request->query('tahun', date('Y'));
         $jenisDokumen = $request->query('jenis', 'spk');
 
         $periodeIds = Periode::where('tahun', $tahun)->pluck('id');
         $field = ($jenisDokumen === 'bast') ? 'nomor_bast' : 'nomor_spk';
-        $existingNomors = AlokasiHonor::whereIn('periode_id', $periodeIds)
-            ->whereNotNull($field)
-            ->where($field, '!=', '')
-            ->pluck($field)
-            ->unique();
 
-        // Global counter: total nomor untuk tahun ini
+        $query = AlokasiHonor::whereIn('periode_id', $periodeIds)
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($kegiatanId) {
+            $query->where('kegiatan_id', $kegiatanId);
+        }
+
+        $existingNomors = $query->pluck($field)->unique();
         $globalTotal = $existingNomors->count();
 
-        if (empty($formatPattern)) {
+        if (!$kegiatanId) {
             return response()->json(['last_number' => 0, 'next_number' => 1, 'global_total' => $globalTotal]);
         }
 
-        // Counter per pola: regex match
-        $regex = preg_quote($formatPattern, '/');
-        $regex = str_replace('\\{nomor\\}', '(\\d+)', $regex);
-        $regex = str_replace('\\{nomor_raw\\}', '(\\d+)', $regex);
-        $regex = str_replace('\\{jenis\\}', '[A-Z0-9_]+', $regex);
-        $regex = str_replace('\\{bulan\\}', '\\d{2}', $regex);
-        $regex = str_replace('\\{bulan_romawi\\}', '[IVX]+', $regex);
-        $regex = str_replace('\\{tahun\\}', '\\d{4}', $regex);
-        $regex = '/^' . $regex . '$/';
-
+        // Regex match untuk ambil nomor urut dari nomor dokumen
+        $sampleNomor = $existingNomors->first();
         $maxSeq = 0;
-        foreach ($existingNomors as $nomor) {
-            if (preg_match($regex, $nomor, $matches)) {
-                $seq = (int) $matches[1];
-                if ($seq > $maxSeq) {
-                    $maxSeq = $seq;
-                }
+        if ($sampleNomor) {
+            if (preg_match('/(?:\/|^)(\d{4})\//', $sampleNomor, $m)) {
+                $maxSeq = (int) $m[1];
+            } else {
+                preg_match('/(\d+)/', $sampleNomor, $m);
+                $maxSeq = $m ? (int) $m[1] : 0;
             }
         }
 
-        SpkCounter::incrementTo($formatPattern, $jenisDokumen, $tahun, $maxSeq);
+        // Update counter di DB
+        SpkCounter::incrementTo((int) $kegiatanId, $jenisDokumen, $tahun, $maxSeq);
 
         return response()->json([
             'last_number' => $maxSeq,
@@ -353,8 +349,8 @@ class SpkController extends Controller
             ->pluck('id');
 
         $savedCount = 0;
-        // Track max number used per format pattern
-        $formatMaxNumbers = [];
+        // Track max number used per kegiatan
+        $kegiatanMaxNumbers = [];
 
         // Parse composite key: each value is "mitraId_kegiatanId"
         $pairs = [];
@@ -393,13 +389,13 @@ class SpkController extends Controller
                     // Hitung {jenis} berdasarkan radio toggle
                     $jenisPlaceholder = ($jenisIsi === 'dokumen') ? $jenisDokumen : $shortName;
 
-                    // Ambil counter berikutnya untuk format ini
-                    $nextNum = SpkCounter::getNextNumber($fmt, $jenisDokumen, $tahunSpk);
+                    // Counter per kegiatan_id per tahun
+                    $nextNum = SpkCounter::getNextNumber((int) $kegId, $jenisDokumen, $tahunSpk);
                     $nomorDoc = $this->generateNomorDokumen($fmt, $nextNum, $bulanSpk, $tahunSpk, $jenisPlaceholder);
 
-                    // Track max number per format
-                    if (!isset($formatMaxNumbers[$fmt]) || $nextNum > $formatMaxNumbers[$fmt]) {
-                        $formatMaxNumbers[$fmt] = $nextNum;
+                    // Track max number per kegiatan
+                    if (!isset($kegiatanMaxNumbers[$kegId]) || $nextNum > $kegiatanMaxNumbers[$kegId]) {
+                        $kegiatanMaxNumbers[$kegId] = $nextNum;
                     }
                 }
 
@@ -414,10 +410,10 @@ class SpkController extends Controller
             }
         }
 
-        // Update counter per format per jenis dokumen per tahun
+        // Update counter per kegiatan per jenis dokumen per tahun
         if ($savedCount > 0) {
-            foreach ($formatMaxNumbers as $fmt => $maxNum) {
-                SpkCounter::incrementTo($fmt, $jenisDokumen, $tahunSpk, $maxNum);
+            foreach ($kegiatanMaxNumbers as $kegId => $maxNum) {
+                SpkCounter::incrementTo((int) $kegId, $jenisDokumen, $tahunSpk, $maxNum);
             }
         }
 

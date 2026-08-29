@@ -560,11 +560,10 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                         }
 
-                        // Fetch counter untuk format ini
-                        const selectedFormat = document.getElementById('formatSpkInput').value;
+                        // Fetch counter untuk kegiatan ini
                         const tahunSpk = document.getElementById('tahunSpkInput').value || '{{ $tahun }}';
                         const jenisDok = document.getElementById('jenisDokumenSelect').value || 'spk';
-                        fetch('{{ route("spk.penomoran.counter") }}?format=' + encodeURIComponent(selectedFormat) + '&tahun=' + tahunSpk + '&jenis=' + jenisDok)
+                        fetch('{{ route("spk.penomoran.counter") }}?kegiatan_id=' + encodeURIComponent(k.id) + '&tahun=' + tahunSpk + '&jenis=' + jenisDok)
                             .then(r => r.json())
                             .then(data => {
                                 document.getElementById('nomorAwalInput').value = data.next_number;
@@ -810,11 +809,12 @@ function onFormatSpkChanged(val) {
         }
     }
 
-    // Fetch counter dari server untuk pola ini
+    // Fetch counter dari server untuk kegiatan ini
     const tahunSpk = document.getElementById('tahunSpkInput').value || '{{ $tahun }}';
     const jenisDok = document.getElementById('jenisDokumenSelect').value || 'spk';
+    const kegiatanId = document.getElementById('hiddenKegiatanIdInput')?.value || '';
 
-    fetch('{{ route("spk.penomoran.counter") }}?format=' + encodeURIComponent(val) + '&tahun=' + tahunSpk + '&jenis=' + jenisDok)
+    fetch('{{ route("spk.penomoran.counter") }}?kegiatan_id=' + encodeURIComponent(kegiatanId) + '&tahun=' + tahunSpk + '&jenis=' + jenisDok)
         .then(r => r.json())
         .then(data => {
             document.getElementById('nomorAwalInput').value = data.next_number;
@@ -899,11 +899,11 @@ function updateLivePreview() {
 }
 
 function setLanjutanNomor() {
-    const format = document.getElementById('formatSpkInput').value;
     const tahunSpk = document.getElementById('tahunSpkInput').value || '{{ $tahun }}';
     const jenisDok = document.getElementById('jenisDokumenSelect').value || 'spk';
+    const kegiatanId = document.getElementById('hiddenKegiatanIdInput')?.value || '';
 
-    fetch('{{ route("spk.penomoran.counter") }}?format=' + encodeURIComponent(format) + '&tahun=' + tahunSpk + '&jenis=' + jenisDok)
+    fetch('{{ route("spk.penomoran.counter") }}?kegiatan_id=' + encodeURIComponent(kegiatanId) + '&tahun=' + tahunSpk + '&jenis=' + jenisDok)
         .then(r => r.json())
         .then(data => {
             document.getElementById('nomorAwalInput').value = data.next_number;
@@ -917,20 +917,29 @@ function setResetNomor() {
 }
 
 function updateLastNomorInfo() {
-    const format = document.getElementById('formatSpkInput').value;
     const tahunSpk = document.getElementById('tahunSpkInput').value || '{{ $tahun }}';
     const jenisDok = document.getElementById('jenisDokumenSelect').value || 'spk';
+    const kegiatanId = document.getElementById('hiddenKegiatanIdInput')?.value || '';
 
-    fetch('{{ route("spk.penomoran.counter") }}?format=' + encodeURIComponent(format) + '&tahun=' + tahunSpk + '&jenis=' + jenisDok)
+    if (!kegiatanId) {
+        const infoContainer = document.getElementById('lastNomorInfoText');
+        infoContainer.innerHTML = `<span class="text-muted"><i class="bi bi-info-circle me-1"></i>Pilih kegiatan terlebih dahulu untuk melihat nomor urut</span>`;
+        return;
+    }
+
+    const matchedKegiatan = allKegiatansData.find(k => String(k.id) === String(kegiatanId));
+    const shortName = matchedKegiatan?.short_name || 'Kegiatan';
+
+    fetch('{{ route("spk.penomoran.counter") }}?kegiatan_id=' + encodeURIComponent(kegiatanId) + '&tahun=' + tahunSpk + '&jenis=' + jenisDok)
         .then(r => r.json())
         .then(data => {
             const infoContainer = document.getElementById('lastNomorInfoText');
             if (data.last_number > 0) {
                 infoContainer.innerHTML = `<span class="text-success fw-semibold text-truncate">
-                    <i class="bi bi-info-circle me-1"></i>Pola ini: <strong>No. ${data.last_number}</strong> → mulai dari <strong>${data.next_number}</strong> | Total di DB: <strong>${data.global_total}</strong> nomor
+                    <i class="bi bi-info-circle me-1"></i>${shortName}: <strong>No. ${data.last_number}</strong> → mulai dari <strong>${data.next_number}</strong> | Total di DB: <strong>${data.global_total}</strong> nomor
                 </span>`;
             } else {
-                infoContainer.innerHTML = `<span class="text-muted"><i class="bi bi-info-circle me-1"></i>Pola ini belum ada → mulai dari <strong>1</strong> | Total di DB: <strong>${data.global_total}</strong> nomor</span>`;
+                infoContainer.innerHTML = `<span class="text-muted"><i class="bi bi-info-circle me-1"></i>${shortName}: belum ada → mulai dari <strong>1</strong> | Total di DB: <strong>${data.global_total}</strong> nomor</span>`;
             }
         });
 }
