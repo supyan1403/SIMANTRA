@@ -612,17 +612,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-const defaultBpsPatterns = [];
+const DEFAULT_PATTERN = 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}';
+const defaultBpsPatterns = [{ label: 'Pola BPS Default', value: DEFAULT_PATTERN }];
+
+// Clear old broken localStorage data
+localStorage.removeItem('simantra_active_spk_patterns');
 
 function getAllActivePatterns() {
-    try {
-        const data = localStorage.getItem('simantra_active_spk_patterns');
-        if (data) {
-            const parsed = JSON.parse(data);
-            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-        }
-    } catch (e) {}
-    return [];
+    return [...defaultBpsPatterns];
 }
 
 function saveActivePatterns(patterns) {
@@ -728,8 +725,9 @@ function hapusPolaAktif() {
 }
 
 function resetPolaKeDefault() {
-    if (!confirm('Apakah Anda ingin menghapus semua pola custom dan hanya menyisakan pola dari kegiatan?')) return;
+    if (!confirm('Reset semua pola ke pola default BPS?')) return;
     localStorage.removeItem('simantra_active_spk_patterns');
+    document.getElementById('formatSpkInput').value = DEFAULT_PATTERN;
     initFormatOptions();
 }
 
@@ -752,45 +750,34 @@ function initFormatOptions() {
     select.innerHTML = '';
     const allValues = new Set();
 
-    // 1. Pola dari semua kegiatan di DB (source of truth)
+    // 1. Pola dari kegiatan di DB (format_spk harus diisi)
     allKegiatansData.forEach(k => {
-        if (k.format_spk && !allValues.has(k.format_spk)) {
+        const fmt = k.format_spk || DEFAULT_PATTERN;
+        if (!allValues.has(fmt)) {
             const el = document.createElement('option');
-            el.value = k.format_spk;
-            el.textContent = (k.short_name || k.nama) + ' → ' + k.format_spk;
+            el.value = fmt;
+            el.textContent = (k.short_name || k.nama) + ' → ' + fmt;
             select.appendChild(el);
-            allValues.add(k.format_spk);
+            allValues.add(fmt);
         }
     });
 
-    // 2. Custom pola dari user (localStorage)
-    const customPatterns = getAllActivePatterns();
-    customPatterns.forEach(opt => {
-        if (!allValues.has(opt.value)) {
-            const el = document.createElement('option');
-            el.value = opt.value;
-            el.textContent = opt.label;
-            select.appendChild(el);
-            allValues.add(opt.value);
-        }
-    });
-
-    // 3. Handle kosong
-    if (allValues.size === 0) {
+    // 2. Default pattern selalu ada
+    if (!allValues.has(DEFAULT_PATTERN)) {
         const el = document.createElement('option');
-        el.value = 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}';
-        el.textContent = 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}';
+        el.value = DEFAULT_PATTERN;
+        el.textContent = 'Pola BPS Default → ' + DEFAULT_PATTERN;
         select.appendChild(el);
-        allValues.add(el.value);
+        allValues.add(DEFAULT_PATTERN);
     }
 
-    // 4. Set current value
+    // 3. Set current value
     let currentVal = document.getElementById('formatSpkInput').value;
     if (allValues.has(currentVal)) {
         select.value = currentVal;
     } else {
-        select.value = select.options[0].value;
-        document.getElementById('formatSpkInput').value = select.options[0].value;
+        select.value = DEFAULT_PATTERN;
+        document.getElementById('formatSpkInput').value = DEFAULT_PATTERN;
     }
 
     updateLivePreview();
