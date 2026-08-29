@@ -56,35 +56,39 @@
 
                 <div class="col-12 col-md-4">
                     <label class="form-label text-secondary fw-bold small mb-1.5">POLA / FORMAT NOMOR</label>
-                    <div class="input-group">
-                        <select id="formatSpkSelect" class="form-select border-primary-subtle fw-semibold font-monospace py-2" onchange="onFormatSpkChanged(this.value)">
-                        </select>
-                        <button type="button" class="btn btn-outline-primary dropdown-toggle fw-bold px-3.5 py-2 d-flex align-items-center shadow-none" data-bs-toggle="dropdown" aria-expanded="false" title="Kelola / Ubah Pola Format Nomor">
-                            <i class="bi bi-gear-fill text-primary me-2 fs-6"></i> <span class="d-none d-sm-inline">Kelola Pola</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 p-2 mt-1" style="min-width: 230px;">
-                            <li>
-                                <a class="dropdown-item py-2 px-3 rounded-2 fw-semibold text-success d-flex align-items-center gap-2" href="#" onclick="event.preventDefault(); bukaModalTambahPola();">
-                                    <i class="bi bi-plus-circle-fill fs-6 text-success"></i> Tambah Pola Baru
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item py-2 px-3 rounded-2 fw-semibold text-primary d-flex align-items-center gap-2" href="#" onclick="event.preventDefault(); bukaModalEditPola();">
-                                    <i class="bi bi-pencil-square fs-6 text-primary"></i> Edit Pola Terpilih
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item py-2 px-3 rounded-2 fw-semibold text-danger d-flex align-items-center gap-2" href="#" onclick="event.preventDefault(); hapusPolaAktif();">
-                                    <i class="bi bi-trash3-fill fs-6 text-danger"></i> Hapus Pola Terpilih
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider my-1"></li>
-                            <li>
-                                <a class="dropdown-item py-2 px-3 rounded-2 small fw-semibold text-secondary d-flex align-items-center gap-2" href="#" onclick="event.preventDefault(); resetPolaKeDefault();">
-                                    <i class="bi bi-arrow-counterclockwise fs-6 text-secondary"></i> Reset ke Pola BPS
-                                </a>
-                            </li>
-                        </ul>
+                    <div class="position-relative" id="formatDropdownWrapper">
+                        <div class="input-group">
+                            <input type="text" id="formatSearchInput" class="form-select border-primary-subtle fw-semibold font-monospace py-2" placeholder="Ketik nama kegiatan..." autocomplete="off" onfocus="openFormatDropdown()" oninput="filterFormatDropdown(this.value)">
+                            <button type="button" class="btn btn-outline-primary dropdown-toggle fw-bold px-3 py-2 d-flex align-items-center shadow-none" data-bs-toggle="dropdown" aria-expanded="false" title="Kelola / Ubah Pola Format Nomor">
+                                <i class="bi bi-gear-fill text-primary me-2 fs-6"></i> <span class="d-none d-sm-inline">Kelola Pola</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 p-2 mt-1" style="min-width: 230px;">
+                                <li>
+                                    <a class="dropdown-item py-2 px-3 rounded-2 fw-semibold text-success d-flex align-items-center gap-2" href="#" onclick="event.preventDefault(); bukaModalTambahPola();">
+                                        <i class="bi bi-plus-circle-fill fs-6 text-success"></i> Tambah Pola Baru
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2 px-3 rounded-2 fw-semibold text-primary d-flex align-items-center gap-2" href="#" onclick="event.preventDefault(); bukaModalEditPola();">
+                                        <i class="bi bi-pencil-square fs-6 text-primary"></i> Edit Pola Terpilih
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2 px-3 rounded-2 fw-semibold text-danger d-flex align-items-center gap-2" href="#" onclick="event.preventDefault(); hapusPolaAktif();">
+                                        <i class="bi bi-trash3-fill fs-6 text-danger"></i> Hapus Pola Terpilih
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <li>
+                                    <a class="dropdown-item py-2 px-3 rounded-2 small fw-semibold text-secondary d-flex align-items-center gap-2" href="#" onclick="event.preventDefault(); resetPolaKeDefault();">
+                                        <i class="bi bi-arrow-counterclockwise fs-6 text-secondary"></i> Reset ke Pola BPS
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <!-- Custom searchable dropdown list -->
+                        <div id="formatDropdownList" class="position-absolute w-100 bg-white border border-primary-subtle rounded-3 shadow-lg mt-1 d-none" style="max-height: 280px; overflow-y: auto; z-index: 1050;">
+                        </div>
                     </div>
                     <input type="hidden" name="format_spk" id="formatSpkInput" value="{{ $formatSpk }}">
                     <input type="hidden" name="jenis_isi" id="jenisIsiInput" value="kegiatan">
@@ -450,6 +454,14 @@
     </div>
 </div>
 
+@push('styles')
+<style>
+.format-dropdown-item { cursor: pointer; border-bottom: 1px solid #f0f0f0; transition: background 0.1s; }
+.format-dropdown-item:last-child { border-bottom: none; }
+.format-dropdown-item:hover { background: #e8f0fe; }
+</style>
+@endpush
+
 @push('scripts')
 <script>
 const romawiMap = {
@@ -464,24 +476,17 @@ const allSpkMitraList = {!! json_encode($allSpkList ?? $spkList) !!};
 document.addEventListener('DOMContentLoaded', function() {
     initFormatOptions();
 
-    // Auto-sync: jika kegiatan sudah terpilih dari URL, cari pola di dropdown via short_name
+    // Auto-sync: jika kegiatan sudah terpilih dari URL, update search input
     const hiddenInputSync = document.getElementById('hiddenKegiatanIdInput');
     const currentKegiatanId = hiddenInputSync ? hiddenInputSync.value : '';
     if (currentKegiatanId) {
         const matchedKegiatan = allKegiatansData.find(k => String(k.id) === String(currentKegiatanId));
         if (matchedKegiatan) {
             const shortName = matchedKegiatan.short_name || '';
-            const fmtSelect = document.getElementById('formatSpkSelect');
-
-            // Cari pola di dropdown yang mengandung short_name
-            if (shortName) {
-                const matchOpt = Array.from(fmtSelect.options).find(o =>
-                    o.value.toUpperCase().includes(shortName.toUpperCase())
-                );
-                if (matchOpt) {
-                    fmtSelect.value = matchOpt.value;
-                    document.getElementById('formatSpkInput').value = matchOpt.value;
-                }
+            const searchInput = document.getElementById('formatSearchInput');
+            if (shortName && searchInput) {
+                searchInput.value = shortName.toUpperCase();
+                document.getElementById('formatSpkInput').value = matchedKegiatan.format_spk || DEFAULT_PATTERN;
             }
             updateLivePreview();
         }
@@ -548,16 +553,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         selectedText.textContent = k.nama;
                         closeDropdown();
 
-                        // Auto-match pola di dropdown via short_name
-                        const fmtSelect = document.getElementById('formatSpkSelect');
+                        // Auto-sync ke searchable dropdown
+                        const searchInput = document.getElementById('formatSearchInput');
                         if (k.short_name) {
-                            const matchOpt = Array.from(fmtSelect.options).find(o =>
-                                o.value.toUpperCase().includes(k.short_name.toUpperCase())
-                            );
-                            if (matchOpt) {
-                                fmtSelect.value = matchOpt.value;
-                                document.getElementById('formatSpkInput').value = matchOpt.value;
-                            }
+                            searchInput.value = k.short_name.toUpperCase();
+                            document.getElementById('formatSpkInput').value = k.format_spk || DEFAULT_PATTERN;
                         }
 
                         // Fetch counter untuk kegiatan ini
@@ -758,80 +758,115 @@ function onJenisIsiChanged() {
 }
 
 function initFormatOptions() {
-    const select = document.getElementById('formatSpkSelect');
-    select.innerHTML = '';
-    const allValues = new Set();
+    const list = document.getElementById('formatDropdownList');
+    const searchInput = document.getElementById('formatSearchInput');
+    list.innerHTML = '';
 
-    // 1. Pola dari kegiatan di DB (format_spk harus diisi)
+    // Build all kegiatan entries (no dedup)
+    const allEntries = [];
     allKegiatansData.forEach(k => {
         const fmt = k.format_spk || DEFAULT_PATTERN;
-        if (!allValues.has(fmt)) {
-            const el = document.createElement('option');
-            el.value = fmt;
-            el.textContent = (k.short_name || k.nama) + ' → ' + fmt;
-            select.appendChild(el);
-            allValues.add(fmt);
-        }
+        allEntries.push({
+            id: k.id,
+            shortName: (k.short_name || '').toUpperCase(),
+            nama: k.nama,
+            format: fmt,
+            label: (k.short_name || k.nama) + ' → ' + fmt,
+        });
     });
 
-    // 2. Default pattern selalu ada
-    if (!allValues.has(DEFAULT_PATTERN)) {
-        const el = document.createElement('option');
-        el.value = DEFAULT_PATTERN;
-        el.textContent = 'Pola BPS Default → ' + DEFAULT_PATTERN;
-        select.appendChild(el);
-        allValues.add(DEFAULT_PATTERN);
-    }
+    // Sort by short_name
+    allEntries.sort((a, b) => a.shortName.localeCompare(b.shortName));
 
-    // 3. Set current value
-    let currentVal = document.getElementById('formatSpkInput').value;
-    if (allValues.has(currentVal)) {
-        select.value = currentVal;
-    } else {
-        select.value = DEFAULT_PATTERN;
-        document.getElementById('formatSpkInput').value = DEFAULT_PATTERN;
+    allEntries.forEach(entry => {
+        const div = document.createElement('div');
+        div.className = 'format-dropdown-item px-3 py-2 cursor-pointer';
+        div.setAttribute('data-id', entry.id);
+        div.setAttribute('data-label', entry.label.toLowerCase());
+        div.setAttribute('data-shortname', entry.shortName.toLowerCase());
+        div.innerHTML = `<div class="fw-semibold text-dark small">${entry.shortName}</div><div class="text-muted" style="font-size:0.72rem;">${entry.format}</div>`;
+        div.onclick = () => selectFormatEntry(entry);
+        div.onmouseenter = () => div.classList.add('bg-primary-subtle');
+        div.onmouseleave = () => div.classList.remove('bg-primary-subtle');
+        list.appendChild(div);
+    });
+
+    // Set current value from hidden input
+    const currentKegiatanId = document.getElementById('hiddenKegiatanIdInput')?.value;
+    if (currentKegiatanId) {
+        const match = allEntries.find(e => String(e.id) === String(currentKegiatanId));
+        if (match) {
+            searchInput.value = match.shortName;
+            document.getElementById('formatSpkInput').value = match.format;
+        }
     }
 
     updateLivePreview();
 }
 
-function onFormatSpkChanged(val) {
-    document.getElementById('formatSpkInput').value = val;
+function openFormatDropdown() {
+    const list = document.getElementById('formatDropdownList');
+    list.classList.remove('d-none');
+    filterFormatDropdown(document.getElementById('formatSearchInput').value);
+}
 
-    // Cari kegiatan yang punya format_spk sama → auto-select di filter
-    const matchKegiatan = allKegiatansData.find(k => k.format_spk === val);
-    if (matchKegiatan) {
-        const hiddenInput = document.getElementById('hiddenKegiatanIdInput');
-        const selectedText = document.getElementById('kegiatanSelectedText');
-        if (hiddenInput && selectedText) {
-            hiddenInput.value = matchKegiatan.id;
-            selectedText.textContent = matchKegiatan.nama;
-        }
+function filterFormatDropdown(query) {
+    const list = document.getElementById('formatDropdownList');
+    const q = query.toLowerCase();
+    list.querySelectorAll('.format-dropdown-item').forEach(item => {
+        const label = item.getAttribute('data-label') || '';
+        const shortname = item.getAttribute('data-shortname') || '';
+        item.style.display = (label.includes(q) || shortname.includes(q)) ? '' : 'none';
+    });
+}
+
+function selectFormatEntry(entry) {
+    document.getElementById('formatSearchInput').value = entry.shortName;
+    document.getElementById('formatSpkInput').value = entry.format;
+    document.getElementById('formatDropdownList').classList.add('d-none');
+
+    // Sync kegiatan filter
+    const hiddenInput = document.getElementById('hiddenKegiatanIdInput');
+    const selectedText = document.getElementById('kegiatanSelectedText');
+    if (hiddenInput && selectedText) {
+        hiddenInput.value = entry.id;
+        selectedText.textContent = entry.nama;
     }
 
-    // Fetch counter dari server untuk kegiatan ini
+    // Fetch counter
     const tahunSpk = document.getElementById('tahunSpkInput').value || '{{ $tahun }}';
     const jenisDok = document.getElementById('jenisDokumenSelect').value || 'spk';
-    const kegiatanId = document.getElementById('hiddenKegiatanIdInput')?.value || '';
-
-    fetch('{{ route("spk.penomoran.counter") }}?kegiatan_id=' + encodeURIComponent(kegiatanId) + '&tahun=' + tahunSpk + '&jenis=' + jenisDok)
+    fetch('{{ route("spk.penomoran.counter") }}?kegiatan_id=' + encodeURIComponent(entry.id) + '&tahun=' + tahunSpk + '&jenis=' + jenisDok)
         .then(r => r.json())
         .then(data => {
             document.getElementById('nomorAwalInput').value = data.next_number;
             updateLivePreview();
-            // Update info counter
-            const infoContainer = document.getElementById('lastNomorInfoText');
-            if (data.last_number > 0) {
-                infoContainer.innerHTML = `<span class="text-success fw-semibold">
-                    <i class="bi bi-info-circle me-1"></i>Pola ini: <strong>No. ${data.last_number}</strong> → mulai dari <strong>${data.next_number}</strong> | Total di DB: <strong>${data.global_total}</strong> nomor
-                </span>`;
-            } else {
-                infoContainer.innerHTML = `<span class="text-muted"><i class="bi bi-info-circle me-1"></i>Pola ini belum ada → mulai dari <strong>1</strong> | Total di DB: <strong>${data.global_total}</strong> nomor</span>`;
-            }
+            updateCounterInfo(data, entry.shortName);
         })
-        .catch(() => {
-            updateLivePreview();
-        });
+        .catch(() => updateLivePreview());
+}
+
+function updateCounterInfo(data, shortName) {
+    const infoContainer = document.getElementById('lastNomorInfoText');
+    if (data.last_number > 0) {
+        infoContainer.innerHTML = `<span class="text-success fw-semibold text-truncate">
+            <i class="bi bi-info-circle me-1"></i>${shortName}: <strong>No. ${data.last_number}</strong> → mulai dari <strong>${data.next_number}</strong> | Total di DB: <strong>${data.global_total}</strong> nomor
+        </span>`;
+    } else {
+        infoContainer.innerHTML = `<span class="text-muted"><i class="bi bi-info-circle me-1"></i>${shortName}: belum ada → mulai dari <strong>1</strong> | Total di DB: <strong>${data.global_total}</strong> nomor</span>`;
+    }
+}
+
+// Close dropdown on outside click
+document.addEventListener('click', function(e) {
+    const wrapper = document.getElementById('formatDropdownWrapper');
+    if (wrapper && !wrapper.contains(e.target)) {
+        document.getElementById('formatDropdownList').classList.add('d-none');
+    }
+});
+
+function onFormatSpkChanged(val) {
+    document.getElementById('formatSpkInput').value = val;
 }
 
 function submitFilter() {
