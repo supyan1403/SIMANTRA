@@ -23,6 +23,7 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 *.docx
+!File SPK (Sumber - 3 hasil edit).docx
 !File SPK (Sumber -2).docx
 !BAST PETUGAS (Sumber -2).docx
 *.xlsx

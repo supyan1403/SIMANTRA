@@ -699,7 +699,7 @@ class SpkController extends Controller
         }
 
         $isBast = ($jenisDokumen === 'bast');
-        $defaultTemplate = $isBast ? 'BAST PETUGAS (Sumber -2).docx' : 'File SPK (Sumber -2).docx';
+        $defaultTemplate = $isBast ? 'BAST PETUGAS (Sumber -2).docx' : (file_exists(base_path('File SPK (Sumber - 3 hasil edit).docx')) ? 'File SPK (Sumber - 3 hasil edit).docx' : 'File SPK (Sumber -2).docx');
         $templatePath = base_path($defaultTemplate);
 
         if ($docTmpl && $docTmpl->file_path && Storage::disk('public')->exists($docTmpl->file_path)) {
@@ -1142,7 +1142,7 @@ class SpkController extends Controller
         $docTmpl = $templateId ? DocumentTemplate::find($templateId) : null;
         $isBast = ($docTmpl && $docTmpl->jenis_dokumen === 'bast') || ($request->jenis_dokumen === 'bast');
 
-        $templatePath = $isBast ? base_path('BAST PETUGAS (Sumber -2).docx') : base_path('File SPK (Sumber -2).docx');
+        $templatePath = $isBast ? base_path('BAST PETUGAS (Sumber -2).docx') : (file_exists(base_path('File SPK (Sumber - 3 hasil edit).docx')) ? base_path('File SPK (Sumber - 3 hasil edit).docx') : base_path('File SPK (Sumber -2).docx'));
         if ($docTmpl && $docTmpl->file_path && Storage::disk('public')->exists($docTmpl->file_path)) {
             $templatePath = Storage::disk('public')->path($docTmpl->file_path);
         }
