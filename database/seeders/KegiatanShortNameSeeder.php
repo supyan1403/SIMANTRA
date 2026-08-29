@@ -81,6 +81,11 @@ class KegiatanShortNameSeeder extends Seeder
             $k->update(['short_name' => $shortName]);
         }
 
-        $this->command->info('Short names assigned to ' . $kegiatans->count() . ' kegiatan.');
+        // Set default format_spk for all kegiatan that don't have one
+        Kegiatan::whereNull('format_spk')->update([
+            'format_spk' => 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}'
+        ]);
+
+        $this->command->info('Short names assigned to ' . $kegiatans->count() . ' kegiatan. Format SPK set for all.');
     }
 }

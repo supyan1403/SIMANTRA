@@ -454,17 +454,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentKegiatanId = hiddenInputSync ? hiddenInputSync.value : '';
     if (currentKegiatanId) {
         const matchedKegiatan = allKegiatansData.find(k => String(k.id) === String(currentKegiatanId));
-        if (matchedKegiatan && matchedKegiatan.format_spk) {
-            document.getElementById('formatSpkInput').value = matchedKegiatan.format_spk;
+        const fmt = matchedKegiatan?.format_spk || 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}';
+        if (matchedKegiatan) {
+            document.getElementById('formatSpkInput').value = fmt;
             const fmtSelect = document.getElementById('formatSpkSelect');
-            const exists = Array.from(fmtSelect.options).some(o => o.value === matchedKegiatan.format_spk);
+            const exists = Array.from(fmtSelect.options).some(o => o.value === fmt);
             if (!exists) {
                 const opt = document.createElement('option');
-                opt.value = matchedKegiatan.format_spk;
-                opt.textContent = (matchedKegiatan.short_name || 'custom') + ' → ' + matchedKegiatan.format_spk;
+                opt.value = fmt;
+                opt.textContent = (matchedKegiatan.short_name || 'custom') + ' → ' + fmt;
                 fmtSelect.appendChild(opt);
             }
-            fmtSelect.value = matchedKegiatan.format_spk;
+            fmtSelect.value = fmt;
             updateLivePreview();
         }
     }
@@ -531,25 +532,24 @@ document.addEventListener('DOMContentLoaded', function() {
                         closeDropdown();
 
                         // Auto-set format pola dari kegiatan yang dipilih
-                        if (k.format_spk) {
-                            document.getElementById('formatSpkInput').value = k.format_spk;
+                        const kFmt = k.format_spk || 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}';
+                        document.getElementById('formatSpkInput').value = kFmt;
 
-                            // Tambah ke dropdown jika belum ada
-                            const fmtSelect = document.getElementById('formatSpkSelect');
-                            const exists = Array.from(fmtSelect.options).some(o => o.value === k.format_spk);
-                            if (!exists) {
-                                const opt = document.createElement('option');
-                                opt.value = k.format_spk;
-                                opt.textContent = (k.short_name || 'custom') + ' → ' + k.format_spk;
-                                fmtSelect.appendChild(opt);
-                            }
-                            fmtSelect.value = k.format_spk;
+                        // Tambah ke dropdown jika belum ada
+                        const fmtSelect = document.getElementById('formatSpkSelect');
+                        const exists = Array.from(fmtSelect.options).some(o => o.value === kFmt);
+                        if (!exists) {
+                            const opt = document.createElement('option');
+                            opt.value = kFmt;
+                            opt.textContent = (k.short_name || 'custom') + ' → ' + kFmt;
+                            fmtSelect.appendChild(opt);
                         }
+                        fmtSelect.value = kFmt;
 
                         // Fetch counter untuk format ini
                         const tahunSpk = document.getElementById('tahunSpkInput').value || '{{ $tahun }}';
                         const jenisDok = document.getElementById('jenisDokumenSelect').value || 'spk';
-                        fetch('{{ route("spk.penomoran.counter") }}?format=' + encodeURIComponent(k.format_spk || '') + '&tahun=' + tahunSpk + '&jenis=' + jenisDok)
+                        fetch('{{ route("spk.penomoran.counter") }}?format=' + encodeURIComponent(kFmt) + '&tahun=' + tahunSpk + '&jenis=' + jenisDok)
                             .then(r => r.json())
                             .then(data => {
                                 document.getElementById('nomorAwalInput').value = data.next_number;
