@@ -791,15 +791,20 @@ class SpkController extends Controller
                 }
             }
 
-            if (file_exists($tempDocx)) {
-                @unlink($tempJson);
-                $downloadName = $docPrefix . preg_replace('/[^a-zA-Z0-9]/', '_', $mitra->nama) . '.docx';
-                return response()->download($tempDocx, $downloadName)->deleteFileAfterSend(true);
+            if ($request->format === 'docx') {
+                if (!file_exists($tempDocx) && file_exists($templatePath)) {
+                    $this->generateWordDocxFallback($templatePath, $tempDocx, $payload);
+                }
+                if (file_exists($tempDocx)) {
+                    @unlink($tempJson);
+                    $downloadName = $docPrefix . preg_replace('/[^a-zA-Z0-9]/', '_', $mitra->nama) . '.docx';
+                    return response()->download($tempDocx, $downloadName)->deleteFileAfterSend(true);
+                }
             }
         }
 
         // Fallback jika tidak lewat python
-        $html = view('spk.pdf_utama', compact('mitra', 'items', 'totalHonor', 'terbilangHonor', 'tahun', 'periodeLabel', 'nomorDokumen'))->render();
+        $html = view('spk.pdf_utama', compact('mitra', 'items', 'totalHonor', 'terbilangHonor', 'tahun', 'periodeLabel', 'nomorDokumen', 'tanggalInfo'))->render();
         $filename = 'SPK_' . \Illuminate\Support\Str::slug($mitra->nama) . '_' . $tahun . '.pdf';
 
         $options = new \Dompdf\Options();
@@ -1354,5 +1359,42 @@ class SpkController extends Controller
         $template->delete();
 
         return redirect()->route('spk.templates.index')->with('success', 'Template Dokumen berhasil dihapus.');
+    }
+
+    private function generateWordDocxFallback($templatePath, $outputPath, $payload)
+    {
+        copy($templatePath, $outputPath);
+        $zip = new \ZipArchive();
+        if ($zip->open($outputPath) === true) {
+            $xml = $zip->getFromName('word/document.xml');
+            if ($xml) {
+                $replacements = [
+                    'AHMAD HIDAYAT (DUMMY 2025)' => $payload['mitra_nama'] ?? '',
+                    'Mitra Lapangan 2025' => $payload['mitra_pekerjaan'] ?? '',
+                    'Kec. Manonjaya, Desa MANONJAYA, Kec. MANONJAYA, Kabupaten Tasikmalaya' => $payload['mitra_alamat'] ?? '',
+                    'B-0004/BPS/3206/SKTR/01/2025' => $payload['nomor_dokumen'] ?? '',
+                    'B-0004/BPS/3206/BAST/01/2025' => $payload['nomor_dokumen'] ?? '',
+                    'periode Januari s.d Desember 2025' => 'periode ' . ($payload['periode_label'] ?? ''),
+                    'Januari s.d Desember 2025' => $payload['periode_label'] ?? '',
+                    'Rp. 12.600.000' => $payload['total_honor'] ?? '',
+                    'Dua Belas Juta Enam Ratus Ribu Rupiah' => $payload['terbilang_honor'] ?? '',
+                    'Tahun 2025' => 'Tahun ' . ($payload['tahun'] ?? date('Y')),
+                    'Tahun 2024' => 'Tahun ' . ($payload['tahun'] ?? date('Y')),
+                ];
+
+                if (!empty($payload['tanggal_pembukaan'])) {
+                    $replacements['Pada hari ini, bertempat di Tasikmalaya, yang bertanda tangan di bawah ini::'] = $payload['tanggal_pembukaan'];
+                }
+
+                foreach ($replacements as $search => $replace) {
+                    $xml = str_replace($search, htmlspecialchars($replace, ENT_XML1, 'UTF-8'), $xml);
+                }
+
+                $xml = preg_replace('/<w:color\s+[^>]*w:val="(?:ff0000|FF0000)"[^>]*\/>/i', '', $xml);
+
+                $zip->addFromString('word/document.xml', $xml);
+            }
+            $zip->close();
+        }
     }
 }
