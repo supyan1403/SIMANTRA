@@ -6,5 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class SbmlMaster extends Model
 {
-    protected $fillable = ['tahun', 'nominal'];
+    protected $fillable = [
+        'tahun',
+        'nominal',
+        'nominal_pencacahan',
+        'nominal_pengolahan',
+    ];
 }

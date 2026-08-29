@@ -9,6 +9,8 @@ use App\Models\Kegiatan;
 use App\Models\Mitra;
 use App\Models\AlokasiHonor;
 use App\Models\Sbml;
+use App\Models\SbmlMaster;
+use App\Models\DocumentTemplate;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Artisan;
@@ -113,6 +115,56 @@ class DatabaseSeeder extends Seeder
                 });
             }
         }
+
+        // Default Document Templates
+        $defaultTemplates = [
+            [
+                'nama' => 'Template SPK (Surat Perintah Kerja) Standar BPS',
+                'jenis_dokumen' => 'spk',
+                'kategori_kegiatan' => 'umum',
+                'deskripsi' => 'Format baku Surat Perintah / Perjanjian Kerja Mitra Statistik BPS',
+                'is_active' => true,
+            ],
+            [
+                'nama' => 'Template BAST (Berita Acara Serah Terima) Standar BPS',
+                'jenis_dokumen' => 'bast',
+                'kategori_kegiatan' => 'umum',
+                'deskripsi' => 'Format baku Berita Acara Serah Terima Hasil Pekerjaan Mitra BPS',
+                'is_active' => true,
+            ],
+            [
+                'nama' => 'Template Lampiran Rincian Honor Mitra',
+                'jenis_dokumen' => 'spk',
+                'kategori_kegiatan' => 'umum',
+                'deskripsi' => 'Format lampiran rincian honor dan daftar alokasi kegiatan mitra',
+                'is_active' => true,
+            ],
+        ];
+
+        foreach ($defaultTemplates as $dt) {
+            DocumentTemplate::firstOrCreate(
+                ['nama' => $dt['nama'], 'jenis_dokumen' => $dt['jenis_dokumen']],
+                $dt
+            );
+        }
+
+        // Default Master SBML Batas Tahunan
+        SbmlMaster::firstOrCreate(
+            ['tahun' => 2024],
+            [
+                'nominal_pencacahan' => 3326000,
+                'nominal_pengolahan' => 3077000,
+                'nominal' => 6403000,
+            ]
+        );
+        SbmlMaster::firstOrCreate(
+            ['tahun' => 2025],
+            [
+                'nominal_pencacahan' => 4500000,
+                'nominal_pengolahan' => 3000000,
+                'nominal' => 7500000,
+            ]
+        );
 
         $this->call(KecamatanDesaSeeder::class);
     }

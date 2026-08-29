@@ -185,22 +185,22 @@
 
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body d-flex align-items-center justify-content-between">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center justify-content-between p-3">
                 <div>
-                    <span class="text-muted small fw-bold text-uppercase">Total Mitra</span>
-                    <h4 class="fw-extrabold text-dark mb-0" data-counter-value="{{ $totalMitra }}">{{ number_format($totalMitra) }}</h4>
+                    <span class="text-muted small fw-bold text-uppercase" style="font-size: 0.72rem;">Total Mitra</span>
+                    <h4 class="fw-extrabold text-dark mt-1 mb-0" data-counter-value="{{ $totalMitra }}">{{ number_format($totalMitra) }}</h4>
                 </div>
                 <i class="bi bi-people-fill fs-3 text-primary"></i>
             </div>
         </div>
     </div>
     <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body d-flex align-items-center justify-content-between">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center justify-content-between p-3">
                 <div>
-                    <span class="text-muted small fw-bold text-uppercase">Total Transaksi</span>
-                    <h4 class="fw-extrabold text-dark mb-0" data-counter-value="{{ $totalTransaksi }}">{{ number_format($totalTransaksi) }}</h4>
+                    <span class="text-muted small fw-bold text-uppercase" style="font-size: 0.72rem;">Total Transaksi</span>
+                    <h4 class="fw-extrabold text-dark mt-1 mb-0" data-counter-value="{{ $totalTransaksi }}">{{ number_format($totalTransaksi) }}</h4>
                 </div>
                 <i class="bi bi-card-checklist fs-3 text-info"></i>
             </div>
@@ -208,23 +208,37 @@
     </div>
     @if($isAdmin)
     <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body d-flex align-items-center justify-content-between">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center justify-content-between p-3">
                 <div>
-                    <span class="text-muted small fw-bold text-uppercase">Total Operator</span>
-                    <h4 class="fw-extrabold text-dark mb-0" data-counter-value="{{ $totalOperator }}">{{ number_format($totalOperator) }}</h4>
+                    <span class="text-muted small fw-bold text-uppercase" style="font-size: 0.72rem;">Total Operator</span>
+                    <h4 class="fw-extrabold text-dark mt-1 mb-0" data-counter-value="{{ $totalOperator }}">{{ number_format($totalOperator) }}</h4>
                 </div>
                 <i class="bi bi-person-badge-fill fs-3 text-success"></i>
             </div>
         </div>
     </div>
+    @else
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center justify-content-between p-3">
+                <div>
+                    <span class="text-muted small fw-bold text-uppercase" style="font-size: 0.72rem;">Total Kegiatan</span>
+                    <h4 class="fw-extrabold text-dark mt-1 mb-0" data-counter-value="{{ $totalKegiatan }}">{{ number_format($totalKegiatan) }}</h4>
+                </div>
+                <i class="bi bi-collection-fill fs-3 text-success"></i>
+            </div>
+        </div>
+    </div>
     @endif
     <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body d-flex align-items-center justify-content-between">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center justify-content-between p-3">
                 <div>
-                    <span class="text-muted small fw-bold text-uppercase">Bidang Aktif</span>
-                    <h4 class="fw-extrabold text-dark mb-0">{{ $bidangId ? ($bidangOptions->firstWhere('id', $bidangId)->nama ?? '-') : ($isAdmin ? 'Semua' : ($user->bidang->nama ?? 'Semua')) }}</h4>
+                    <span class="text-muted small fw-bold text-uppercase" style="font-size: 0.72rem;">Bidang Aktif</span>
+                    <h4 class="fw-extrabold text-dark mt-1 mb-0 text-truncate" style="max-width: 140px;" title="{{ $bidangId ? ($bidangOptions->firstWhere('id', $bidangId)->nama ?? '-') : ($isAdmin ? 'Semua' : ($user->bidang->nama ?? 'Semua')) }}">
+                        {{ $bidangId ? ($bidangOptions->firstWhere('id', $bidangId)->nama ?? '-') : ($isAdmin ? 'Semua' : ($user->bidang->nama ?? 'Semua')) }}
+                    </h4>
                 </div>
                 <i class="bi bi-diagram-3-fill fs-3 text-warning"></i>
             </div>

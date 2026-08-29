@@ -123,6 +123,17 @@
                             <span class="badge badge-soft-primary"><i class="bi bi-calendar-event me-1"></i>{{ $a->periode->bulan ?? '' }} {{ $a->periode->tahun ?? '' }}</span>
                         </td>
                         <td>
+                            <div class="mb-1">
+                                @if($a->kegiatan && $a->kegiatan->isPengolahan())
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1 extra-small fw-semibold" title="Tugas Pengolahan Data">
+                                        <i class="bi bi-cpu-fill me-1"></i>Pengolahan
+                                    </span>
+                                @elseif($a->kegiatan)
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 extra-small fw-semibold" title="Tugas Pendataan Lapangan">
+                                        <i class="bi bi-geo-alt-fill me-1"></i>Pencacahan
+                                    </span>
+                                @endif
+                            </div>
                             <div class="fw-semibold text-slate-800" style="white-space: normal; word-break: break-word;">{{ $a->kegiatan->nama ?? '-' }}</div>
                             @if($a->nomor_spk || $a->nomor_bast)
                                 <div class="mt-1 d-flex align-items-center gap-1 flex-wrap">

@@ -44,10 +44,10 @@ Sistem ini hadir untuk mengatasi tantangan operasional seperti:
 
 | Modul / Fitur | Rincian Fungsionalitas |
 | :--- | :--- |
-| 📊 **Executive Dashboard** | Grafik distribusi honor per bidang, statistik beban kerja mitra, animasi counter angka, dan indikator peringatan pagu SBML. |
+| 📊 **Executive Dashboard** | Grafik distribusi honor per bidang, statistik beban kerja mitra, animasi counter angka, dan indikator status batas SBML multi-tugas. |
 | 👥 **Master Mitra & Wilayah** | Data lengkap mitra statistik (ID Sobat, Nama, NIK/No HP, Jenis Kelamin, Wilayah Kecamatan & Desa) dengan pagination tabel (15 data/hal) dan batch Import Excel. |
-| 📋 **Master Kegiatan & Jadwal** | Pengelompokan kegiatan per bidang statistik (Distribusi, Neraca, Produksi, Sosial, Cadangan), kode mata anggaran, dan matriks jadwal bulanan. |
-| 🛡️ **Validasi Limit SBML** | Pengecekan real-time nominal honor kumulatif bulanan per mitra untuk mencegah kelebihan bayar (*over-budgeting*). |
+| 📋 **Master Kegiatan & Jadwal** | Pengelompokan kegiatan per bidang statistik (Distribusi, Neraca, Produksi, Sosial, Cadangan), kode mata anggaran, matriks jadwal, dan deteksi otomatis kategori tugas (Badge Pencacahan / Pengolahan). |
+| 🛡️ **Validasi SBML Multi-Tugas** | Pengecekan real-time batas honor bulanan per kategori tugas (Pencacahan Lapangan, Pengolahan Data, dan Total Gabungan) dengan master pagu per tahun anggaran di `/master-sbml`. |
 | 🔢 **Penomoran Fleksibel & CRUD Pola** | Modul penomoran SPK/BAST dengan pengelolaan pola nomor dinamis (Tambah, Edit, Hapus, Reset ke Standar BPS), live preview nomor pertama, dan deteksi nomor terakhir di database. |
 | 📄 **Generator SPK & BAST (Word & PDF)** | Pembuatan dokumen SPK Utama, Lampiran Rincian Tugas, dan BAST dalam format cetak browser, berkas Microsoft Word (.docx), dan berkas PDF otentik siap pakai satuan maupun massal. |
 | 📥 **Import & Export Excel** | Dukungan impor master data mitra/kegiatan dan ekspor rekap honor format Excel (.xlsx) menggunakan PhpSpreadsheet. |
@@ -616,51 +616,40 @@ Kemudian generate application key:
 php artisan key:generate
 ```
 
-### 5. Jalankan Migrasi & Seeder Data Awal
+### 5. Jalankan Migrasi & Seeder Data Awal (Instalasi Baru)
 Perintah ini akan membuat seluruh tabel basis data, mengisi data master bidang, kecamatan, desa, aturan SBML, dan data bawaan MANTRA:
 ```bash
 php artisan migrate --seed
 ```
-> 💡 **Data MANTRA otomatis**: Data mitra, kegiatan, dan honor diambil dari `database/seeders/mantra_db.json` secara otomatis melalui migration auto-seed — Anda **tidak perlu** melakukan import Excel manual untuk mendapatkan data awal.
+> 💡 **Data MANTRA otomatis**: Basis data proyek ini sudah menyertakan `database/database.sqlite` lengkap (2.566 Mitra, 47 Kegiatan, 737 Alokasi Honor, dan Aturan SBML 2024/2025). Anda **tidak perlu** melakukan import manual.
 
-### 6. Buat Symbolic Link Storage
-Untuk memastikan berkas profil dan dokumen template dapat diakses:
+---
+
+## 🔄 Panduan Sinkronisasi (Untuk Rekan Tim yang Sudah Clone)
+
+Bagi rekan satu tim yang sebelumnya sudah meng-clone repositori ini, untuk mendapatkan **100% seluruh pembaruan kode, perbaikan UI Sidebar, serta data database terbaru**, Anda **cukup menjalankan**:
+
 ```bash
-php artisan storage:link
-```
+# 1. Tarik seluruh perubahan kode dan database terbaru
+git pull origin main
 
-### 7. Kompilasi Aset Frontend
-```bash
-# Untuk mode pengembangan (Hot Reload):
-npm run dev
-
-# ATAU untuk membuat bundle produksi:
-npm run build
-```
-
-### 8. Jalankan Server Aplikasi
-Buka terminal dan jalankan server lokal Laravel:
-```bash
+# 2. Jalankan server aplikasi
 php artisan serve
 ```
-Aplikasi sekarang dapat diakses melalui browser di: **`http://localhost:8000`** 🚀
 
-> 💡 **Tips Menjalankan Sekaligus:**
-> Anda dapat menjalankan server PHP dan Vite watcher secara bersamaan dengan perintah:
-> ```bash
-> composer run dev
-> ```
+> [!TIP]
+> Begitu perintah di atas dijalankan, seluruh tampilan baru, perbaikan sidebar zero-shift, master SBML multi-kategori, dan 2.566 data mitra riil langsung aktif dan sama persis 100% di komputer Anda tanpa perlu konfigurasi tambahan.
 
 ---
 
 ## 🔑 Akun Pengguna Default
 
-Database Seeder telah menyediakan 2 (dua) akun pengguna siap pakai:
+Database telah menyediakan 2 (dua) akun pengguna siap pakai:
 
 | Role | Email | Password | Hak Akses & Kemampuan |
 | :--- | :--- | :--- | :--- |
-| **Administrator** | `admin@bps.go.id` | `password` | Akses penuh seluruh sistem: Kelola Pengguna, Reset Password, Kelola Master SBML, Template Dokumen SPK/BAST, Manajemen Mitra & Kegiatan. |
-| **Operator** | `operator@bps.go.id` | `password` | Akses operasional: Kelola Mitra, Kelola Kegiatan & Jadwal, Alokasi Honor, Validasi SBML, Monitoring, Cetak SPK/BAST & Export Excel. |
+| **Administrator** | `admin@bps.go.id` | `password` | Akses penuh seluruh sistem: Kelola Pengguna, Reset Password, Kelola Master SBML (Pencacahan, Pengolahan, Gabungan), Template Dokumen SPK/BAST, Manajemen Mitra & Kegiatan. |
+| **Operator** | `operator@bps.go.id` | `password` | Akses operasional: Kelola Mitra, Kelola Kegiatan & Jadwal, Alokasi Honor, Validasi SBML Multi-Tugas, Monitoring, Cetak SPK/BAST & Export Excel. |
 
 ---
 

@@ -83,6 +83,17 @@
                             <span class="badge bg-light text-dark border">{{ $kegiatan->tahun ?? '2024' }}</span>
                         </td>
                         <td>
+                            <div class="mb-1">
+                                @if($kegiatan->isPengolahan())
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-0.5 extra-small fw-semibold">
+                                        <i class="bi bi-cpu-fill me-1"></i>Pengolahan
+                                    </span>
+                                @else
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-0.5 extra-small fw-semibold">
+                                        <i class="bi bi-geo-alt-fill me-1"></i>Pencacahan
+                                    </span>
+                                @endif
+                            </div>
                             <div class="fw-bold text-dark" style="white-space: normal; word-break: break-word;">{{ $kegiatan->nama }}</div>
                             @if($kegiatan->kode_mata_anggaran)
                                 <code class="px-2 py-0.5 bg-light border rounded text-dark small mt-1 d-inline-block">MAK: {{ $kegiatan->kode_mata_anggaran }}</code>

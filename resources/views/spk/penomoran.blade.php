@@ -34,7 +34,7 @@
             <div class="row g-3 mb-4">
                 <div class="col-12 col-md-4">
                     <label class="form-label text-secondary fw-bold small mb-1.5">JENIS DOKUMEN</label>
-                    <select name="jenis_dokumen" id="jenisDokumenSelect" class="form-select border-primary-subtle fw-bold py-2" onchange="updateLivePreview()">
+                    <select name="jenis_dokumen" id="jenisDokumenSelect" class="form-select border-primary-subtle fw-bold py-2" onchange="onJenisDokumenChanged()">
                         <option value="spk" {{ $jenisDokumen === 'spk' ? 'selected' : '' }}>Surat Perintah Kerja (SPK)</option>
                         <option value="bast" {{ $jenisDokumen === 'bast' ? 'selected' : '' }}>Berita Acara Serah Terima (BAST)</option>
                     </select>
@@ -56,13 +56,26 @@
 
                 <div class="col-12 col-md-4">
                     <label class="form-label text-secondary fw-bold small mb-1.5">POLA / FORMAT NOMOR</label>
-                    <div class="position-relative" id="formatDropdownWrapper">
+                    <div class="position-relative" id="formatDropdownContainer">
                         <div class="input-group">
-                            <input type="text" id="formatSearchInput" class="form-select border-primary-subtle fw-semibold font-monospace py-2" placeholder="Ketik nama kegiatan..." autocomplete="off" onfocus="openFormatDropdown()" oninput="filterFormatDropdown(this.value)">
-                            <button type="button" class="btn btn-outline-primary dropdown-toggle fw-bold px-3 py-2 d-flex align-items-center shadow-none" data-bs-toggle="dropdown" aria-expanded="false" title="Kelola / Ubah Pola Format Nomor">
-                                <i class="bi bi-gear-fill text-primary me-2 fs-6"></i> <span class="d-none d-sm-inline">Kelola Pola</span>
+                            <button type="button" class="form-select border-primary-subtle fw-semibold py-2 text-start d-flex justify-content-between align-items-center bg-white shadow-none" 
+                                    id="formatDropdownTrigger">
+                                <span class="text-truncate me-2" id="formatSelectedText">
+                                    @php
+                                        $activeKegiatan = $kegiatanId ? $kegiatanOptions->firstWhere('id', $kegiatanId) : null;
+                                    @endphp
+                                    @if($activeKegiatan)
+                                        {{ strtoupper($activeKegiatan->short_name ?: $activeKegiatan->nama) }}
+                                    @else
+                                        Pola BPS Default
+                                    @endif
+                                </span>
+                                <i class="bi bi-chevron-down text-primary small" id="formatChevronIcon"></i>
                             </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 p-2 mt-1" style="min-width: 230px;">
+                            <button type="button" class="btn btn-outline-primary dropdown-toggle fw-bold px-3 py-2 d-flex align-items-center shadow-none" data-bs-toggle="dropdown" aria-expanded="false" title="Kelola / Ubah Pola Format Nomor">
+                                <i class="bi bi-gear-fill text-primary me-1.5 fs-6"></i> <span class="d-none d-sm-inline">Kelola Pola</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 p-2 mt-1" style="min-width: 230px; z-index: 1070;">
                                 <li>
                                     <a class="dropdown-item py-2 px-3 rounded-2 fw-semibold text-success d-flex align-items-center gap-2" href="#" onclick="event.preventDefault(); bukaModalTambahPola();">
                                         <i class="bi bi-plus-circle-fill fs-6 text-success"></i> Tambah Pola Baru
@@ -86,8 +99,17 @@
                                 </li>
                             </ul>
                         </div>
-                        <!-- Custom searchable dropdown list -->
-                        <div id="formatDropdownList" class="position-absolute w-100 bg-white border border-primary-subtle rounded-3 shadow-lg mt-1 d-none" style="max-height: 280px; overflow-y: auto; z-index: 1050;">
+
+                        <!-- Searchable Pop-up Dropdown (Seragam dengan Filter Kegiatan) -->
+                        <div id="formatMenuPopup" class="shadow-lg rounded-3 position-absolute w-100 mt-1 d-none bg-white p-2.5" 
+                             style="z-index: 1065; border: 1.5px solid #93c5fd; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);">
+                            <div class="input-group input-group-sm mb-2">
+                                <span class="input-group-text bg-light text-primary border-end-0"><i class="bi bi-search"></i></span>
+                                <input type="text" id="formatInnerSearchInput" class="form-control border-start-0 py-1.5" 
+                                       placeholder="Ketik untuk mencari pola format / kegiatan..." autocomplete="off">
+                            </div>
+                            <div id="formatOptionsList" class="list-group list-group-flush" style="max-height: 190px; overflow-y: auto;">
+                            </div>
                         </div>
                     </div>
                     <input type="hidden" name="format_spk" id="formatSpkInput" value="{{ $formatSpk }}">
@@ -258,6 +280,7 @@
     <input type="hidden" name="bidang_id" id="hiddenBidang" value="{{ $bidangId }}">
     <input type="hidden" name="kegiatan_id" id="hiddenKegiatan" value="{{ $kegiatanId }}">
     <input type="hidden" name="search" id="hiddenSearch" value="{{ $search }}">
+    <input type="hidden" name="jenis_dokumen" id="hiddenJenisDokumen" value="{{ $jenisDokumen }}">
 </form>
 
 <!-- CARD 2: FILTER & TABEL STATUS PENOMORAN MITRA -->
@@ -333,7 +356,7 @@
                         <input type="text" id="kegiatanInnerSearchInput" class="form-control border-start-0 py-1.5" 
                                placeholder="Ketik untuk mencari nama kegiatan..." autocomplete="off">
                     </div>
-                    <div id="kegiatanOptionsList" class="list-group list-group-flush" style="max-height: 240px; overflow-y: auto;">
+                    <div id="kegiatanOptionsList" class="list-group list-group-flush" style="max-height: 190px; overflow-y: auto;">
                     </div>
                 </div>
             </div>
@@ -474,22 +497,156 @@ const kegiatanMetaMap = {!! json_encode($kegiatanMeta) !!};
 const allSpkMitraList = {!! json_encode($allSpkList ?? $spkList) !!};
 
 document.addEventListener('DOMContentLoaded', function() {
-    initFormatOptions();
+    // Dropdown Pola Format Searchable
+    const formatTriggerBtn = document.getElementById('formatDropdownTrigger');
+    const formatMenuPopup = document.getElementById('formatMenuPopup');
+    const formatInnerSearch = document.getElementById('formatInnerSearchInput');
+    const formatOptionsList = document.getElementById('formatOptionsList');
+    const formatSelectedText = document.getElementById('formatSelectedText');
+    const formatChevronIcon = document.getElementById('formatChevronIcon');
+    const formatContainer = document.getElementById('formatDropdownContainer');
 
-    // Auto-sync: jika kegiatan sudah terpilih dari URL, update search input
+    function renderFormatOptions(query = '') {
+        if (!formatOptionsList) return;
+        formatOptionsList.innerHTML = '';
+        const q = query.trim().toLowerCase();
+        const currentKegiatanId = document.getElementById('hiddenKegiatanIdInput')?.value || '';
+
+        // Default option: Pola BPS Default
+        if (q === '') {
+            const defaultItem = document.createElement('a');
+            defaultItem.href = '#';
+            const isDefaultSelected = !currentKegiatanId;
+            defaultItem.className = `list-group-item list-group-item-action py-2 px-2.5 rounded-2 border-0 mb-1 fw-bold ${isDefaultSelected ? 'bg-primary text-white' : 'text-primary'}`;
+            defaultItem.innerHTML = `<i class="bi bi-arrow-counterclockwise me-1.5"></i> Pola BPS Default <span class="extra-small opacity-75 fw-normal d-block" style="font-size:0.72rem;">${DEFAULT_PATTERN}</span>`;
+            defaultItem.addEventListener('click', function(e) {
+                e.preventDefault();
+                formatSelectedText.textContent = 'Pola BPS Default';
+                document.getElementById('formatSpkInput').value = DEFAULT_PATTERN;
+                document.getElementById('hiddenKegiatanIdInput').value = '';
+                document.getElementById('kegiatanSelectedText').textContent = 'Semua Kegiatan (Tampilkan seluruh kegiatan pada periode terpilih)';
+                closeFormatDropdown();
+                submitFilter();
+            });
+            formatOptionsList.appendChild(defaultItem);
+        }
+
+        const filtered = allKegiatansData.filter(k => {
+            const nameMatch = k.nama.toLowerCase().includes(q);
+            const shortMatch = k.short_name ? k.short_name.toLowerCase().includes(q) : false;
+            const formatMatch = k.format_spk ? k.format_spk.toLowerCase().includes(q) : false;
+            return nameMatch || shortMatch || formatMatch;
+        });
+
+        if (filtered.length === 0 && q !== '') {
+            const emptyEl = document.createElement('div');
+            emptyEl.className = 'text-muted small py-3 text-center';
+            emptyEl.innerHTML = `<i class="bi bi-search me-1"></i> Tidak ada pola yang cocok`;
+            formatOptionsList.appendChild(emptyEl);
+        } else {
+            filtered.forEach(k => {
+                const isSelected = String(k.id) === String(currentKegiatanId);
+                const item = document.createElement('a');
+                item.href = '#';
+                item.className = `list-group-item list-group-item-action py-2 px-2.5 rounded-2 border-0 mb-1 ${isSelected ? 'bg-primary text-white' : 'text-dark'}`;
+                
+                const shortLabel = (k.short_name || k.nama).toUpperCase();
+                const fmt = k.format_spk || DEFAULT_PATTERN;
+
+                item.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold small ${isSelected ? 'text-white' : 'text-dark'}">${shortLabel}</span>
+                        ${k.short_name ? `<span class="badge ${isSelected ? 'bg-white text-primary' : 'bg-primary bg-opacity-10 text-primary'} extra-small">${k.short_name.toUpperCase()}</span>` : ''}
+                    </div>
+                    <div class="text-truncate ${isSelected ? 'text-white opacity-75' : 'text-muted'}" style="font-size:0.72rem;">${fmt}</div>
+                `;
+
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    formatSelectedText.textContent = shortLabel;
+                    document.getElementById('formatSpkInput').value = fmt;
+                    closeFormatDropdown();
+
+                    // Sync kegiatan filter and trigger submit
+                    const hiddenInput = document.getElementById('hiddenKegiatanIdInput');
+                    const selectedText = document.getElementById('kegiatanSelectedText');
+                    if (hiddenInput && selectedText) {
+                        hiddenInput.value = k.id;
+                        selectedText.textContent = k.nama;
+                    }
+
+                    submitFilter();
+                });
+                formatOptionsList.appendChild(item);
+            });
+        }
+    }
+
+    function openFormatDropdown() {
+        if (!formatMenuPopup) return;
+        formatMenuPopup.classList.remove('d-none');
+        if (formatChevronIcon) formatChevronIcon.classList.replace('bi-chevron-down', 'bi-chevron-up');
+        if (formatInnerSearch) {
+            formatInnerSearch.value = '';
+            setTimeout(() => formatInnerSearch.focus(), 50);
+        }
+        renderFormatOptions();
+    }
+
+    function closeFormatDropdown() {
+        if (!formatMenuPopup) return;
+        formatMenuPopup.classList.add('d-none');
+        if (formatChevronIcon) formatChevronIcon.classList.replace('bi-chevron-up', 'bi-chevron-down');
+    }
+
+    if (formatTriggerBtn) {
+        formatTriggerBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (formatMenuPopup.classList.contains('d-none')) {
+                openFormatDropdown();
+            } else {
+                closeFormatDropdown();
+            }
+        });
+    }
+
+    if (formatInnerSearch) {
+        formatInnerSearch.addEventListener('input', function() {
+            renderFormatOptions(formatInnerSearch.value);
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (formatContainer && !formatContainer.contains(e.target)) {
+            closeFormatDropdown();
+        }
+    });
+
+    // Auto-sync: jika kegiatan sudah terpilih dari URL, update search input & counter info
     const hiddenInputSync = document.getElementById('hiddenKegiatanIdInput');
     const currentKegiatanId = hiddenInputSync ? hiddenInputSync.value : '';
     if (currentKegiatanId) {
         const matchedKegiatan = allKegiatansData.find(k => String(k.id) === String(currentKegiatanId));
         if (matchedKegiatan) {
-            const shortName = matchedKegiatan.short_name || '';
-            const searchInput = document.getElementById('formatSearchInput');
-            if (shortName && searchInput) {
-                searchInput.value = shortName.toUpperCase();
-                document.getElementById('formatSpkInput').value = matchedKegiatan.format_spk || DEFAULT_PATTERN;
+            const shortName = matchedKegiatan.short_name || matchedKegiatan.nama;
+            if (formatSelectedText) {
+                formatSelectedText.textContent = shortName.toUpperCase();
             }
-            updateLivePreview();
+            document.getElementById('formatSpkInput').value = matchedKegiatan.format_spk || DEFAULT_PATTERN;
+            
+            const tahunSpk = document.getElementById('tahunSpkInput').value || '{{ $tahun }}';
+            const jenisDok = document.getElementById('jenisDokumenSelect')?.value || 'spk';
+            fetch('{{ route("spk.penomoran.counter") }}?kegiatan_id=' + encodeURIComponent(matchedKegiatan.id) + '&tahun=' + tahunSpk + '&jenis=' + jenisDok)
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('nomorAwalInput').value = data.next_number;
+                    updateLivePreview();
+                    updateCounterInfo(data, matchedKegiatan.short_name || matchedKegiatan.nama);
+                })
+                .catch(() => updateLivePreview());
         }
+    } else {
+        updateLivePreview();
     }
 
     // Dropdown Kegiatan Searchable
@@ -507,18 +664,20 @@ document.addEventListener('DOMContentLoaded', function() {
             optionsList.innerHTML = '';
             const q = query.trim().toLowerCase();
 
-            const allItem = document.createElement('a');
-            allItem.href = '#';
-            allItem.className = `list-group-item list-group-item-action py-2 px-2.5 rounded-2 border-0 mb-1 fw-bold ${!hiddenInput.value ? 'bg-primary text-white' : 'text-primary'}`;
-            allItem.innerHTML = `<i class="bi bi-grid-fill me-1.5"></i> Semua Kegiatan`;
-            allItem.addEventListener('click', function(e) {
-                e.preventDefault();
-                hiddenInput.value = '';
-                selectedText.textContent = 'Semua Kegiatan';
-                closeDropdown();
-                submitFilter();
-            });
-            optionsList.appendChild(allItem);
+            if (q === '') {
+                const allItem = document.createElement('a');
+                allItem.href = '#';
+                allItem.className = `list-group-item list-group-item-action py-2 px-2.5 rounded-2 border-0 mb-1 fw-bold ${!hiddenInput.value ? 'bg-primary text-white' : 'text-primary'}`;
+                allItem.innerHTML = `<i class="bi bi-grid-fill me-1.5"></i> Semua Kegiatan`;
+                allItem.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    hiddenInput.value = '';
+                    selectedText.textContent = 'Semua Kegiatan';
+                    closeDropdown();
+                    submitFilter();
+                });
+                optionsList.appendChild(allItem);
+            }
 
             const filtered = allKegiatansData.filter(k => {
                 const nameMatch = k.nama.toLowerCase().includes(q);
@@ -553,22 +712,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         selectedText.textContent = k.nama;
                         closeDropdown();
 
-                        // Auto-sync ke searchable dropdown
-                        const searchInput = document.getElementById('formatSearchInput');
-                        if (k.short_name) {
-                            searchInput.value = k.short_name.toUpperCase();
+                        // Auto-sync ke Pola
+                        if (formatSelectedText) {
+                            formatSelectedText.textContent = (k.short_name || k.nama).toUpperCase();
                             document.getElementById('formatSpkInput').value = k.format_spk || DEFAULT_PATTERN;
                         }
-
-                        // Fetch counter untuk kegiatan ini
-                        const tahunSpk = document.getElementById('tahunSpkInput').value || '{{ $tahun }}';
-                        const jenisDok = document.getElementById('jenisDokumenSelect').value || 'spk';
-                        fetch('{{ route("spk.penomoran.counter") }}?kegiatan_id=' + encodeURIComponent(k.id) + '&tahun=' + tahunSpk + '&jenis=' + jenisDok)
-                            .then(r => r.json())
-                            .then(data => {
-                                document.getElementById('nomorAwalInput').value = data.next_number;
-                                updateLivePreview();
-                            });
 
                         submitFilter();
                     });
@@ -699,7 +847,9 @@ function simpanPolaSubmit() {
             if (k) k.format_spk = format;
 
             document.getElementById('formatSpkInput').value = format;
-            initFormatOptions();
+            if (document.getElementById('formatSelectedText')) {
+                document.getElementById('formatSelectedText').textContent = (k?.short_name || k?.nama || 'POLA').toUpperCase();
+            }
             updateLivePreview();
 
             const modalEl = bootstrap.Modal.getInstance(document.getElementById('modalTambahPola'));
@@ -742,7 +892,9 @@ function hapusPolaAktif() {
             if (k) k.format_spk = DEFAULT_PATTERN;
 
             document.getElementById('formatSpkInput').value = DEFAULT_PATTERN;
-            initFormatOptions();
+            if (document.getElementById('formatSelectedText')) {
+                document.getElementById('formatSelectedText').textContent = (k?.short_name || k?.nama || 'POLA').toUpperCase();
+            }
             updateLivePreview();
             alert(data.message || 'Format pola berhasil di-reset!');
         }
@@ -768,7 +920,9 @@ function resetPolaKeDefault() {
             allKegiatansData.forEach(k => k.format_spk = DEFAULT_PATTERN);
 
             document.getElementById('formatSpkInput').value = DEFAULT_PATTERN;
-            initFormatOptions();
+            if (document.getElementById('formatSelectedText')) {
+                document.getElementById('formatSelectedText').textContent = 'Pola BPS Default';
+            }
             updateLivePreview();
             alert(data.message || 'Semua format pola berhasil di-reset!');
         }
@@ -790,95 +944,6 @@ function onJenisIsiChanged() {
     updateLivePreview();
 }
 
-function initFormatOptions() {
-    const list = document.getElementById('formatDropdownList');
-    const searchInput = document.getElementById('formatSearchInput');
-    list.innerHTML = '';
-
-    // Build all kegiatan entries (no dedup)
-    const allEntries = [];
-    allKegiatansData.forEach(k => {
-        const fmt = k.format_spk || DEFAULT_PATTERN;
-        allEntries.push({
-            id: k.id,
-            shortName: (k.short_name || '').toUpperCase(),
-            nama: k.nama,
-            format: fmt,
-            label: (k.short_name || k.nama) + ' → ' + fmt,
-        });
-    });
-
-    // Sort by short_name
-    allEntries.sort((a, b) => a.shortName.localeCompare(b.shortName));
-
-    allEntries.forEach(entry => {
-        const div = document.createElement('div');
-        div.className = 'format-dropdown-item px-3 py-2 cursor-pointer';
-        div.setAttribute('data-id', entry.id);
-        div.setAttribute('data-label', entry.label.toLowerCase());
-        div.setAttribute('data-shortname', entry.shortName.toLowerCase());
-        div.innerHTML = `<div class="fw-semibold text-dark small">${entry.shortName}</div><div class="text-muted" style="font-size:0.72rem;">${entry.format}</div>`;
-        div.onclick = () => selectFormatEntry(entry);
-        div.onmouseenter = () => div.classList.add('bg-primary-subtle');
-        div.onmouseleave = () => div.classList.remove('bg-primary-subtle');
-        list.appendChild(div);
-    });
-
-    // Set current value from hidden input
-    const currentKegiatanId = document.getElementById('hiddenKegiatanIdInput')?.value;
-    if (currentKegiatanId) {
-        const match = allEntries.find(e => String(e.id) === String(currentKegiatanId));
-        if (match) {
-            searchInput.value = match.shortName;
-            document.getElementById('formatSpkInput').value = match.format;
-        }
-    }
-
-    updateLivePreview();
-}
-
-function openFormatDropdown() {
-    const list = document.getElementById('formatDropdownList');
-    list.classList.remove('d-none');
-    filterFormatDropdown(document.getElementById('formatSearchInput').value);
-}
-
-function filterFormatDropdown(query) {
-    const list = document.getElementById('formatDropdownList');
-    const q = query.toLowerCase();
-    list.querySelectorAll('.format-dropdown-item').forEach(item => {
-        const label = item.getAttribute('data-label') || '';
-        const shortname = item.getAttribute('data-shortname') || '';
-        item.style.display = (label.includes(q) || shortname.includes(q)) ? '' : 'none';
-    });
-}
-
-function selectFormatEntry(entry) {
-    document.getElementById('formatSearchInput').value = entry.shortName;
-    document.getElementById('formatSpkInput').value = entry.format;
-    document.getElementById('formatDropdownList').classList.add('d-none');
-
-    // Sync kegiatan filter
-    const hiddenInput = document.getElementById('hiddenKegiatanIdInput');
-    const selectedText = document.getElementById('kegiatanSelectedText');
-    if (hiddenInput && selectedText) {
-        hiddenInput.value = entry.id;
-        selectedText.textContent = entry.nama;
-    }
-
-    // Fetch counter
-    const tahunSpk = document.getElementById('tahunSpkInput').value || '{{ $tahun }}';
-    const jenisDok = document.getElementById('jenisDokumenSelect').value || 'spk';
-    fetch('{{ route("spk.penomoran.counter") }}?kegiatan_id=' + encodeURIComponent(entry.id) + '&tahun=' + tahunSpk + '&jenis=' + jenisDok)
-        .then(r => r.json())
-        .then(data => {
-            document.getElementById('nomorAwalInput').value = data.next_number;
-            updateLivePreview();
-            updateCounterInfo(data, entry.shortName);
-        })
-        .catch(() => updateLivePreview());
-}
-
 function updateCounterInfo(data, shortName) {
     const infoContainer = document.getElementById('lastNomorInfoText');
     if (data.last_number > 0) {
@@ -890,13 +955,24 @@ function updateCounterInfo(data, shortName) {
     }
 }
 
-// Close dropdown on outside click
-document.addEventListener('click', function(e) {
-    const wrapper = document.getElementById('formatDropdownWrapper');
-    if (wrapper && !wrapper.contains(e.target)) {
-        document.getElementById('formatDropdownList').classList.add('d-none');
+function onJenisDokumenChanged() {
+    updateLivePreview();
+    const currentKegiatanId = document.getElementById('hiddenKegiatanIdInput')?.value;
+    const tahunSpk = document.getElementById('tahunSpkInput').value || '{{ $tahun }}';
+    const jenisDok = document.getElementById('jenisDokumenSelect')?.value || 'spk';
+
+    if (currentKegiatanId) {
+        const k = allKegiatansData.find(k => String(k.id) === String(currentKegiatanId));
+        fetch('{{ route("spk.penomoran.counter") }}?kegiatan_id=' + encodeURIComponent(currentKegiatanId) + '&tahun=' + tahunSpk + '&jenis=' + jenisDok)
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('nomorAwalInput').value = data.next_number;
+                updateLivePreview();
+                if (k) updateCounterInfo(data, k.short_name || k.nama);
+            })
+            .catch(() => updateLivePreview());
     }
-});
+}
 
 function onFormatSpkChanged(val) {
     document.getElementById('formatSpkInput').value = val;
@@ -916,6 +992,11 @@ function submitFilter() {
     const hiddenKegiatanInput = document.getElementById('hiddenKegiatanIdInput');
     if (hiddenKegiatanInput) {
         document.getElementById('hiddenKegiatan').value = hiddenKegiatanInput.value;
+    }
+
+    const jenisDokumenSelect = document.getElementById('jenisDokumenSelect');
+    if (jenisDokumenSelect && document.getElementById('hiddenJenisDokumen')) {
+        document.getElementById('hiddenJenisDokumen').value = jenisDokumenSelect.value;
     }
     
     hiddenForm.submit();

@@ -59,8 +59,13 @@
 
                     <div class="mb-4">
                         <label for="password" class="form-label fw-bold">Password {{ isset($user) ? '(Kosongkan jika tidak ingin mengubah)' : '*' }}</label>
-                        <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password" {{ isset($user) ? '' : 'required' }} placeholder="Minimal 6 karakter">
-                        @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <div class="input-group">
+                            <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password" {{ isset($user) ? '' : 'required' }} placeholder="Minimal 6 karakter">
+                            <button type="button" class="btn btn-outline-secondary" onclick="togglePasswordVisibility('password', this)" title="Lihat / Sembunyikan Password">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        @error('password') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="d-flex justify-content-end gap-2 pt-3 border-top">
@@ -74,5 +79,23 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+    if (!input || !icon) return;
+
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('bi-eye', 'bi-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('bi-eye-slash', 'bi-eye');
+    }
+}
+</script>
+@endpush
 
 @endsection

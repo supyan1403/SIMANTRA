@@ -56,4 +56,30 @@ class MonitoringTest extends TestCase
         $deleteResponse->assertRedirect(route('monitoring.index'));
         $this->assertDatabaseMissing('alokasi_honors', ['id' => $alokasi->id]);
     }
+
+    public function test_sbml_limit_evaluation_for_pencacahan_and_pengolahan(): void
+    {
+        $user = User::factory()->create(['role' => 'admin']);
+        $mitra = Mitra::create(['nama' => 'Budi Lapangan', 'alamat' => 'Tasikmalaya', 'pekerjaan' => 'Mitra', 'kode_alamat' => '3206010', 'jk' => 'L']);
+        $periode2024 = Periode::create(['tahun' => 2024, 'bulan' => 'Januari', 'bulan_angka' => 1]);
+        $bidang = Bidang::create(['nama' => 'Produksi']);
+        
+        $kegiatanLapangan = Kegiatan::create(['nama' => 'Pendataan Lapangan Ubinan 2024', 'bidang_id' => $bidang->id]);
+        $kegiatanPengolahan = Kegiatan::create(['nama' => 'Pengolahan Data Ubinan 2024', 'bidang_id' => $bidang->id]);
+
+        $this->assertEquals('Pencacahan', $kegiatanLapangan->jenis_tugas);
+        $this->assertEquals('Pengolahan', $kegiatanPengolahan->jenis_tugas);
+
+        $this->actingAs($user);
+
+        // Store honor exceeding 2024 Pencacahan limit (3.326.000)
+        $response = $this->post(route('monitoring.store'), [
+            'mitra_id' => $mitra->id,
+            'periode_id' => $periode2024->id,
+            'kegiatan_id' => $kegiatanLapangan->id,
+            'nominal' => 3500000,
+        ]);
+        $response->assertRedirect(route('monitoring.index'));
+        $response->assertSessionHas('warning');
+    }
 }

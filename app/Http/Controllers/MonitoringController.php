@@ -97,18 +97,15 @@ class MonitoringController extends Controller
         $alokasi = AlokasiHonor::create($validated);
 
         // Check total honor for this Mitra in this Periode against SBML (Requirement 4.8)
-        $totalHonorBulan = AlokasiHonor::where('mitra_id', $validated['mitra_id'])
-            ->where('periode_id', $validated['periode_id'])
-            ->sum('nominal');
-
         $mitra = Mitra::find($validated['mitra_id']);
         $periode = Periode::find($validated['periode_id']);
-        $sbmlLimit = SbmlHelper::limitFor($mitra->id, $periode->id);
+        $evaluated = SbmlHelper::evaluate($mitra->id, $periode->id);
 
-        if ($totalHonorBulan > $sbmlLimit) {
-            $formattedTotal = 'Rp ' . number_format($totalHonorBulan, 0, ',', '.');
-            $formattedLimit = 'Rp ' . number_format($sbmlLimit, 0, ',', '.');
-            return redirect()->route('monitoring.index')->with('warning', "Alokasi honor berhasil disimpan. PERINGATAN SBML: Total honor {$mitra->nama} bulan {$periode->bulan} {$periode->tahun} ({$formattedTotal}) melebihi batas SBML ({$formattedLimit}).");
+        if ($evaluated['exceeded']) {
+            $formattedTotal = 'Rp ' . number_format($evaluated['total'], 0, ',', '.');
+            $formattedLimit = 'Rp ' . number_format($evaluated['limit'], 0, ',', '.');
+            $reason = $evaluated['warning_reason'] ?? "Total honor {$mitra->nama} ({$formattedTotal}) melebihi batas SBML ({$formattedLimit})";
+            return redirect()->route('monitoring.index')->with('warning', "Alokasi honor berhasil disimpan. PERINGATAN SBML: {$mitra->nama} bulan {$periode->bulan} {$periode->tahun} - {$reason}.");
         }
 
         return redirect()->route('monitoring.index')->with('success', 'Alokasi honor berhasil ditambahkan.');
@@ -150,18 +147,15 @@ class MonitoringController extends Controller
         $alokasi->update($validated);
 
         // Check total honor for this Mitra in this Periode against SBML (Requirement 4.8)
-        $totalHonorBulan = AlokasiHonor::where('mitra_id', $validated['mitra_id'])
-            ->where('periode_id', $validated['periode_id'])
-            ->sum('nominal');
-
         $mitra = Mitra::find($validated['mitra_id']);
         $periode = Periode::find($validated['periode_id']);
-        $sbmlLimit = SbmlHelper::limitFor($mitra->id, $periode->id);
+        $evaluated = SbmlHelper::evaluate($mitra->id, $periode->id);
 
-        if ($totalHonorBulan > $sbmlLimit) {
-            $formattedTotal = 'Rp ' . number_format($totalHonorBulan, 0, ',', '.');
-            $formattedLimit = 'Rp ' . number_format($sbmlLimit, 0, ',', '.');
-            return redirect()->route('monitoring.index')->with('warning', "Alokasi honor berhasil diperbarui. PERINGATAN SBML: Total honor {$mitra->nama} bulan {$periode->bulan} {$periode->tahun} ({$formattedTotal}) melebihi batas SBML ({$formattedLimit}).");
+        if ($evaluated['exceeded']) {
+            $formattedTotal = 'Rp ' . number_format($evaluated['total'], 0, ',', '.');
+            $formattedLimit = 'Rp ' . number_format($evaluated['limit'], 0, ',', '.');
+            $reason = $evaluated['warning_reason'] ?? "Total honor {$mitra->nama} ({$formattedTotal}) melebihi batas SBML ({$formattedLimit})";
+            return redirect()->route('monitoring.index')->with('warning', "Alokasi honor berhasil diperbarui. PERINGATAN SBML: {$mitra->nama} bulan {$periode->bulan} {$periode->tahun} - {$reason}.");
         }
 
         return redirect()->route('monitoring.index')->with('success', 'Alokasi honor berhasil diupdate.');

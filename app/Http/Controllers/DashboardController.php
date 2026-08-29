@@ -123,6 +123,7 @@ class DashboardController extends Controller
             ? AlokasiHonor::whereIn('periode_id', $periodeIds)->whereHas('kegiatan', fn($q) => $q->where('bidang_id', $bidangId))->distinct('mitra_id')->count('mitra_id')
             : Mitra::count();
         $totalOperator = $isAdmin ? User::where('role', 'operator')->count() : 0;
+        $totalKegiatan = Kegiatan::when($bidangId, fn($q) => $q->where('bidang_id', $bidangId))->when($tahun, fn($q) => $q->where('tahun', $tahun))->count();
         $mitraOptions = Mitra::orderBy('nama')->get(['id', 'nama', 'id_sobat']);
 
         // ===== FILTER 2: MITRA SPECIFIC FILTER (BAWAH GRAFIK) =====
@@ -317,7 +318,7 @@ class DashboardController extends Controller
             'monthOptions', 'bulanPencairan', 'bulanAwal', 'bulanAkhir',
             'bidangOptions', 'bidangId', 'kegiatanOptions', 'kegiatanId',
             'paguMataAnggaran', 'realisasiHonor', 'sisaAnggaran', 'paguSBML',
-            'totalTransaksi', 'totalMitra', 'totalOperator',
+            'totalTransaksi', 'totalMitra', 'totalOperator', 'totalKegiatan',
             'mitraOptions', 'searchMitra',
             'honorPerBulan', 'honorPerBidang',
             'mTahun', 'mBulanAwal', 'mBulanAkhir', 'mBidangId', 'mKegiatanId', 'mKegiatanOptions', 'mitraId',

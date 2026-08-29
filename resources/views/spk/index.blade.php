@@ -365,18 +365,20 @@ document.addEventListener('DOMContentLoaded', function() {
             optionsList.innerHTML = '';
             const q = query.trim().toLowerCase();
 
-            const allItem = document.createElement('a');
-            allItem.href = '#';
-            allItem.className = `list-group-item list-group-item-action py-2 px-2.5 rounded-2 border-0 mb-1 fw-bold ${!hiddenInput.value ? 'bg-primary text-white' : 'text-primary'}`;
-            allItem.innerHTML = `<i class="bi bi-grid-fill me-1.5"></i> Semua Kegiatan`;
-            allItem.addEventListener('click', function(e) {
-                e.preventDefault();
-                hiddenInput.value = '';
-                selectedText.textContent = 'Semua Kegiatan';
-                closeDropdown();
-                submitFilter();
-            });
-            optionsList.appendChild(allItem);
+            if (q === '') {
+                const allItem = document.createElement('a');
+                allItem.href = '#';
+                allItem.className = `list-group-item list-group-item-action py-2 px-2.5 rounded-2 border-0 mb-1 fw-bold ${!hiddenInput.value ? 'bg-primary text-white' : 'text-primary'}`;
+                allItem.innerHTML = `<i class="bi bi-grid-fill me-1.5"></i> Semua Kegiatan`;
+                allItem.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    hiddenInput.value = '';
+                    selectedText.textContent = 'Semua Kegiatan';
+                    closeDropdown();
+                    submitFilter();
+                });
+                optionsList.appendChild(allItem);
+            }
 
             const filtered = allKegiatansData.filter(k => {
                 const nameMatch = k.nama.toLowerCase().includes(q);

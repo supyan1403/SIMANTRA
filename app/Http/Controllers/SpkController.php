@@ -175,8 +175,8 @@ class SpkController extends Controller
             $maxSeq = 0;
             $lastFullNum = null;
             foreach ($numbers as $num) {
-                // Pola format B-0001/... atau angka dalam string nomor
-                if (preg_match('/(?:B-|[^\d]|^)(\d{1,6})(?:[^\d]|$)/i', $num, $matches)) {
+                // Pola format B-0001/... atau angka di awal string nomor (misal 0001/...)
+                if (preg_match('/^(?:B-)?(\d{1,6})/i', trim($num), $matches)) {
                     $seq = (int) $matches[1];
                     if ($seq > $maxSeq) {
                         $maxSeq = $seq;
@@ -277,20 +277,33 @@ class SpkController extends Controller
             return response()->json(['last_number' => 0, 'next_number' => 1, 'global_total' => $globalTotal]);
         }
 
-        // Regex match untuk ambil nomor urut dari nomor dokumen
-        $sampleNomor = $existingNomors->first();
+        // Cari nomor urut maksimum dari nomor-nomor dokumen yang ada di database
         $maxSeq = 0;
-        if ($sampleNomor) {
-            if (preg_match('/(?:\/|^)(\d{4})\//', $sampleNomor, $m)) {
-                $maxSeq = (int) $m[1];
-            } else {
-                preg_match('/(\d+)/', $sampleNomor, $m);
-                $maxSeq = $m ? (int) $m[1] : 0;
+        foreach ($existingNomors as $num) {
+            if (preg_match('/^(?:B-)?(\d{1,6})/i', trim($num), $m)) {
+                $seq = (int) $m[1];
+                if ($seq > $maxSeq) {
+                    $maxSeq = $seq;
+                }
             }
         }
 
-        // Update counter di DB
-        SpkCounter::incrementTo((int) $kegiatanId, $jenisDokumen, $tahun, $maxSeq);
+        // Sinkronkan counter di DB
+        $counter = SpkCounter::where('kegiatan_id', (int) $kegiatanId)
+            ->where('jenis_dokumen', $jenisDokumen)
+            ->where('tahun', $tahun)
+            ->first();
+
+        if ($counter) {
+            $counter->update(['last_number' => $maxSeq]);
+        } else {
+            SpkCounter::create([
+                'kegiatan_id' => (int) $kegiatanId,
+                'jenis_dokumen' => $jenisDokumen,
+                'tahun' => $tahun,
+                'last_number' => $maxSeq,
+            ]);
+        }
 
         return response()->json([
             'last_number' => $maxSeq,
