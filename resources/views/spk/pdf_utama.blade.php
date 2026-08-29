@@ -280,7 +280,7 @@
                     <td style="text-align: center;">{{ $sat }}</td>
                     <td style="text-align: right;">Rp. {{ number_format($hargaSat, 0, ',', '.') }},00</td>
                     <td style="text-align: right;">Rp. {{ number_format($item->nominal, 0, ',', '.') }}, 00</td>
-                    <td style="font-size: 7pt; text-align: center;">{{ $item->kegiatan->kode_mata_anggaran ?? '054.01.GG.2903.BMA.009.005.A.521213' }}</td>
+                    <td style="font-size: 7pt; text-align: center;">{{ $item->kegiatan->kode_mata_anggaran ?: '-' }}</td>
                 </tr>
             @endforeach
             @for($i = count($items) + 1; $i <= 8; $i++)

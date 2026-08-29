@@ -804,7 +804,7 @@ class SpkController extends Controller
                         'satuan' => $satuan,
                         'harga_satuan' => 'Rp. ' . number_format($hargaSatuan, 0, ',', '.') . ',00',
                         'nilai_perjanjian' => 'Rp. ' . number_format($it->nominal, 0, ',', '.') . ', 00',
-                        'mak' => $it->kegiatan->kode_mata_anggaran ?? '054.01.GG.2903.BMA.009.005.A.521213',
+                        'mak' => $it->kegiatan->kode_mata_anggaran ?: '-',
                     ];
                 }
                 $payload = [
@@ -1223,7 +1223,7 @@ class SpkController extends Controller
 
             $item1Nama = isset($items[0]) ? $items[0]->kegiatan->nama : '-';
             $item1Nominal = isset($items[0]) ? 'Rp ' . number_format($items[0]->nominal, 0, ',', '.') : 'Rp 0';
-            $item1Mak = isset($items[0]) ? ($items[0]->kegiatan->kode_mata_anggaran ?? '054.01.GG.2903.BMA.009.005.A.521213') : '';
+            $item1Mak = isset($items[0]) ? ($items[0]->kegiatan->kode_mata_anggaran ?: '-') : '';
 
             $item2Nama = isset($items[1]) ? $items[1]->kegiatan->nama : '';
             $item2Nominal = isset($items[1]) ? 'Rp ' . number_format($items[1]->nominal, 0, ',', '.') : '';

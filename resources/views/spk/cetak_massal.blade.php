@@ -207,7 +207,7 @@
                     <td>Dokumen</td>
                     <td class="text-end">Rp {{ number_format($item->nominal, 0, ',', '.') }}</td>
                     <td class="text-end fw-bold">Rp {{ number_format($item->nominal, 0, ',', '.') }}</td>
-                    <td class="font-monospace extra-small">{{ $item->kegiatan->kode_mata_anggaran ?? '054.01.GG.2903.BMA.009.005.A.521213' }}</td>
+                    <td class="font-monospace extra-small">{{ $item->kegiatan->kode_mata_anggaran ?: '-' }}</td>
                 </tr>
             @endforeach
             {{-- Fill empty rows up to 8 rows matching DOCX template --}}
