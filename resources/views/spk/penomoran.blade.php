@@ -791,6 +791,12 @@ function toggleSelectAll(source) {
     checkboxes.forEach(cb => cb.checked = source.checked);
 }
 
+function searchMitra() {
+    const searchVal = document.getElementById('searchInput').value;
+    document.getElementById('hiddenSearch').value = searchVal;
+    submitFilter();
+}
+
 function bukaModalPratinjau() {
     const checkedBoxes = document.querySelectorAll('.mitra-checkbox:checked');
     if (checkedBoxes.length === 0) {
