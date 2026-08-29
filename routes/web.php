@@ -45,6 +45,8 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
     Route::post('/penomoran-spk/terapkan', [\App\Http\Controllers\SpkController::class, 'terapkanPenomoran'])->name('spk.penomoran.terapkan');
     Route::post('/penomoran-spk/reset', [\App\Http\Controllers\SpkController::class, 'resetNomor'])->name('spk.penomoran.reset');
     Route::get('/penomoran-spk/counter', [\App\Http\Controllers\SpkController::class, 'getCounter'])->name('spk.penomoran.counter');
+    Route::post('/penomoran-spk/update-format', [\App\Http\Controllers\SpkController::class, 'updateKegiatanFormat'])->name('spk.penomoran.update-format');
+    Route::post('/penomoran-spk/reset-all-format', [\App\Http\Controllers\SpkController::class, 'resetAllFormat'])->name('spk.penomoran.reset-all-format');
 
     // Modul Cetak & Unduh Dokumen SPK & BAST (Khusus Output / Print / Download)
     Route::get('/spk', [\App\Http\Controllers\SpkController::class, 'index'])->name('spk.index');

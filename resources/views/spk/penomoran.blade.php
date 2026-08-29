@@ -214,15 +214,15 @@
             <div class="modal-header text-white py-3 px-4 rounded-top-4" id="modalPolaHeader">
                 <div class="d-flex align-items-center gap-2">
                     <i class="bi bi-file-earmark-diff-fill fs-5" id="modalPolaIcon"></i>
-                    <h5 class="modal-title fw-bold mb-0" id="modalTambahPolaLabel">Tambah Pola Nomor Baru</h5>
+                    <h5 class="modal-title fw-bold mb-0" id="modalTambahPolaLabel">Edit Pola Nomor</h5>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
                 <input type="hidden" id="editPolaOriginalValue" value="">
                 <div class="mb-3">
-                    <label class="form-label text-secondary fw-bold small mb-1">NAMA / LABEL POLA</label>
-                    <input type="text" id="inputNamaPolaBaru" class="form-control fw-semibold" placeholder="Contoh: Pola Susenas 2026">
+                    <label class="form-label text-secondary fw-bold small mb-1">NAMA KEGIATAN</label>
+                    <input type="text" id="inputNamaPolaBaru" class="form-control fw-semibold bg-light" readonly placeholder="Nama kegiatan">
                 </div>
                 <div class="mb-3">
                     <label class="form-label text-secondary fw-bold small mb-1">STRUKTUR POLA FORMAT</label>
@@ -641,106 +641,139 @@ function saveActivePatterns(patterns) {
 }
 
 function bukaModalTambahPola() {
-    document.getElementById('modalPolaHeader').className = 'modal-header bg-success text-white py-3 px-4 rounded-top-4';
-    document.getElementById('modalTambahPolaLabel').textContent = 'Tambah Pola Nomor Baru';
-    document.getElementById('btnSimpanPolaModal').className = 'btn btn-success px-4 fw-bold shadow-sm';
-    document.getElementById('btnSimpanPolaModal').innerHTML = '<i class="bi bi-plus-lg me-1"></i> Tambahkan Pola';
-    document.getElementById('editPolaOriginalValue').value = '';
-    document.getElementById('inputNamaPolaBaru').value = '';
-    document.getElementById('inputFormatPolaBaru').value = 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}';
-
-    const modalEl = new bootstrap.Modal(document.getElementById('modalTambahPola'));
-    modalEl.show();
+    if (!confirm('Untuk menambah pola baru, buka menu Kegiatan & Anggaran. Format nomor diatur di form kegiatan.\n\nBuka form Kegiatan sekarang?')) return;
+    window.location.href = '{{ route("kegiatan.create") }}';
 }
 
 function bukaModalEditPola() {
-    const currentVal = document.getElementById('formatSpkInput').value;
-    const allPatterns = getAllActivePatterns();
-    const item = allPatterns.find(p => p.value === currentVal) || allPatterns[0];
+    const kegiatanId = document.getElementById('hiddenKegiatanIdInput')?.value;
+    if (!kegiatanId) {
+        alert('Pilih kegiatan terlebih dahulu dari filter atau dropdown pola!');
+        return;
+    }
 
-    if (!item) return;
+    const matchedKegiatan = allKegiatansData.find(k => String(k.id) === String(kegiatanId));
+    if (!matchedKegiatan) return;
 
     document.getElementById('modalPolaHeader').className = 'modal-header bg-primary text-white py-3 px-4 rounded-top-4';
-    document.getElementById('modalTambahPolaLabel').textContent = 'Edit Pola Nomor Terpilih';
+    document.getElementById('modalTambahPolaLabel').textContent = 'Edit Pola: ' + (matchedKegiatan.short_name || matchedKegiatan.nama);
     document.getElementById('btnSimpanPolaModal').className = 'btn btn-primary px-4 fw-bold shadow-sm';
     document.getElementById('btnSimpanPolaModal').innerHTML = '<i class="bi bi-save-fill me-1"></i> Simpan Perubahan';
-    document.getElementById('editPolaOriginalValue').value = item.value;
-    
-    // Clean label from separator for cleaner edit input
-    let cleanLabel = item.label;
-    if (cleanLabel.includes('➔')) {
-        cleanLabel = cleanLabel.split('➔')[0].trim();
-    } else if (cleanLabel.includes(':')) {
-        cleanLabel = cleanLabel.split(':')[0].trim();
-    }
-    document.getElementById('inputNamaPolaBaru').value = cleanLabel;
-    document.getElementById('inputFormatPolaBaru').value = item.value;
+    document.getElementById('editPolaOriginalValue').value = matchedKegiatan.format_spk || DEFAULT_PATTERN;
+    document.getElementById('inputNamaPolaBaru').value = matchedKegiatan.short_name || matchedKegiatan.nama;
+    document.getElementById('inputFormatPolaBaru').value = matchedKegiatan.format_spk || DEFAULT_PATTERN;
 
     const modalEl = new bootstrap.Modal(document.getElementById('modalTambahPola'));
     modalEl.show();
 }
 
 function simpanPolaSubmit() {
-    const nama = document.getElementById('inputNamaPolaBaru').value.trim();
     const format = document.getElementById('inputFormatPolaBaru').value.trim();
-    const originalVal = document.getElementById('editPolaOriginalValue').value;
+    const kegiatanId = document.getElementById('hiddenKegiatanIdInput')?.value;
 
-    if (!nama || !format) {
-        alert('Silakan isi Nama Pola dan Struktur Format Pola terlebih dahulu!');
+    if (!format) {
+        alert('Silakan isi Struktur Format Pola terlebih dahulu!');
         return;
     }
 
-    let allPatterns = getAllActivePatterns();
-
-    if (originalVal) {
-        // MODE EDIT
-        allPatterns = allPatterns.map(p => {
-            if (p.value === originalVal) {
-                return { label: `${nama}  ➔  ${format}`, value: format };
-            }
-            return p;
-        });
-    } else {
-        // MODE TAMBAH BARU
-        allPatterns.push({ label: `${nama}  ➔  ${format}`, value: format });
+    if (!kegiatanId) {
+        alert('Tidak ada kegiatan yang dipilih!');
+        return;
     }
 
-    saveActivePatterns(allPatterns);
+    // Save to DB via AJAX
+    fetch('{{ route("spk.penomoran.update-format") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({ kegiatan_id: kegiatanId, format: format }),
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            // Update local data
+            const k = allKegiatansData.find(k => String(k.id) === String(kegiatanId));
+            if (k) k.format_spk = format;
 
-    const modalEl = bootstrap.Modal.getInstance(document.getElementById('modalTambahPola'));
-    if (modalEl) modalEl.hide();
+            document.getElementById('formatSpkInput').value = format;
+            initFormatOptions();
+            updateLivePreview();
 
-    // Select the new / edited format
-    document.getElementById('formatSpkInput').value = format;
-    initFormatOptions();
+            const modalEl = bootstrap.Modal.getInstance(document.getElementById('modalTambahPola'));
+            if (modalEl) modalEl.hide();
+
+            alert(data.message || 'Format pola berhasil diperbarui!');
+        } else {
+            alert(data.error || 'Gagal menyimpan format pola.');
+        }
+    })
+    .catch(() => alert('Gagal menghubungi server.'));
 }
 
 function hapusPolaAktif() {
-    let allPatterns = getAllActivePatterns();
-    if (allPatterns.length <= 1) {
-        alert('Minimal harus ada 1 pola format nomor di dalam sistem!');
+    const kegiatanId = document.getElementById('hiddenKegiatanIdInput')?.value;
+    if (!kegiatanId) {
+        alert('Pilih kegiatan terlebih dahulu!');
         return;
     }
 
-    const currentVal = document.getElementById('formatSpkInput').value;
-    const item = allPatterns.find(p => p.value === currentVal);
-    
-    const labelToDelete = item ? item.label : currentVal;
-    if (!confirm(`Apakah Anda yakin ingin menghapus pola ini dari daftar pilihan:\n"${labelToDelete}"?`)) return;
+    const matchedKegiatan = allKegiatansData.find(k => String(k.id) === String(kegiatanId));
+    const shortName = matchedKegiatan?.short_name || 'kegiatan ini';
 
-    allPatterns = allPatterns.filter(p => p.value !== currentVal);
-    saveActivePatterns(allPatterns);
+    if (!confirm(`Reset format pola "${shortName}" ke pola default BPS?`)) return;
 
-    // Set selection to first available pattern
-    document.getElementById('formatSpkInput').value = allPatterns[0].value;
-    initFormatOptions();
+    // Reset to default via AJAX
+    fetch('{{ route("spk.penomoran.update-format") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({ kegiatan_id: kegiatanId, format: DEFAULT_PATTERN }),
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const k = allKegiatansData.find(k => String(k.id) === String(kegiatanId));
+            if (k) k.format_spk = DEFAULT_PATTERN;
+
+            document.getElementById('formatSpkInput').value = DEFAULT_PATTERN;
+            initFormatOptions();
+            updateLivePreview();
+            alert(data.message || 'Format pola berhasil di-reset!');
+        }
+    })
+    .catch(() => alert('Gagal menghubungi server.'));
 }
 
 function resetPolaKeDefault() {
-    if (!confirm('Reset semua pola ke pola default BPS?')) return;
-    localStorage.removeItem('simantra_active_spk_patterns');
-    document.getElementById('formatSpkInput').value = DEFAULT_PATTERN;
-    initFormatOptions();
+    if (!confirm('Reset SEMUA format pola kegiatan ke pola default BPS?')) return;
+
+    fetch('{{ route("spk.penomoran.reset-all-format") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+        },
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            // Update all local data
+            allKegiatansData.forEach(k => k.format_spk = DEFAULT_PATTERN);
+
+            document.getElementById('formatSpkInput').value = DEFAULT_PATTERN;
+            initFormatOptions();
+            updateLivePreview();
+            alert(data.message || 'Semua format pola berhasil di-reset!');
+        }
+    })
+    .catch(() => alert('Gagal menghubungi server.'));
 }
 
 function getJenisValue(kegiatanShortName) {

@@ -299,6 +299,30 @@ class SpkController extends Controller
         ]);
     }
 
+    public function updateKegiatanFormat(Request $request)
+    {
+        $kegiatanId = $request->kegiatan_id;
+        $format = $request->format;
+
+        if (!$kegiatanId || !$format) {
+            return response()->json(['error' => 'Data tidak lengkap'], 400);
+        }
+
+        $kegiatan = \App\Models\Kegiatan::findOrFail($kegiatanId);
+        $kegiatan->update(['format_spk' => $format]);
+
+        return response()->json(['success' => true, 'message' => "Format pola {$kegiatan->short_name} berhasil diperbarui."]);
+    }
+
+    public function resetAllFormat(Request $request)
+    {
+        $defaultFormat = 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}';
+        \App\Models\Kegiatan::where('format_spk', '!=', $defaultFormat)->update(['format_spk' => $defaultFormat]);
+        $count = \App\Models\Kegiatan::count();
+
+        return response()->json(['success' => true, 'message' => "Semua {$count} kegiatan berhasil di-reset ke pola default."]);
+    }
+
     public function terapkanPenomoran(Request $request)
     {
         $mitraIds = $request->mitra_ids ?? [];
