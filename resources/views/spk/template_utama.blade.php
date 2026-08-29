@@ -202,13 +202,19 @@
         </thead>
         <tbody>
             @foreach($items as $idx => $item)
+                @php
+                    $rentangBulan = \App\Http\Controllers\SpkController::formatRentangTanggalBulan($item->periode->bulan_angka, $item->periode->tahun);
+                    $vol = (float)($item->volume ?? 1);
+                    $sat = $item->satuan ?? 'Dokumen';
+                    $hargaSat = ($vol > 0) ? ($item->nominal / $vol) : $item->nominal;
+                @endphp
                 <tr>
                     <td>{{ $idx + 1 }}</td>
                     <td class="text-start fw-bold">{{ $item->kegiatan->nama }}</td>
-                    <td>{{ $periodeLabel }}</td>
-                    <td>1</td>
-                    <td>Dokumen</td>
-                    <td class="text-end">Rp {{ number_format($item->nominal, 0, ',', '.') }}</td>
+                    <td>{{ $rentangBulan }}</td>
+                    <td>{{ $vol }}</td>
+                    <td>{{ ucfirst($sat) }}</td>
+                    <td class="text-end">Rp {{ number_format($hargaSat, 0, ',', '.') }}</td>
                     <td class="text-end fw-bold">Rp {{ number_format($item->nominal, 0, ',', '.') }}</td>
                     <td class="font-monospace extra-small">{{ $item->kegiatan->kode_mata_anggaran ?? '054.01.GG.2903.BMA.009.005.A.521213' }}</td>
                 </tr>

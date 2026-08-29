@@ -88,7 +88,13 @@ class MonitoringController extends Controller
             'periode_id' => 'required|exists:periodes,id',
             'kegiatan_id' => 'required|exists:kegiatans,id',
             'nominal' => 'required|numeric|min:0',
+            'volume' => 'nullable|numeric|min:0',
+            'satuan' => 'nullable|string|max:50',
+            'tarif_satuan' => 'nullable|numeric|min:0',
         ]);
+
+        $validated['volume'] = $validated['volume'] ?? 1;
+        $validated['satuan'] = $validated['satuan'] ?? 'dokumen';
 
         if (!$this->validateOperatorKegiatan($validated['kegiatan_id'])) {
             return $this->bidangAccessDenied();
@@ -138,7 +144,13 @@ class MonitoringController extends Controller
             'periode_id' => 'required|exists:periodes,id',
             'kegiatan_id' => 'required|exists:kegiatans,id',
             'nominal' => 'required|numeric|min:0',
+            'volume' => 'nullable|numeric|min:0',
+            'satuan' => 'nullable|string|max:50',
+            'tarif_satuan' => 'nullable|numeric|min:0',
         ]);
+
+        $validated['volume'] = $validated['volume'] ?? 1;
+        $validated['satuan'] = $validated['satuan'] ?? 'dokumen';
 
         if (!$this->validateOperatorKegiatan($validated['kegiatan_id'])) {
             return $this->bidangAccessDenied();

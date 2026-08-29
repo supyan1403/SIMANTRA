@@ -266,13 +266,19 @@
         </thead>
         <tbody>
             @foreach($items as $idx => $item)
+                @php
+                    $rentangBulan = \App\Http\Controllers\SpkController::formatRentangTanggalBulan($item->periode->bulan_angka, $item->periode->tahun);
+                    $vol = (float)($item->volume ?? 1);
+                    $sat = $item->satuan ?? 'dokumen';
+                    $hargaSat = ($vol > 0) ? ($item->nominal / $vol) : $item->nominal;
+                @endphp
                 <tr>
                     <td style="text-align: center;">{{ $idx + 1 }}</td>
                     <td>{{ $item->kegiatan->nama }}</td>
-                    <td style="text-align: center;">{{ $item->periode->bulan }} {{ $item->periode->tahun }}</td>
-                    <td style="text-align: center;">{{ $item->volume ?? 1 }}</td>
-                    <td style="text-align: center;">{{ $item->satuan ?? 'dokumen' }}</td>
-                    <td style="text-align: right;">Rp. {{ number_format($item->nominal, 0, ',', '.') }},00</td>
+                    <td style="text-align: center;">{{ $rentangBulan }}</td>
+                    <td style="text-align: center;">{{ $vol }}</td>
+                    <td style="text-align: center;">{{ $sat }}</td>
+                    <td style="text-align: right;">Rp. {{ number_format($hargaSat, 0, ',', '.') }},00</td>
                     <td style="text-align: right;">Rp. {{ number_format($item->nominal, 0, ',', '.') }}, 00</td>
                     <td style="font-size: 7pt; text-align: center;">{{ $item->kegiatan->kode_mata_anggaran ?? '054.01.GG.2903.BMA.009.005.A.521213' }}</td>
                 </tr>

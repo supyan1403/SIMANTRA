@@ -132,9 +132,35 @@
                         </div>
                     </div>
 
-                    <!-- 4. Nominal Honor -->
+                    <!-- 4. Beban Tugas: Volume & Satuan -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-md-6">
+                            <label for="volume" class="form-label fw-bold">Target Volume Tugas <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="bi bi-stack text-primary"></i></span>
+                                <input type="number" step="any" min="0.01" class="form-control @error('volume') is-invalid @enderror" id="volume" name="volume" value="{{ old('volume', $alokasi->volume ?? 1) }}" placeholder="Contoh: 15 / 1" required>
+                            </div>
+                            @error('volume') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="satuan" class="form-label fw-bold">Satuan Pekerjaan <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('satuan') is-invalid @enderror" id="satuan" name="satuan" list="satuan_options" value="{{ old('satuan', $alokasi->satuan ?? 'dokumen') }}" placeholder="Contoh: dokumen / kegiatan / ruta" required>
+                            <datalist id="satuan_options">
+                                <option value="dokumen">
+                                <option value="kegiatan">
+                                <option value="rumah tangga">
+                                <option value="SLS">
+                                <option value="blok sensus">
+                                <option value="responden">
+                                <option value="bulan">
+                            </datalist>
+                            @error('satuan') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+                        </div>
+                    </div>
+
+                    <!-- 5. Nominal Honor -->
                     <div class="mb-4">
-                        <label for="nominal" class="form-label fw-bold">Nominal Honor (Rp) <span class="text-danger">*</span></label>
+                        <label for="nominal" class="form-label fw-bold">Total Nilai Perjanjian / Honor (Rp) <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text fw-bold bg-light text-primary">Rp</span>
                             <input type="number" step="0.01" class="form-control @error('nominal') is-invalid @enderror" id="nominal" name="nominal" value="{{ old('nominal', $alokasi->nominal ?? '') }}" placeholder="Contoh: 1500000" required>

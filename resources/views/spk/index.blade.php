@@ -75,6 +75,7 @@
 <!-- ========================================== -->
 <form method="POST" action="{{ route('spk.cetak-massal') }}" id="bulkForm" target="_blank">
     @csrf
+    <input type="hidden" name="mode" value="{{ $mode }}">
     <input type="hidden" name="tahun" value="{{ $tahun }}">
     <input type="hidden" name="bulan_awal" value="{{ $bulanAwal }}">
     <input type="hidden" name="bulan_akhir" value="{{ $bulanAkhir }}">
@@ -121,6 +122,7 @@
 
 <!-- Hidden form for GET filtering -->
 <form method="GET" action="{{ route('spk.index') }}" id="getFilterForm" class="d-none">
+    <input type="hidden" name="mode" id="hiddenMode" value="{{ $mode }}">
     <input type="hidden" name="tahun" id="hiddenTahun" value="{{ $tahun }}">
     <input type="hidden" name="bulan_awal" id="hiddenBulanAwal" value="{{ $bulanAwal }}">
     <input type="hidden" name="bulan_akhir" id="hiddenBulanAkhir" value="{{ $bulanAkhir }}">
@@ -137,6 +139,25 @@
         <div class="d-flex align-items-center mb-3">
             <span class="badge bg-primary bg-opacity-10 text-primary fw-bold me-2 px-2.5 py-1.5 rounded-pill"><i class="bi bi-funnel-fill me-1"></i>FILTER TABEL</span>
             <span class="text-uppercase small fw-bold text-muted">Saring Periode Kerja &amp; Lingkup Kegiatan Mitra</span>
+        </div>
+
+        <!-- Mode Tabs: Mode Per Kegiatan vs Mode Per Bulan -->
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 pb-3 border-bottom">
+            <div class="btn-group p-1 bg-light rounded-3 shadow-none border" role="group">
+                <button type="button" class="btn btn-sm fw-bold px-3 py-1.5 rounded-2 {{ $mode !== 'bulan' ? 'btn-primary shadow-sm text-white' : 'btn-light text-secondary' }}" onclick="switchMode('kegiatan')">
+                    <i class="bi bi-briefcase-fill me-1.5"></i> Mode Per Kegiatan
+                </button>
+                <button type="button" class="btn btn-sm fw-bold px-3 py-1.5 rounded-2 {{ $mode === 'bulan' ? 'btn-primary shadow-sm text-white' : 'btn-light text-secondary' }}" onclick="switchMode('bulan')">
+                    <i class="bi bi-calendar-check-fill me-1.5"></i> Mode Per Bulan (Gabungan)
+                </button>
+            </div>
+            <div class="text-muted extra-small">
+                @if($mode === 'bulan')
+                    <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2.5 py-1.5"><i class="bi bi-info-circle me-1"></i>Mode Gabungan: Mencetak 1 SPK yang memuat seluruh kegiatan mitra di bulan tsb</span>
+                @else
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2.5 py-1.5"><i class="bi bi-info-circle me-1"></i>Mode Satuan: Mencetak 1 SPK khusus untuk 1 nama kegiatan</span>
+                @endif
+            </div>
         </div>
 
         <div class="row g-3 mb-3">
@@ -215,7 +236,7 @@
                 <div class="input-group">
                     <input type="text" id="searchInput" class="form-control border-primary-subtle py-2" placeholder="Ketik nama mitra..." value="{{ $search }}" onkeydown="if(event.key==='Enter'){ searchMitra(); }">
                     @if($search)
-                        <a href="{{ route('spk.index', array_filter(['tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'kegiatan_id' => $kegiatanId, 'bidang_id' => $bidangId])) }}" class="btn btn-outline-secondary" title="Hapus Pencarian"><i class="bi bi-x"></i></a>
+                        <a href="{{ route('spk.index', array_filter(['mode' => $mode, 'tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'kegiatan_id' => $kegiatanId, 'bidang_id' => $bidangId])) }}" class="btn btn-outline-secondary" title="Hapus Pencarian"><i class="bi bi-x"></i></a>
                     @endif
                     <button type="button" class="btn btn-primary px-3 fw-bold" onclick="searchMitra()">Cari</button>
                 </div>
@@ -237,16 +258,20 @@
             </div>
         </div>
     </div>
+    
+    <!-- TABEL UTAMA -->
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0 table-sticky-wrapper" style="font-size: 0.92rem;">
-                <thead class="table-light border-bottom text-secondary">
+            <table class="table table-hover align-middle mb-0 table-sticky-wrapper">
+                <thead class="table-light">
                     <tr>
-                        <th class="ps-4 text-center py-3 sticky-col-1">PILIH</th>
-                        <th class="py-3 sticky-col-2">NAMA MITRA</th>
-                        <th class="py-3" style="min-width: 200px;">KEGIATAN</th>
-                        <th class="py-3" style="min-width: 120px;">ID SOBAT</th>
-                        <th class="py-3" style="min-width: 140px;">NO. HP</th>
+                        <th class="ps-4 text-center py-3 sticky-col-1" style="width: 60px;">
+                            <input type="checkbox" id="selectAll" class="form-check-input" onchange="toggleSelectAll(this)" style="width: 18px; height: 18px; cursor: pointer;">
+                        </th>
+                        <th class="py-3 sticky-col-2" style="width: 300px; min-width: 300px;">NAMA MITRA</th>
+                        <th class="py-3" style="min-width: 250px;">{{ $mode === 'bulan' ? 'BULAN & LINGKUP KEGIATAN' : 'KEGIATAN' }}</th>
+                        <th class="py-3 text-nowrap" style="min-width: 130px;">ID SOBAT</th>
+                        <th class="py-3 text-nowrap" style="min-width: 140px;">NO. TELEPON</th>
                         <th class="py-3" style="min-width: 320px;">NO. SPK / BAST RESMI</th>
                         <th class="text-end py-3" style="min-width: 130px;">TOTAL HONOR</th>
                         <th class="text-center pe-4 py-3" style="min-width: 290px;">AKSI UNDUH DOKUMEN</th>
@@ -258,11 +283,13 @@
                             $spkDocNum = $spk->items->firstWhere('nomor_spk', '!=', null)?->nomor_spk;
                             $bastDocNum = $spk->items->firstWhere('nomor_bast', '!=', null)?->nomor_bast;
                             $isReady = !empty($spkDocNum) || !empty($bastDocNum);
+                            $targetKegiatanId = $mode === 'bulan' ? '' : ($spk->kegiatan_id ?? '');
+                            $targetBulan = $mode === 'bulan' ? ($spk->bulan_angka ?? '') : '';
                         @endphp
                         <tr class="{{ !$isReady ? 'bg-light bg-opacity-40' : '' }}">
                             <td class="ps-4 text-center py-3 sticky-col-1">
                                 @if($isReady)
-                                    <input type="checkbox" name="mitra_ids[]" value="{{ $spk->mitra_id }}_{{ $spk->kegiatan_id }}" form="bulkForm" class="form-check-input mitra-checkbox" style="width: 18px; height: 18px; cursor: pointer;">
+                                    <input type="checkbox" name="mitra_ids[]" value="{{ $spk->mitra_id }}_{{ $mode === 'bulan' ? 'bln_'.$spk->bulan_angka : $spk->kegiatan_id }}" form="bulkForm" class="form-check-input mitra-checkbox" style="width: 18px; height: 18px; cursor: pointer;">
                                 @else
                                     <input type="checkbox" disabled class="form-check-input opacity-25" style="width: 18px; height: 18px; cursor: not-allowed;" title="Belum memiliki nomor resmi.">
                                 @endif
@@ -272,8 +299,13 @@
                                 <div class="text-muted extra-small text-truncate" style="max-width: 280px;">{{ $spk->mitra->pekerjaan ?? 'Mitra BPS' }}</div>
                             </td>
                             <td class="py-3">
-                                <div class="fw-semibold text-dark">{{ $spk->kegiatan->nama }}</div>
-                                <div class="text-muted extra-small">{{ $spk->kegiatan->bidang->nama ?? '-' }}</div>
+                                @if($mode === 'bulan')
+                                    <div class="fw-bold text-primary"><i class="bi bi-calendar3 me-1"></i>{{ $spk->periode_label }}</div>
+                                    <div class="text-secondary small mt-0.5" style="white-space: normal; word-break: break-word;">{{ $spk->kegiatan->nama }}</div>
+                                @else
+                                    <div class="fw-semibold text-dark">{{ $spk->kegiatan->nama }}</div>
+                                    <div class="text-muted extra-small">{{ $spk->kegiatan->bidang->nama ?? '-' }}</div>
+                                @endif
                             </td>
                             <td class="py-3 text-nowrap">
                                 <span class="badge bg-light text-dark border font-monospace px-2 py-1.5">{{ $spk->mitra->id_sobat ?? '-' }}</span>
@@ -304,13 +336,13 @@
                             <td class="text-center pe-4 py-3 text-nowrap">
                                 @if($isReady)
                                     <div class="d-inline-flex align-items-center gap-2 shadow-none">
-                                        <a href="javascript:void(0)" onclick="cetakIndividu('{{ $spk->mitra_id }}', '{{ $spk->kegiatan_id }}')" class="btn btn-sm btn-outline-danger fw-bold px-3 py-1.5 rounded-3" title="Cetak SPK Kegiatan Ini (Buka Jendela Print)">
+                                        <a href="javascript:void(0)" onclick="cetakIndividu('{{ $spk->mitra_id }}', '{{ $targetKegiatanId }}', '{{ $targetBulan }}')" class="btn btn-sm btn-outline-danger fw-bold px-3 py-1.5 rounded-3" title="Cetak Dokumen Ini (Buka Jendela Print)">
                                             <i class="bi bi-printer-fill me-1"></i> Cetak
                                         </a>
-                                        <a href="javascript:void(0)" onclick="unduhWordIndividu('{{ $spk->mitra_id }}', '{{ $spk->kegiatan_id }}')" class="btn btn-sm btn-primary fw-bold px-3 py-1.5 rounded-3" title="Download File SPK Word (.docx) Otentik">
+                                        <a href="javascript:void(0)" onclick="unduhWordIndividu('{{ $spk->mitra_id }}', '{{ $targetKegiatanId }}', '{{ $targetBulan }}')" class="btn btn-sm btn-primary fw-bold px-3 py-1.5 rounded-3" title="Download File Word (.docx) Otentik">
                                             <i class="bi bi-file-earmark-word-fill me-1"></i> Unduh Word
                                         </a>
-                                        <a href="javascript:void(0)" onclick="unduhPdfIndividu('{{ $spk->mitra_id }}', '{{ $spk->kegiatan_id }}')" class="btn btn-sm btn-danger fw-bold px-3 py-1.5 rounded-3" title="Download File SPK PDF Otentik (Hasil Konversi Word)">
+                                        <a href="javascript:void(0)" onclick="unduhPdfIndividu('{{ $spk->mitra_id }}', '{{ $targetKegiatanId }}', '{{ $targetBulan }}')" class="btn btn-sm btn-danger fw-bold px-3 py-1.5 rounded-3" title="Download File PDF Otentik (Hasil Konversi Word)">
                                             <i class="bi bi-file-earmark-pdf-fill me-1"></i> Unduh PDF
                                         </a>
                                     </div>
@@ -478,15 +510,20 @@ function searchMitra() {
     submitFilter();
 }
 
+function switchMode(newMode) {
+    document.getElementById('hiddenMode').value = newMode;
+    submitFilter();
+}
+
 function toggleSelectAll(source) {
     const checkboxes = document.querySelectorAll('.mitra-checkbox:not(:disabled)');
     checkboxes.forEach(cb => cb.checked = source.checked);
 }
 
-function cetakIndividu(mitraId, kegiatanId) {
+function cetakIndividu(mitraId, kegiatanId, bulanSpecific = '') {
     const templateId = "{{ $currentTemplateId }}";
-    const bulanAwal = "{{ $bulanAwal }}";
-    const bulanAkhir = "{{ $bulanAkhir }}";
+    const bulanAwal = bulanSpecific || "{{ $bulanAwal }}";
+    const bulanAkhir = bulanSpecific || "{{ $bulanAkhir }}";
     const tahun = "{{ $tahun }}";
     const tanggalDokumen = document.getElementById('filterTanggalDokumen') ? document.getElementById('filterTanggalDokumen').value : '';
 
@@ -494,10 +531,10 @@ function cetakIndividu(mitraId, kegiatanId) {
     window.open(url, '_blank');
 }
 
-function unduhWordIndividu(mitraId, kegiatanId) {
+function unduhWordIndividu(mitraId, kegiatanId, bulanSpecific = '') {
     const templateId = "{{ $currentTemplateId }}";
-    const bulanAwal = "{{ $bulanAwal }}";
-    const bulanAkhir = "{{ $bulanAkhir }}";
+    const bulanAwal = bulanSpecific || "{{ $bulanAwal }}";
+    const bulanAkhir = bulanSpecific || "{{ $bulanAkhir }}";
     const tahun = "{{ $tahun }}";
     const tanggalDokumen = document.getElementById('filterTanggalDokumen') ? document.getElementById('filterTanggalDokumen').value : '';
 
@@ -505,10 +542,10 @@ function unduhWordIndividu(mitraId, kegiatanId) {
     window.location.href = url;
 }
 
-function unduhPdfIndividu(mitraId, kegiatanId) {
+function unduhPdfIndividu(mitraId, kegiatanId, bulanSpecific = '') {
     const templateId = "{{ $currentTemplateId }}";
-    const bulanAwal = "{{ $bulanAwal }}";
-    const bulanAkhir = "{{ $bulanAkhir }}";
+    const bulanAwal = bulanSpecific || "{{ $bulanAwal }}";
+    const bulanAkhir = bulanSpecific || "{{ $bulanAkhir }}";
     const tahun = "{{ $tahun }}";
     const tanggalDokumen = document.getElementById('filterTanggalDokumen') ? document.getElementById('filterTanggalDokumen').value : '';
 

@@ -24,6 +24,23 @@ class SpkController extends Controller
         9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
     ];
 
+    public static function formatRentangTanggalBulan($bulanAngka, $tahun): string
+    {
+        $bulanNama = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+        $b = (int) $bulanAngka;
+        $t = (int) $tahun;
+        if ($b < 1 || $b > 12) $b = 1;
+        if ($t < 2000) $t = (int) date('Y');
+        
+        $lastDay = date('t', strtotime(sprintf('%04d-%02d-01', $t, $b)));
+        $namaBulan = $bulanNama[$b] ?? 'Januari';
+        return "1-{$lastDay} {$namaBulan} {$t}";
+    }
+
     public function index(Request $request)
     {
         $user = auth()->user();
@@ -39,6 +56,8 @@ class SpkController extends Controller
         $bulanAwal = max(1, min(12, $bulanAwal));
         $bulanAkhir = max(1, min(12, $bulanAkhir));
         if ($bulanAkhir < $bulanAwal) { $bulanAkhir = $bulanAwal; }
+
+        $mode = $request->mode ?? 'kegiatan'; // 'kegiatan' (default) or 'bulan'
 
         $bidangId = ($isOperatorScoped) ? $user->bidang_id : ($request->bidang_id ?? null);
         if ($bidangId === '' || $bidangId === 'all') $bidangId = null;
@@ -72,21 +91,52 @@ class SpkController extends Controller
 
         $alokasis = $query->get();
 
-        // Grouping per Mitra + Kegiatan (1 SPK per kegiatan)
-        $allSpkList = $alokasis->groupBy(fn($item) => $item->mitra_id . '-' . $item->kegiatan_id)
-            ->map(function ($items, $key) {
-                $mitra = $items->first()->mitra;
-                $kegiatan = $items->first()->kegiatan;
+        if ($mode === 'bulan') {
+            // Grouping per Mitra + Bulan Periode (1 SPK per bulan untuk semua kegiatan di bulan tsb)
+            $allSpkList = $alokasis->groupBy(fn($item) => $item->mitra_id . '-' . $item->periode_id)
+                ->map(function ($items, $key) {
+                    $mitra = $items->first()->mitra;
+                    $periode = $items->first()->periode;
+                    $kegiatanNames = $items->pluck('kegiatan.nama')->unique()->join(', ');
 
-                return (object) [
-                    'mitra_id' => $items->first()->mitra_id,
-                    'kegiatan_id' => $items->first()->kegiatan_id,
-                    'mitra' => $mitra,
-                    'kegiatan' => $kegiatan,
-                    'total_honor' => (float) $items->sum('nominal'),
-                    'items' => $items,
-                ];
-            })->values();
+                    return (object) [
+                        'mitra_id' => $items->first()->mitra_id,
+                        'kegiatan_id' => null,
+                        'periode_id' => $items->first()->periode_id,
+                        'bulan_angka' => $periode->bulan_angka,
+                        'tahun' => $periode->tahun,
+                        'periode_label' => $periode->bulan . ' ' . $periode->tahun,
+                        'mitra' => $mitra,
+                        'kegiatan' => (object) [
+                            'nama' => $kegiatanNames,
+                            'bidang' => (object) ['nama' => $items->pluck('kegiatan.bidang.nama')->unique()->join(', ')],
+                        ],
+                        'total_honor' => (float) $items->sum('nominal'),
+                        'items' => $items,
+                    ];
+                })->values();
+        } else {
+            // Grouping per Mitra + Kegiatan (1 SPK per kegiatan)
+            $allSpkList = $alokasis->groupBy(fn($item) => $item->mitra_id . '-' . $item->kegiatan_id)
+                ->map(function ($items, $key) {
+                    $mitra = $items->first()->mitra;
+                    $kegiatan = $items->first()->kegiatan;
+                    $periode = $items->first()->periode;
+
+                    return (object) [
+                        'mitra_id' => $items->first()->mitra_id,
+                        'kegiatan_id' => $items->first()->kegiatan_id,
+                        'periode_id' => $items->first()->periode_id,
+                        'bulan_angka' => $periode ? $periode->bulan_angka : 1,
+                        'tahun' => $periode ? $periode->tahun : date('Y'),
+                        'periode_label' => $periode ? ($periode->bulan . ' ' . $periode->tahun) : '',
+                        'mitra' => $mitra,
+                        'kegiatan' => $kegiatan,
+                        'total_honor' => (float) $items->sum('nominal'),
+                        'items' => $items,
+                    ];
+                })->values();
+        }
 
         // Paginate 15 items per page
         $perPage = 15;
@@ -110,7 +160,7 @@ class SpkController extends Controller
             'bidangOptions', 'bidangId', 'kegiatanOptions', 'kegiatanId', 'search',
             'jenisDokumen', 'formatSpk', 'nomorAwal', 'bulanSpk', 'tahunSpk',
             'templates', 'selectedTemplate', 'currentTemplateId', 'tanggalDokumen',
-            'spkList'
+            'spkList', 'mode'
         ));
     }
 
@@ -742,12 +792,17 @@ class SpkController extends Controller
             } else {
                 $itemsData = [];
                 foreach ($items as $it) {
+                    $rentangBulan = self::formatRentangTanggalBulan($it->periode->bulan_angka, $it->periode->tahun);
+                    $volume = (float)($it->volume ?? 1);
+                    $satuan = $it->satuan ?? 'dokumen';
+                    $hargaSatuan = ($volume > 0) ? ($it->nominal / $volume) : $it->nominal;
+
                     $itemsData[] = [
                         'nama' => $it->kegiatan->nama,
-                        'periode' => $it->periode->bulan . ' ' . $it->periode->tahun,
-                        'volume' => $it->volume ?? 1,
-                        'satuan' => $it->satuan ?? 'dokumen',
-                        'harga_satuan' => 'Rp. ' . number_format($it->nominal, 0, ',', '.') . ',00',
+                        'periode' => $rentangBulan,
+                        'volume' => $volume,
+                        'satuan' => $satuan,
+                        'harga_satuan' => 'Rp. ' . number_format($hargaSatuan, 0, ',', '.') . ',00',
                         'nilai_perjanjian' => 'Rp. ' . number_format($it->nominal, 0, ',', '.') . ', 00',
                         'mak' => $it->kegiatan->kode_mata_anggaran ?? '054.01.GG.2903.BMA.009.005.A.521213',
                     ];

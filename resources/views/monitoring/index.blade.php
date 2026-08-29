@@ -135,6 +135,7 @@
                                 @endif
                             </div>
                             <div class="fw-semibold text-slate-800" style="white-space: normal; word-break: break-word;">{{ $a->kegiatan->nama ?? '-' }}</div>
+                            <div class="text-muted extra-small mt-0.5"><i class="bi bi-stack text-primary me-1"></i>Beban: <strong class="text-dark">{{ (float)($a->volume ?? 1) }} {{ $a->satuan ?? 'dokumen' }}</strong></div>
                             @if($a->nomor_spk || $a->nomor_bast)
                                 <div class="mt-1 d-flex align-items-center gap-1 flex-wrap">
                                     @if($a->nomor_spk)
