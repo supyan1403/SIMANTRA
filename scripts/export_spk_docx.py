@@ -209,9 +209,23 @@ def generate_exact_spk_docx(input_docx_path, output_docx_path, data_json_path):
                 if old_text in elem.text:
                     elem.text = elem.text.replace(old_text, new_text)
 
-    # 4. ANNEX TABLE POPULATION (TABLE 1)
-    if len(doc.tables) > 1:
-        t1 = doc.tables[1]
+    # 4. ANNEX TABLE POPULATION (TARGET LAST TABLE IN DOCUMENT)
+    if len(doc.tables) >= 2:
+        t1 = doc.tables[-1] # The annex table is always the last table
+
+        def format_cell(cell, text, font_size_pt=9.0, bold=False, italic=False, align=docx.enum.text.WD_ALIGN_PARAGRAPH.LEFT):
+            cell.text = text
+            p = cell.paragraphs[0]
+            p.paragraph_format.space_before = docx.shared.Pt(0)
+            p.paragraph_format.space_after = docx.shared.Pt(0)
+            p.paragraph_format.line_spacing = 1.0
+            p.alignment = align
+            for r in p.runs:
+                r.font.name = 'Bookman Old Style'
+                r.font.size = docx.shared.Pt(font_size_pt)
+                r.bold = bold
+                r.italic = italic
+
         for i in range(8):
             row_idx = 3 + i
             if row_idx < len(t1.rows):
@@ -219,28 +233,30 @@ def generate_exact_spk_docx(input_docx_path, output_docx_path, data_json_path):
                 if i < len(items):
                     item = items[i]
                     if len(row.cells) >= 8:
-                        row.cells[1].text = item.get('nama', '')
-                        row.cells[2].text = item.get('periode', '')
-                        row.cells[3].text = str(item.get('volume', 1))
-                        row.cells[4].text = item.get('satuan', 'dokumen')
-                        row.cells[5].text = item.get('harga_satuan', '')
-                        row.cells[6].text = item.get('nilai_perjanjian', '')
-                        row.cells[7].text = item.get('mak', '')
+                        format_cell(row.cells[0], str(i + 1), font_size_pt=9.0, align=docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER)
+                        format_cell(row.cells[1], item.get('nama', ''), font_size_pt=9.0, align=docx.enum.text.WD_ALIGN_PARAGRAPH.LEFT)
+                        format_cell(row.cells[2], item.get('periode', ''), font_size_pt=9.0, align=docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER)
+                        format_cell(row.cells[3], str(item.get('volume', 1)), font_size_pt=9.0, align=docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER)
+                        format_cell(row.cells[4], item.get('satuan', 'dokumen'), font_size_pt=9.0, align=docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER)
+                        format_cell(row.cells[5], item.get('harga_satuan', ''), font_size_pt=9.0, align=docx.enum.text.WD_ALIGN_PARAGRAPH.RIGHT)
+                        format_cell(row.cells[6], item.get('nilai_perjanjian', ''), font_size_pt=9.0, align=docx.enum.text.WD_ALIGN_PARAGRAPH.RIGHT)
+                        format_cell(row.cells[7], item.get('mak', ''), font_size_pt=7.5, align=docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER)
                 else:
                     if len(row.cells) >= 8:
-                        row.cells[1].text = ''
-                        row.cells[2].text = ''
-                        row.cells[3].text = ''
-                        row.cells[4].text = ''
-                        row.cells[5].text = 'Rp. 00'
-                        row.cells[6].text = 'Rp. 00'
-                        row.cells[7].text = ''
+                        format_cell(row.cells[0], str(i + 1), font_size_pt=9.0, align=docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER)
+                        format_cell(row.cells[1], '', font_size_pt=9.0)
+                        format_cell(row.cells[2], '', font_size_pt=9.0)
+                        format_cell(row.cells[3], '', font_size_pt=9.0)
+                        format_cell(row.cells[4], '', font_size_pt=9.0)
+                        format_cell(row.cells[5], 'Rp. 00', font_size_pt=9.0, align=docx.enum.text.WD_ALIGN_PARAGRAPH.RIGHT)
+                        format_cell(row.cells[6], 'Rp. 00', font_size_pt=9.0, align=docx.enum.text.WD_ALIGN_PARAGRAPH.RIGHT)
+                        format_cell(row.cells[7], '', font_size_pt=7.5)
 
         if len(t1.rows) > 11:
             total_row = t1.rows[11]
             if len(total_row.cells) >= 7:
-                total_row.cells[0].text = f'Terbilang: {terbilang_honor}'
-                total_row.cells[6].text = f'{total_honor}, 00'
+                format_cell(total_row.cells[0], f'Terbilang: {terbilang_honor}', font_size_pt=9.0, italic=True, align=docx.enum.text.WD_ALIGN_PARAGRAPH.LEFT)
+                format_cell(total_row.cells[6], f'{total_honor}, 00', font_size_pt=9.0, align=docx.enum.text.WD_ALIGN_PARAGRAPH.RIGHT)
 
     doc.save(output_docx_path)
 
