@@ -1275,7 +1275,7 @@ class SpkController extends Controller
         $request->validate([
             'nama' => 'required|string|max:255',
             'jenis_dokumen' => 'required|in:spk,bast',
-            'kategori_kegiatan' => 'required|in:sensus,survei,umum',
+            'kategori_kegiatan' => 'nullable|in:sensus,survei,umum',
             'file_template' => 'nullable|file|mimes:docx,doc,pdf,txt|max:5120',
             'deskripsi' => 'nullable|string',
         ]);
@@ -1288,7 +1288,7 @@ class SpkController extends Controller
         DocumentTemplate::create([
             'nama' => $request->nama,
             'jenis_dokumen' => $request->jenis_dokumen,
-            'kategori_kegiatan' => $request->kategori_kegiatan,
+            'kategori_kegiatan' => $request->kategori_kegiatan ?? 'umum',
             'file_path' => $filePath,
             'deskripsi' => $request->deskripsi,
             'is_active' => true,
@@ -1304,7 +1304,7 @@ class SpkController extends Controller
         $request->validate([
             'nama' => 'required|string|max:255',
             'jenis_dokumen' => 'required|in:spk,bast',
-            'kategori_kegiatan' => 'required|in:sensus,survei,umum',
+            'kategori_kegiatan' => 'nullable|in:sensus,survei,umum',
             'file_template' => 'nullable|file|mimes:docx,doc,pdf,txt|max:5120',
             'deskripsi' => 'nullable|string',
         ]);
@@ -1318,7 +1318,7 @@ class SpkController extends Controller
 
         $template->nama = $request->nama;
         $template->jenis_dokumen = $request->jenis_dokumen;
-        $template->kategori_kegiatan = $request->kategori_kegiatan;
+        $template->kategori_kegiatan = $request->kategori_kegiatan ?? $template->kategori_kegiatan ?? 'umum';
         $template->deskripsi = $request->deskripsi;
         $template->save();
 

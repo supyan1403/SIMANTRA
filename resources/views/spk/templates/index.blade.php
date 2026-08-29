@@ -11,6 +11,34 @@
     </a>
 </div>
 
+@if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+        <div>{{ session('success') }}</div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
+@if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+        <div>{{ session('error') }}</div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
+@if($errors->any())
+    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+        <div class="fw-bold mb-1"><i class="bi bi-exclamation-octagon-fill me-1"></i> Terdapat kendala saat menyimpan template:</div>
+        <ul class="mb-0 ps-3">
+            @foreach($errors->all() as $err)
+                <li>{{ $err }}</li>
+            @endforeach
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
 <div class="row g-4">
     <!-- Form Upload Template Baru -->
     <div class="col-md-4">
@@ -23,14 +51,23 @@
                     @csrf
                     <div class="mb-3">
                         <label class="form-label text-muted small fw-bold mb-1">NAMA TEMPLATE</label>
-                        <input type="text" name="nama" class="form-control" placeholder="Contoh: Template SPK Sensus Pertanian 2026" required>
+                        <input type="text" name="nama" class="form-control" placeholder="Contoh: Template SPK Sensus Pertanian 2026" required value="{{ old('nama') }}">
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label text-muted small fw-bold mb-1">JENIS DOKUMEN</label>
                         <select name="jenis_dokumen" class="form-select" required>
-                            <option value="spk">SPK (Surat Perjanjian Kerja)</option>
-                            <option value="bast">BAST (Berita Acara Serah Terima)</option>
+                            <option value="spk" {{ old('jenis_dokumen') === 'spk' ? 'selected' : '' }}>SPK (Surat Perjanjian Kerja)</option>
+                            <option value="bast" {{ old('jenis_dokumen') === 'bast' ? 'selected' : '' }}>BAST (Berita Acara Serah Terima)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold mb-1">KATEGORI KEGIATAN</label>
+                        <select name="kategori_kegiatan" class="form-select" required>
+                            <option value="umum" {{ old('kategori_kegiatan') === 'umum' ? 'selected' : '' }}>Umum / Rutin</option>
+                            <option value="sensus" {{ old('kategori_kegiatan') === 'sensus' ? 'selected' : '' }}>Kegiatan Sensus</option>
+                            <option value="survei" {{ old('kategori_kegiatan') === 'survei' ? 'selected' : '' }}>Kegiatan Survei</option>
                         </select>
                     </div>
 
