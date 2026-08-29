@@ -8,18 +8,18 @@ class SpkCounter extends Model
 {
     protected $fillable = [
         'format_pattern',
+        'jenis_dokumen',
         'tahun',
         'last_number',
     ];
 
     /**
-     * Get next number for a given format pattern + tahun.
-     * Creates record if not exists.
+     * Get next number for a given format pattern + jenis dokumen + tahun.
      */
-    public static function getNextNumber(string $formatPattern, string $tahun): int
+    public static function getNextNumber(string $formatPattern, string $jenisDokumen, string $tahun): int
     {
         $counter = static::firstOrCreate(
-            ['format_pattern' => $formatPattern, 'tahun' => $tahun],
+            ['format_pattern' => $formatPattern, 'jenis_dokumen' => $jenisDokumen, 'tahun' => $tahun],
             ['last_number' => 0]
         );
 
@@ -27,12 +27,12 @@ class SpkCounter extends Model
     }
 
     /**
-     * Increment counter after generating numbers.
+     * Update counter after generating numbers.
      */
-    public static function incrementTo(string $formatPattern, string $tahun, int $newLast): void
+    public static function incrementTo(string $formatPattern, string $jenisDokumen, string $tahun, int $newLast): void
     {
         static::updateOrCreate(
-            ['format_pattern' => $formatPattern, 'tahun' => $tahun],
+            ['format_pattern' => $formatPattern, 'jenis_dokumen' => $jenisDokumen, 'tahun' => $tahun],
             ['last_number' => $newLast]
         );
     }

@@ -11,11 +11,12 @@ return new class extends Migration
         Schema::create('spk_counters', function (Blueprint $table) {
             $table->id();
             $table->string('format_pattern');
+            $table->string('jenis_dokumen')->default('spk');
             $table->string('tahun');
             $table->unsignedInteger('last_number')->default(0);
             $table->timestamps();
 
-            $table->unique(['format_pattern', 'tahun']);
+            $table->unique(['format_pattern', 'jenis_dokumen', 'tahun']);
         });
     }
 

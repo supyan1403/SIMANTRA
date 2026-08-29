@@ -707,7 +707,6 @@ function initFormatOptions() {
 
 function onFormatSpkChanged(val) {
     document.getElementById('formatSpkInput').value = val;
-    checkDeleteButtonVisibility();
 
     // Fetch counter dari server untuk pola ini
     const tahunSpk = document.getElementById('tahunSpkInput').value || '{{ $tahun }}';

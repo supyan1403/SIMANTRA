@@ -297,7 +297,7 @@ class SpkController extends Controller
         }
 
         // Simpan ke spk_counters untuk caching
-        SpkCounter::incrementTo($formatPattern, $tahun, $maxSeq);
+        SpkCounter::incrementTo($formatPattern, $jenisDokumen, $tahun, $maxSeq);
 
         return response()->json([
             'last_number' => $maxSeq,
@@ -392,7 +392,7 @@ class SpkController extends Controller
                     $nomorDoc = trim($customNomors[$customKey]);
                 } else {
                     // Ambil counter berikutnya untuk format ini
-                    $nextNum = SpkCounter::getNextNumber($fmt, $tahunSpk);
+                    $nextNum = SpkCounter::getNextNumber($fmt, $jenisDokumen, $tahunSpk);
                     $nomorDoc = $this->generateNomorDokumen($fmt, $nextNum, $bulanSpk, $tahunSpk, $shortName);
 
                     // Track max number per format
@@ -412,10 +412,10 @@ class SpkController extends Controller
             }
         }
 
-        // Update counter per format per tahun
+        // Update counter per format per jenis dokumen per tahun
         if ($savedCount > 0) {
             foreach ($formatMaxNumbers as $fmt => $maxNum) {
-                SpkCounter::incrementTo($fmt, $tahunSpk, $maxNum);
+                SpkCounter::incrementTo($fmt, $jenisDokumen, $tahunSpk, $maxNum);
             }
         }
 
