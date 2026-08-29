@@ -63,15 +63,6 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label text-muted small fw-bold mb-1">KATEGORI KEGIATAN</label>
-                        <select name="kategori_kegiatan" class="form-select" required>
-                            <option value="umum" {{ old('kategori_kegiatan') === 'umum' ? 'selected' : '' }}>Umum / Rutin</option>
-                            <option value="sensus" {{ old('kategori_kegiatan') === 'sensus' ? 'selected' : '' }}>Kegiatan Sensus</option>
-                            <option value="survei" {{ old('kategori_kegiatan') === 'survei' ? 'selected' : '' }}>Kegiatan Survei</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
                         <label class="form-label text-muted small fw-bold mb-1">FILE TEMPLATE (DOCX / PDF / TXT)</label>
                         <input type="file" name="file_template" class="form-control" accept=".docx,.doc,.pdf,.txt">
                         <span class="extra-small text-muted">Format: DOCX, PDF (Max: 5MB)</span>
@@ -154,14 +145,6 @@
                                                                 <select name="jenis_dokumen" class="form-select" required>
                                                                     <option value="spk" {{ $tmpl->jenis_dokumen === 'spk' ? 'selected' : '' }}>SPK (Surat Perjanjian Kerja)</option>
                                                                     <option value="bast" {{ $tmpl->jenis_dokumen === 'bast' ? 'selected' : '' }}>BAST (Berita Acara Serah Terima)</option>
-                                                                </select>
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label class="form-label text-muted small fw-bold mb-1">KATEGORI KEGIATAN</label>
-                                                                <select name="kategori_kegiatan" class="form-select" required>
-                                                                    <option value="sensus" {{ $tmpl->kategori_kegiatan === 'sensus' ? 'selected' : '' }}>Kegiatan Sensus</option>
-                                                                    <option value="survei" {{ $tmpl->kategori_kegiatan === 'survei' ? 'selected' : '' }}>Kegiatan Survei</option>
-                                                                    <option value="umum" {{ $tmpl->kategori_kegiatan === 'umum' ? 'selected' : '' }}>Umum / Rutin</option>
                                                                 </select>
                                                             </div>
                                                             <div class="mb-3">
