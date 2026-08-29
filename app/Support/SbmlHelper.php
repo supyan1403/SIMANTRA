@@ -118,24 +118,45 @@ class SbmlHelper
         $exceededPencacahan = $totalPencacahan > $limitPencacahan;
         $exceededPengolahan = $totalPengolahan > $limitPengolahan;
         $exceededTotal = $total > $limit;
-
         $isExceeded = $exceededTotal || $exceededPencacahan || $exceededPengolahan;
+
+        $excessPencacahan = max(0, $totalPencacahan - $limitPencacahan);
+        $excessPengolahan = max(0, $totalPengolahan - $limitPengolahan);
+        $excessTotal = max(0, $total - $limit);
+        $maxExcess = max($excessTotal, $excessPencacahan, $excessPengolahan);
+
+        $activeLimit = $limit;
+        $activeTotal = $total;
+        $categoryLabel = 'SBML';
+
+        if ($exceededPencacahan && ($excessPencacahan >= $excessTotal && $excessPencacahan >= $excessPengolahan)) {
+            $activeLimit = $limitPencacahan;
+            $activeTotal = $totalPencacahan;
+            $categoryLabel = 'Pencacahan';
+        } elseif ($exceededPengolahan && ($excessPengolahan >= $excessTotal && $excessPengolahan >= $excessPencacahan)) {
+            $activeLimit = $limitPengolahan;
+            $activeTotal = $totalPengolahan;
+            $categoryLabel = 'Pengolahan';
+        }
 
         // Pesan peringatan kontekstual spesifik
         $warningReason = null;
         if ($exceededPencacahan) {
-            $warningReason = "Honor Pencacahan Lapangan (Rp " . number_format($totalPencacahan, 0, ',', '.') . ") melebihi batas SBML Pencacahan (Rp " . number_format($limitPencacahan, 0, ',', '.') . ")";
+            $warningReason = "Honor Pencacahan Lapangan (Rp " . number_format($totalPencacahan, 0, ',', '.') . ") melebihi batas SBML Pencacahan (Rp " . number_format($limitPencacahan, 0, ',', '.') . ") lebih Rp " . number_format($excessPencacahan, 0, ',', '.');
         } elseif ($exceededPengolahan) {
-            $warningReason = "Honor Pengolahan Data (Rp " . number_format($totalPengolahan, 0, ',', '.') . ") melebihi batas SBML Pengolahan (Rp " . number_format($limitPengolahan, 0, ',', '.') . ")";
+            $warningReason = "Honor Pengolahan Data (Rp " . number_format($totalPengolahan, 0, ',', '.') . ") melebihi batas SBML Pengolahan (Rp " . number_format($limitPengolahan, 0, ',', '.') . ") lebih Rp " . number_format($excessPengolahan, 0, ',', '.');
         } elseif ($exceededTotal) {
-            $warningReason = "Total Honor Bulanan (Rp " . number_format($total, 0, ',', '.') . ") melebihi batas SBML Gabungan (Rp " . number_format($limit, 0, ',', '.') . ")";
+            $warningReason = "Total Honor Bulanan (Rp " . number_format($total, 0, ',', '.') . ") melebihi batas SBML Gabungan (Rp " . number_format($limit, 0, ',', '.') . ") lebih Rp " . number_format($excessTotal, 0, ',', '.');
         }
 
         return [
             'total' => $total,
             'limit' => $limit,
+            'active_total' => $activeTotal,
+            'active_limit' => $activeLimit,
+            'category_label' => $categoryLabel,
             'exceeded' => $isExceeded,
-            'excess' => max(0, $total - $limit),
+            'excess' => $maxExcess,
             'total_pencacahan' => $totalPencacahan,
             'limit_pencacahan' => $limitPencacahan,
             'total_pengolahan' => $totalPengolahan,

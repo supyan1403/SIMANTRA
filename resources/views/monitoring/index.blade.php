@@ -113,8 +113,8 @@
                             <span class="text-muted small">{{ $a->mitra->pekerjaan ?? 'Mitra' }}</span>
                             @if($sbmlWarn)
                                 <div class="mt-1">
-                                    <span class="badge badge-soft-danger d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;">
-                                        <i class="bi bi-exclamation-octagon-fill"></i> Total Rp {{ number_format($sbmlWarn['total'], 0, ',', '.') }} &gt; SBML (Rp {{ number_format($sbmlWarn['limit'], 0, ',', '.') }})
+                                    <span class="badge badge-soft-danger d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;" title="{{ $sbmlWarn['warning_reason'] ?? '' }}">
+                                        <i class="bi bi-exclamation-octagon-fill"></i> SBML {{ $sbmlWarn['category_label'] ?? 'SBML' }}: Rp {{ number_format($sbmlWarn['active_total'] ?? $sbmlWarn['total'], 0, ',', '.') }} &gt; Rp {{ number_format($sbmlWarn['active_limit'] ?? $sbmlWarn['limit'], 0, ',', '.') }}
                                     </span>
                                 </div>
                             @endif
