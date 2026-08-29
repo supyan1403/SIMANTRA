@@ -627,18 +627,22 @@ php artisan migrate --seed
 
 ## 🔄 Panduan Sinkronisasi (Untuk Rekan Tim yang Sudah Clone)
 
-Bagi rekan satu tim yang sebelumnya sudah meng-clone repositori ini, untuk mendapatkan **100% seluruh pembaruan kode, perbaikan UI Sidebar, serta data database terbaru**, Anda **cukup menjalankan**:
+Bagi rekan satu tim yang sebelumnya sudah meng-clone repositori ini, untuk mendapatkan **100% seluruh pembaruan kode, perbaikan UI Sidebar, generator SPK Word/PDF otentik, serta data database terbaru**, Anda cukup menjalankan:
 
 ```bash
 # 1. Tarik seluruh perubahan kode dan database terbaru
 git pull origin main
 
-# 2. Jalankan server aplikasi
+# 2. Pasang library Python pendukung konversi SPK/BAST resmi (jika belum terpasang)
+pip install python-docx pywin32
+
+# 3. Bersihkan cache & jalankan server aplikasi
+php artisan optimize:clear
 php artisan serve
 ```
 
 > [!TIP]
-> Begitu perintah di atas dijalankan, seluruh tampilan baru, perbaikan sidebar zero-shift, master SBML multi-kategori, dan 2.566 data mitra riil langsung aktif dan sama persis 100% di komputer Anda tanpa perlu konfigurasi tambahan.
+> Begitu perintah di atas dijalankan, seluruh tampilan baru, perbaikan sidebar zero-shift, master SBML multi-kategori, template dokumen baku, dan 2.566 data mitra riil langsung aktif dan sama persis 100% di komputer Anda tanpa perlu konfigurasi tambahan.
 
 ---
 
