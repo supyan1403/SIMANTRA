@@ -8,6 +8,7 @@ use App\Models\DocumentTemplate;
 use App\Models\Kegiatan;
 use App\Models\Mitra;
 use App\Models\Periode;
+use App\Models\SpkCounter;
 use App\Traits\HasBidangScope;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -252,6 +253,58 @@ class SpkController extends Controller
         ));
     }
 
+    public function getCounter(Request $request)
+    {
+        $formatPattern = $request->query('format', '');
+        $tahun = $request->query('tahun', date('Y'));
+        $jenisDokumen = $request->query('jenis', 'spk');
+
+        if (empty($formatPattern)) {
+            return response()->json(['last_number' => 0, 'next_number' => 1]);
+        }
+
+        // Hitung counter dari database berdasarkan format + tahun
+        // Kita perlu query semua nomor yang sudah ada dan match dengan pola ini
+        $periodeIds = Periode::where('tahun', $tahun)->pluck('id');
+
+        $field = ($jenisDokumen === 'bast') ? 'nomor_bast' : 'nomor_spk';
+        $existingNomors = AlokasiHonor::whereIn('periode_id', $periodeIds)
+            ->whereNotNull($field)
+            ->where($field, '!=', '')
+            ->pluck($field)
+            ->unique();
+
+        // Filter nomor yang match dengan pola format ini
+        // Konversi pola ke regex: {nomor} -> (\d+), sisanya escape
+        $pattern = $formatPattern;
+        $regex = preg_quote($pattern, '/');
+        $regex = str_replace('\\{nomor\\}', '(\\d+)', $regex);
+        $regex = str_replace('\\{nomor_raw\\}', '(\\d+)', $regex);
+        $regex = str_replace('\\{jenis\\}', '[A-Z0-9_]+', $regex);
+        $regex = str_replace('\\{bulan\\}', '\\d{2}', $regex);
+        $regex = str_replace('\\{bulan_romawi\\}', '[IVX]+', $regex);
+        $regex = str_replace('\\{tahun\\}', '\\d{4}', $regex);
+        $regex = '/^' . $regex . '$/';
+
+        $maxSeq = 0;
+        foreach ($existingNomors as $nomor) {
+            if (preg_match($regex, $nomor, $matches)) {
+                $seq = (int) $matches[1];
+                if ($seq > $maxSeq) {
+                    $maxSeq = $seq;
+                }
+            }
+        }
+
+        // Simpan ke spk_counters untuk caching
+        SpkCounter::incrementTo($formatPattern, $tahun, $maxSeq);
+
+        return response()->json([
+            'last_number' => $maxSeq,
+            'next_number' => $maxSeq + 1,
+        ]);
+    }
+
     public function terapkanPenomoran(Request $request)
     {
         $mitraIds = $request->mitra_ids ?? [];
@@ -300,8 +353,9 @@ class SpkController extends Controller
             ->where('bulan_angka', '<=', $bulanAkhir)
             ->pluck('id');
 
-        $counter = $nomorStart;
         $savedCount = 0;
+        // Track max number used per format pattern
+        $formatMaxNumbers = [];
 
         // Parse composite key: each value is "mitraId_kegiatanId"
         $pairs = [];
@@ -337,8 +391,14 @@ class SpkController extends Controller
                 if (!empty($customNomors[$customKey])) {
                     $nomorDoc = trim($customNomors[$customKey]);
                 } else {
-                    $nomorDoc = $this->generateNomorDokumen($fmt, $counter, $bulanSpk, $tahunSpk, $shortName);
-                    $counter++;
+                    // Ambil counter berikutnya untuk format ini
+                    $nextNum = SpkCounter::getNextNumber($fmt, $tahunSpk);
+                    $nomorDoc = $this->generateNomorDokumen($fmt, $nextNum, $bulanSpk, $tahunSpk, $shortName);
+
+                    // Track max number per format
+                    if (!isset($formatMaxNumbers[$fmt]) || $nextNum > $formatMaxNumbers[$fmt]) {
+                        $formatMaxNumbers[$fmt] = $nextNum;
+                    }
                 }
 
                 foreach ($items as $item) {
@@ -349,6 +409,13 @@ class SpkController extends Controller
                     }
                 }
                 $savedCount++;
+            }
+        }
+
+        // Update counter per format per tahun
+        if ($savedCount > 0) {
+            foreach ($formatMaxNumbers as $fmt => $maxNum) {
+                SpkCounter::incrementTo($fmt, $tahunSpk, $maxNum);
             }
         }
 

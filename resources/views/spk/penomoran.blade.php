@@ -708,7 +708,29 @@ function initFormatOptions() {
 function onFormatSpkChanged(val) {
     document.getElementById('formatSpkInput').value = val;
     checkDeleteButtonVisibility();
-    updateLivePreview();
+
+    // Fetch counter dari server untuk pola ini
+    const tahunSpk = document.getElementById('tahunSpkInput').value || '{{ $tahun }}';
+    const jenisDok = document.getElementById('jenisDokumenSelect').value || 'spk';
+
+    fetch('{{ route("spk.penomoran.counter") }}?format=' + encodeURIComponent(val) + '&tahun=' + tahunSpk + '&jenis=' + jenisDok)
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('nomorAwalInput').value = data.next_number;
+            updateLivePreview();
+            // Update info counter
+            const infoContainer = document.getElementById('lastNomorInfoText');
+            if (data.last_number > 0) {
+                infoContainer.innerHTML = `<span class="text-success fw-semibold">
+                    <i class="bi bi-info-circle me-1"></i>Counter pola ini: <strong>${data.last_number}</strong> → mulai dari <strong>${data.next_number}</strong>
+                </span>`;
+            } else {
+                infoContainer.innerHTML = `<span class="text-muted"><i class="bi bi-info-circle me-1"></i>Pola ini belum ada di DB → mulai dari <strong>1</strong></span>`;
+            }
+        })
+        .catch(() => {
+            updateLivePreview();
+        });
 }
 
 function submitFilter() {
@@ -768,18 +790,17 @@ function updateLivePreview() {
     updateLastNomorInfo();
 }
 
-const maxSpkSeq = {{ $maxSpkSeq ?? 0 }};
-const maxBastSeq = {{ $maxBastSeq ?? 0 }};
-const lastSpkDoc = @json($lastSpkDoc ?? '');
-const lastBastDoc = @json($lastBastDoc ?? '');
-
 function setLanjutanNomor() {
-    const jenis = (document.getElementById('jenisDokumenSelect').value || 'spk').toLowerCase();
-    const curMax = (jenis === 'bast') ? maxBastSeq : maxSpkSeq;
-    const nextNomor = (curMax > 0) ? (curMax + 1) : 1;
-    
-    document.getElementById('nomorAwalInput').value = nextNomor;
-    updateLivePreview();
+    const format = document.getElementById('formatSpkInput').value;
+    const tahunSpk = document.getElementById('tahunSpkInput').value || '{{ $tahun }}';
+    const jenisDok = document.getElementById('jenisDokumenSelect').value || 'spk';
+
+    fetch('{{ route("spk.penomoran.counter") }}?format=' + encodeURIComponent(format) + '&tahun=' + tahunSpk + '&jenis=' + jenisDok)
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('nomorAwalInput').value = data.next_number;
+            updateLivePreview();
+        });
 }
 
 function setResetNomor() {
@@ -788,20 +809,22 @@ function setResetNomor() {
 }
 
 function updateLastNomorInfo() {
-    const jenis = (document.getElementById('jenisDokumenSelect').value || 'spk').toLowerCase();
-    const curMax = (jenis === 'bast') ? maxBastSeq : maxSpkSeq;
-    const curDoc = (jenis === 'bast') ? lastBastDoc : lastSpkDoc;
-    const infoContainer = document.getElementById('lastNomorInfoText');
-    
-    if (!infoContainer) return;
-    
-    if (curMax > 0) {
-        infoContainer.innerHTML = `<span class="text-success fw-semibold text-truncate" title="Nomor terakhir: ${curDoc}">
-            <i class="bi bi-info-circle me-1"></i>Terakhir di DB: <strong>${curDoc}</strong> (No. ${curMax})
-        </span>`;
-    } else {
-        infoContainer.innerHTML = `<span class="text-muted"><i class="bi bi-info-circle me-1"></i>Belum ada nomor di DB</span>`;
-    }
+    const format = document.getElementById('formatSpkInput').value;
+    const tahunSpk = document.getElementById('tahunSpkInput').value || '{{ $tahun }}';
+    const jenisDok = document.getElementById('jenisDokumenSelect').value || 'spk';
+
+    fetch('{{ route("spk.penomoran.counter") }}?format=' + encodeURIComponent(format) + '&tahun=' + tahunSpk + '&jenis=' + jenisDok)
+        .then(r => r.json())
+        .then(data => {
+            const infoContainer = document.getElementById('lastNomorInfoText');
+            if (data.last_number > 0) {
+                infoContainer.innerHTML = `<span class="text-success fw-semibold text-truncate">
+                    <i class="bi bi-info-circle me-1"></i>Terakhir di DB: <strong>No. ${data.last_number}</strong> → mulai dari <strong>${data.next_number}</strong>
+                </span>`;
+            } else {
+                infoContainer.innerHTML = `<span class="text-muted"><i class="bi bi-info-circle me-1"></i>Belum ada nomor di DB → mulai dari <strong>1</strong></span>`;
+            }
+        });
 }
 
 function toggleSelectAll(source) {
