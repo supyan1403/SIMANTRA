@@ -235,12 +235,20 @@ class SpkController extends Controller
             ['path' => LengthAwarePaginator::resolveCurrentPath(), 'query' => $request->query()]
         );
 
+        // Build kegiatanMeta mapping: kegiatan_id → { format_spk, short_name }
+        $kegiatanMeta = $kegiatanOptions->mapWithKeys(fn($k) => [
+            $k->id => [
+                'format_spk' => $k->format_spk ?: ($formatSpk ?: 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}'),
+                'short_name' => $k->short_name ?? '',
+            ]
+        ])->toArray();
+
         return view('spk.penomoran', compact(
             'tahunList', 'tahun', 'monthOptions', 'bulanAwal', 'bulanAkhir',
             'bidangOptions', 'bidangId', 'kegiatanOptions', 'kegiatanId', 'search',
             'jenisDokumen', 'formatSpk', 'nomorAwal', 'bulanSpk', 'tahunSpk',
             'maxSpkSeq', 'lastSpkDoc', 'maxBastSeq', 'lastBastDoc',
-            'spkList', 'allSpkList'
+            'spkList', 'allSpkList', 'kegiatanMeta'
         ));
     }
 
@@ -320,11 +328,16 @@ class SpkController extends Controller
             $grouped = $allItems->groupBy('kegiatan_id');
 
             foreach ($grouped as $kegId => $items) {
+                // Ambil format dari kegiatan, fallback ke global format
+                $kegiatanModel = \App\Models\Kegiatan::find($kegId);
+                $fmt = $kegiatanModel?->format_spk ?: $formatSpk;
+                $shortName = $kegiatanModel?->short_name ?? '';
+
                 $customKey = $mId . '_' . $kegId;
                 if (!empty($customNomors[$customKey])) {
                     $nomorDoc = trim($customNomors[$customKey]);
                 } else {
-                    $nomorDoc = $this->generateNomorDokumen($formatSpk, $counter, $bulanSpk, $tahunSpk, $jenisDokumen);
+                    $nomorDoc = $this->generateNomorDokumen($fmt, $counter, $bulanSpk, $tahunSpk, $shortName);
                     $counter++;
                 }
 
@@ -342,7 +355,7 @@ class SpkController extends Controller
         return redirect()->back()->with('success', "Berhasil menerapkan & menyimpan nomor resmi untuk {$savedCount} mitra ke database.");
     }
 
-    public function generateNomorDokumen(string $format, int $nomorUrut, int $bulan, string $tahun, string $jenisDokumen = 'SPK'): string
+    public function generateNomorDokumen(string $format, int $nomorUrut, int $bulan, string $tahun, string $kegiatanShortName = ''): string
     {
         if (empty($format) || $format === 'default') {
             $format = 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}';
@@ -354,7 +367,7 @@ class SpkController extends Controller
             '{bulan}' => sprintf('%02d', $bulan),
             '{bulan_romawi}' => $this->bulanRomawi($bulan),
             '{tahun}' => $tahun,
-            '{jenis}' => strtoupper($jenisDokumen),
+            '{jenis}' => strtoupper($kegiatanShortName ?: 'SPK'),
         ];
 
         $result = $format;
@@ -1015,7 +1028,12 @@ class SpkController extends Controller
         $periodeLabel = $this->bulanNama[$bulanAwal] . ($bulanAwal !== $bulanAkhir ? ' s.d ' . $this->bulanNama[$bulanAkhir] : '') . ' ' . $tahun;
         $docTmpl = $templateId ? DocumentTemplate::find($templateId) : null;
         $jenisDokumen = ($docTmpl && $docTmpl->jenis_dokumen) ? $docTmpl->jenis_dokumen : ($request->jenis_dokumen ?? 'spk');
-        $nomorDokumen = $this->generateNomorDokumen($formatSpk, $nomorAwal, $bulanSpk, $tahunSpk, $jenisDokumen);
+        
+        // Ambil format & short_name dari kegiatan
+        $firstKegiatan = $items->first()?->kegiatan;
+        $fmt = $firstKegiatan?->format_spk ?: $formatSpk;
+        $shortName = $firstKegiatan?->short_name ?? '';
+        $nomorDokumen = $this->generateNomorDokumen($fmt, $nomorAwal, $bulanSpk, $tahunSpk, $shortName);
 
         $docTmpl = $templateId ? DocumentTemplate::find($templateId) : null;
         $isBast = ($docTmpl && $docTmpl->jenis_dokumen === 'bast') || ($request->jenis_dokumen === 'bast');

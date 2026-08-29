@@ -30,17 +30,35 @@
                         @error('nama') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label for="short_name" class="form-label fw-bold">Short Name (Untuk Nomor SPK)</label>
+                            <input type="text" class="form-control @error('short_name') is-invalid @enderror" id="short_name" name="short_name" value="{{ old('short_name', $kegiatan->short_name ?? '') }}" placeholder="Contoh: SUSENAS, SAKERNAS, SURKON">
+                            <div class="form-text">Nama pendek yang otomatis muncul di nomor SPK/BAST. Contoh: SUSENAS</div>
+                            @error('short_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label for="bidang_id" class="form-label fw-bold">Bidang / Tim Kerja <span class="text-danger">*</span></label>
+                            <select class="form-select @error('bidang_id') is-invalid @enderror" id="bidang_id" name="bidang_id" required>
+                                <option value="">-- Pilih Bidang --</option>
+                                @foreach($bidangs as $b)
+                                    <option value="{{ $b->id }}" {{ old('bidang_id', $kegiatan->bidang_id ?? '') == $b->id ? 'selected' : '' }}>
+                                        {{ $b->nama }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('bidang_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                    </div>
+
                     <div class="mb-4">
-                        <label for="bidang_id" class="form-label fw-bold">Bidang / Tim Kerja <span class="text-danger">*</span></label>
-                        <select class="form-select @error('bidang_id') is-invalid @enderror" id="bidang_id" name="bidang_id" required>
-                            <option value="">-- Pilih Bidang --</option>
-                            @foreach($bidangs as $b)
-                                <option value="{{ $b->id }}" {{ old('bidang_id', $kegiatan->bidang_id ?? '') == $b->id ? 'selected' : '' }}>
-                                    {{ $b->nama }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('bidang_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <label for="format_spk" class="form-label fw-bold">Format Pola Nomor SPK</label>
+                        <input type="text" class="form-control font-monospace @error('format_spk') is-invalid @enderror" id="format_spk" name="format_spk" value="{{ old('format_spk', $kegiatan->format_spk ?? 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}') }}" placeholder="B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}">
+                        <div class="form-text">
+                            Tag tersedia: <code>{nomor}</code> = nomor urut 4 digit, <code>{jenis}</code> = short name kegiatan, <code>{bulan}</code> = bulan (01-12), <code>{tahun}</code> = tahun. 
+                            Kosongkan untuk pakai format default.
+                        </div>
+                        @error('format_spk') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="row">

@@ -69,6 +69,8 @@ class KegiatanController extends Controller
 
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
+            'short_name' => 'nullable|string|max:50',
+            'format_spk' => 'nullable|string|max:255',
             'bidang_id' => 'required|exists:bidangs,id',
             'kode_mata_anggaran' => 'nullable|string|max:100',
             'tahun' => 'nullable|string|max:4',
@@ -106,6 +108,8 @@ class KegiatanController extends Controller
 
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
+            'short_name' => 'nullable|string|max:50',
+            'format_spk' => 'nullable|string|max:255',
             'bidang_id' => 'required|exists:bidangs,id',
             'kode_mata_anggaran' => 'nullable|string|max:100',
             'tahun' => 'nullable|string|max:4',

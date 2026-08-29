@@ -214,7 +214,7 @@
                     <ul class="mb-0 ps-3">
                         <li><code>{nomor}</code> : Nomor urut 4 digit (misal: 0001)</li>
                         <li><code>{nomor_raw}</code> : Nomor urut tanpa nol (misal: 1)</li>
-                        <li><code>{jenis}</code> : Jenis dokumen (SPK / BAST)</li>
+                        <li><code>{jenis}</code> : Short name kegiatan (SUSENAS, SAKERNAS, dll)</li>
                         <li><code>{bulan}</code> : Dua digit bulan (01, 02, ...)</li>
                         <li><code>{bulan_romawi}</code> : Bulan romawi (I, II, III, ...)</li>
                         <li><code>{tahun}</code> : Tahun berjalan (2026)</li>
@@ -443,6 +443,7 @@ const romawiMap = {
 };
 
 const allKegiatansData = {!! json_encode($kegiatanOptions) !!};
+const kegiatanMetaMap = {!! json_encode($kegiatanMeta) !!};
 const allSpkMitraList = {!! json_encode($allSpkList ?? $spkList) !!};
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -734,7 +735,19 @@ function updateLivePreview() {
     const nomorAwal = parseInt(document.getElementById('nomorAwalInput').value) || 1;
     const bulanSpk = parseInt(document.getElementById('bulanSpkSelect').value) || 1;
     const tahunSpk = document.getElementById('tahunSpkInput').value || '{{ $tahun }}';
-    const jenis = (document.getElementById('jenisDokumenSelect').value || 'spk').toUpperCase();
+
+    // Coba ambil short_name dari kegiatan pertama yang dicentang
+    const firstChecked = document.querySelector('.mitra-checkbox:checked');
+    let shortName = '';
+    if (firstChecked) {
+        const parts = firstChecked.value.split('_');
+        const kId = parts.slice(1).join('_');
+        const meta = kegiatanMetaMap[kId];
+        if (meta) {
+            shortName = meta.short_name || '';
+            if (meta.format_spk) pattern = meta.format_spk;
+        }
+    }
 
     if (document.getElementById('formBulanSpk')) document.getElementById('formBulanSpk').value = bulanSpk;
     if (document.getElementById('formTahunSpk')) document.getElementById('formTahunSpk').value = tahunSpk;
@@ -749,7 +762,7 @@ function updateLivePreview() {
         .replace(/{bulan}/g, bulanPad)
         .replace(/{bulan_romawi}/g, bulanRom)
         .replace(/{tahun}/g, tahunSpk)
-        .replace(/{jenis}/g, jenis);
+        .replace(/{jenis}/g, (shortName || 'SPK').toUpperCase());
 
     document.getElementById('livePreviewBadge').textContent = preview;
     updateLastNomorInfo();
@@ -809,11 +822,10 @@ function bukaModalPratinjau() {
         return;
     }
 
-    const pattern = document.getElementById('formatSpkInput').value || 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}';
+    const globalPattern = document.getElementById('formatSpkInput').value || 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}';
     let nomorStart = parseInt(document.getElementById('nomorAwalInput').value) || 1;
     const bulanSpk = parseInt(document.getElementById('bulanSpkSelect').value) || 1;
     const tahunSpk = document.getElementById('tahunSpkInput').value || '{{ $tahun }}';
-    const jenis = (document.getElementById('jenisDokumenSelect').value || 'spk').toUpperCase();
 
     const bulanPad = String(bulanSpk).padStart(2, '0');
     const bulanRom = romawiMap[bulanSpk] || 'I';
@@ -830,14 +842,19 @@ function bukaModalPratinjau() {
         const mitraData = allSpkMitraList.find(m => String(m.mitra_id) === String(mitraId) && String(m.kegiatan_id) === String(kegiatanId));
         if (!mitraData) return;
 
+        // Ambil format & short_name dari kegiatan
+        const meta = kegiatanMetaMap[mitraData.kegiatan_id] || {};
+        const fmt = meta.format_spk || globalPattern;
+        const shortName = meta.short_name || '';
+
         const nomorPad = String(currentCounter).padStart(4, '0');
-        const defaultNomor = pattern
+        const defaultNomor = fmt
             .replace(/{nomor}/g, nomorPad)
             .replace(/{nomor_raw}/g, currentCounter)
             .replace(/{bulan}/g, bulanPad)
             .replace(/{bulan_romawi}/g, bulanRom)
             .replace(/{tahun}/g, tahunSpk)
-            .replace(/{jenis}/g, jenis);
+            .replace(/{jenis}/g, shortName.toUpperCase());
 
         const row = document.createElement('tr');
         row.innerHTML = `

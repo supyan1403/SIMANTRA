@@ -4,6 +4,8 @@ use Illuminate\Database\Eloquent\Model;
 class Kegiatan extends Model {
     protected $fillable = [
         'nama', 
+        'short_name',
+        'format_spk',
         'bidang_id', 
         'kode_mata_anggaran',
         'tahun',
