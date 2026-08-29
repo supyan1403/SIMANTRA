@@ -167,8 +167,8 @@
                             <tr>
                                 <th class="text-center" style="width: 50px;">URUT</th>
                                 <th>NAMA MITRA</th>
+                                <th>KEGIATAN</th>
                                 <th>ID SOBAT</th>
-                                <th class="text-center">JML KEGIATAN</th>
                                 <th class="text-end">TOTAL HONOR</th>
                                 <th style="width: 380px;">NOMOR RESMI YANG AKAN DISIMPAN (BISA DIEDIT)</th>
                             </tr>
@@ -338,7 +338,7 @@
             <div class="d-flex align-items-center gap-3">
                 <input type="checkbox" id="selectAllMitra" class="form-check-input mt-0" style="width: 20px; height: 20px; cursor: pointer;" onclick="toggleSelectAll(this)">
                 <label for="selectAllMitra" class="fw-bold text-dark mb-0 fs-6" style="cursor: pointer;">
-                    PILIH SEMUA MITRA <span class="badge bg-light text-primary border ms-1">{{ $spkList->count() }} Mitra Ditemukan</span>
+                    PILIH SEMUA MITRA <span class="badge bg-light text-primary border ms-1">{{ $spkList->count() }} Item Ditemukan</span>
                 </label>
             </div>
             <div>
@@ -355,8 +355,8 @@
                     <tr>
                         <th class="ps-4 text-center" style="width: 50px;">PILIH</th>
                         <th>NAMA MITRA</th>
+                        <th>KEGIATAN</th>
                         <th>ID SOBAT</th>
-                        <th class="text-center">JML KEGIATAN</th>
                         <th class="text-end">TOTAL HONOR</th>
                         <th>STATUS NOMOR SPK SAAT INI</th>
                         <th>STATUS NOMOR BAST SAAT INI</th>
@@ -366,17 +366,18 @@
                     @forelse($spkList as $idx => $spk)
                         <tr>
                             <td class="ps-4 text-center">
-                                <input type="checkbox" name="mitra_ids[]" value="{{ $spk->mitra_id }}" form="penomoranForm" class="form-check-input mitra-checkbox" style="width: 18px; height: 18px; cursor: pointer;">
+                                <input type="checkbox" name="mitra_ids[]" value="{{ $spk->mitra_id }}_{{ $spk->kegiatan_id }}" form="penomoranForm" class="form-check-input mitra-checkbox" style="width: 18px; height: 18px; cursor: pointer;">
                             </td>
                             <td>
                                 <div class="fw-bold text-dark fs-6">{{ $spk->mitra->nama }}</div>
                                 <div class="text-muted extra-small">{{ $spk->mitra->pekerjaan ?? 'Mitra BPS' }}</div>
                             </td>
                             <td>
-                                <span class="badge bg-light text-dark border font-monospace">{{ $spk->mitra->id_sobat ?? '-' }}</span>
+                                <div class="fw-semibold text-dark">{{ $spk->kegiatan->nama }}</div>
+                                <div class="text-muted extra-small">{{ $spk->kegiatan->bidang->nama ?? '-' }}</div>
                             </td>
-                            <td class="text-center">
-                                <span class="badge bg-primary bg-opacity-10 text-primary fw-bold">{{ $spk->total_kegiatan }} Kegiatan</span>
+                            <td>
+                                <span class="badge bg-light text-dark border font-monospace">{{ $spk->mitra->id_sobat ?? '-' }}</span>
                             </td>
                             <td class="text-end fw-bold text-success fs-6">
                                 Rp {{ number_format($spk->total_honor, 0, ',', '.') }}
@@ -419,7 +420,7 @@
         @if($spkList->hasPages())
             <div class="card-footer bg-white border-top py-3 px-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
                 <div class="text-muted small">
-                    Menampilkan <strong>{{ $spkList->firstItem() ?? 0 }}</strong> sampai <strong>{{ $spkList->lastItem() ?? 0 }}</strong> dari <strong>{{ $spkList->total() }}</strong> mitra
+                    Menampilkan <strong>{{ $spkList->firstItem() ?? 0 }}</strong> sampai <strong>{{ $spkList->lastItem() ?? 0 }}</strong> dari <strong>{{ $spkList->total() }}</strong> item
                 </div>
                 <div>
                     {{ $spkList->links('pagination::bootstrap-5') }}
@@ -812,8 +813,10 @@ function bukaModalPratinjau() {
     let currentCounter = nomorStart;
 
     checkedBoxes.forEach((cb, idx) => {
-        const mitraId = cb.value;
-        const mitraData = allSpkMitraList.find(m => String(m.mitra_id) === String(mitraId));
+        const parts = cb.value.split('_');
+        const mitraId = parts[0];
+        const kegiatanId = parts.slice(1).join('_');
+        const mitraData = allSpkMitraList.find(m => String(m.mitra_id) === String(mitraId) && String(m.kegiatan_id) === String(kegiatanId));
         if (!mitraData) return;
 
         const nomorPad = String(currentCounter).padStart(4, '0');
@@ -833,10 +836,11 @@ function bukaModalPratinjau() {
                 <div class="text-muted extra-small">${mitraData.mitra.pekerjaan || 'Mitra BPS'}</div>
             </td>
             <td>
-                <span class="badge bg-light text-dark border font-monospace">${mitraData.mitra.id_sobat || '-'}</span>
+                <div class="fw-semibold text-dark small">${mitraData.kegiatan.nama}</div>
+                <div class="text-muted extra-small">${mitraData.kegiatan.bidang ? mitraData.kegiatan.bidang.nama : '-'}</div>
             </td>
-            <td class="text-center">
-                <span class="badge bg-primary bg-opacity-10 text-primary">${mitraData.total_kegiatan} Kegiatan</span>
+            <td>
+                <span class="badge bg-light text-dark border font-monospace">${mitraData.mitra.id_sobat || '-'}</span>
             </td>
             <td class="text-end fw-bold text-success">
                 Rp ${new Intl.NumberFormat('id-ID').format(mitraData.total_honor)}
@@ -844,8 +848,9 @@ function bukaModalPratinjau() {
             <td>
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-white text-muted"><i class="bi bi-pencil-fill text-warning"></i></span>
-                    <input type="text" name="preview_custom_nomor[${mitraId}]" 
+                    <input type="text" name="preview_custom_nomor[${mitraId}_${kegiatanId}]" 
                            data-mitra-id="${mitraId}" 
+                           data-kegiatan-id="${kegiatanId}"
                            class="form-control font-monospace fw-bold text-primary border-primary preview-nomor-input" 
                            value="${defaultNomor}">
                 </div>
@@ -866,10 +871,11 @@ function submitFinalFromPreview() {
     const inputs = document.querySelectorAll('.preview-nomor-input');
     inputs.forEach(inp => {
         const mitraId = inp.getAttribute('data-mitra-id');
+        const kegiatanId = inp.getAttribute('data-kegiatan-id');
         const val = inp.value;
         const hiddenEl = document.createElement('input');
         hiddenEl.type = 'hidden';
-        hiddenEl.name = `custom_nomors[${mitraId}]`;
+        hiddenEl.name = `custom_nomors[${mitraId}_${kegiatanId}]`;
         hiddenEl.value = val;
         hiddenEl.className = 'hidden-custom-nomor-input';
         mainForm.appendChild(hiddenEl);
@@ -885,7 +891,7 @@ function eksekusiResetNomor() {
         return;
     }
 
-    if (!confirm(`Apakah Anda yakin ingin MERESET (MENGOSONGKAN) nomor SPK & BAST untuk ${checkedBoxes.length} mitra terpilih?`)) {
+    if (!confirm(`Apakah Anda yakin ingin MERESET (MENGOSONGKAN) nomor SPK & BAST untuk ${checkedBoxes.length} item terpilih?`)) {
         return;
     }
 
@@ -917,21 +923,22 @@ function eksekusiResetNomor() {
     bAkhirInput.value = "{{ $bulanAkhir }}";
     form.appendChild(bAkhirInput);
 
-    const kegiatanId = document.getElementById('hiddenKegiatanIdInput') ? document.getElementById('hiddenKegiatanIdInput').value : '';
-    if (kegiatanId) {
-        const kegInput = document.createElement('input');
-        kegInput.type = 'hidden';
-        kegInput.name = 'kegiatan_id';
-        kegInput.value = kegiatanId;
-        form.appendChild(kegInput);
-    }
-
     checkedBoxes.forEach(cb => {
+        const parts = cb.value.split('_');
+        const mId = parts[0];
+        const kId = parts.slice(1).join('_');
+
         const mInput = document.createElement('input');
         mInput.type = 'hidden';
         mInput.name = 'mitra_ids[]';
-        mInput.value = cb.value;
+        mInput.value = mId;
         form.appendChild(mInput);
+
+        const kInput = document.createElement('input');
+        kInput.type = 'hidden';
+        kInput.name = 'kegiatan_ids[]';
+        kInput.value = kId;
+        form.appendChild(kInput);
     });
 
     document.body.appendChild(form);

@@ -137,6 +137,11 @@ class KegiatanController extends Controller
 
     public function byBidang($bidangId)
     {
+        $user = auth()->user();
+        if ($user && $user->role === 'operator' && $user->bidang_id && $bidangId != $user->bidang_id) {
+            return response()->json([]);
+        }
+
         $kegiatans = Kegiatan::where('bidang_id', $bidangId)->orderBy('nama')->get(['id', 'nama', 'kode_mata_anggaran']);
         return response()->json($kegiatans);
     }

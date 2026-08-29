@@ -1,11 +1,14 @@
 <?php
 namespace App\Http\Controllers;
+use App\Traits\HasBidangScope;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ImportController extends Controller
 {
+    use HasBidangScope;
+
     public function index()
     {
         return view('import.index');
@@ -193,11 +196,20 @@ class ImportController extends Controller
                         $kegiatanName = trim($kegiatanNames[0]);
                         
                         if (!empty($kegiatanName) && !str_contains($kegiatanName, '#REF!')) {
-                            $bidangFirst = \App\Models\Bidang::first();
-                            $kegiatan = \App\Models\Kegiatan::firstOrCreate(
+                            $user = auth()->user();
+                            $targetBidangId = ($user && $user->role === 'operator' && $user->bidang_id)
+                                ? $user->bidang_id
+                                : (\App\Models\Bidang::first()->id ?? 1);
+
+                            $existingKegiatan = \App\Models\Kegiatan::where('nama', $kegiatanName)->first();
+                            if ($existingKegiatan && $user && $user->role === 'operator' && $user->bidang_id && $existingKegiatan->bidang_id != $user->bidang_id) {
+                                continue;
+                            }
+
+                            $kegiatan = $existingKegiatan ?? \App\Models\Kegiatan::create(
                                 ['nama' => $kegiatanName],
                                 [
-                                    'bidang_id' => $bidangFirst->id ?? 1,
+                                    'bidang_id' => $targetBidangId,
                                     'tahun' => $year,
                                 ]
                             );

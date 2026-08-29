@@ -244,10 +244,10 @@
                     <tr>
                         <th class="ps-4 text-center py-3 sticky-col-1">PILIH</th>
                         <th class="py-3 sticky-col-2">NAMA MITRA</th>
+                        <th class="py-3" style="min-width: 200px;">KEGIATAN</th>
                         <th class="py-3" style="min-width: 120px;">ID SOBAT</th>
                         <th class="py-3" style="min-width: 140px;">NO. HP</th>
                         <th class="py-3" style="min-width: 320px;">NO. SPK / BAST RESMI</th>
-                        <th class="text-center py-3" style="min-width: 100px;">KEGIATAN</th>
                         <th class="text-end py-3" style="min-width: 130px;">TOTAL HONOR</th>
                         <th class="text-center pe-4 py-3" style="min-width: 290px;">AKSI UNDUH DOKUMEN</th>
                     </tr>
@@ -262,14 +262,18 @@
                         <tr class="{{ !$isReady ? 'bg-light bg-opacity-40' : '' }}">
                             <td class="ps-4 text-center py-3 sticky-col-1">
                                 @if($isReady)
-                                    <input type="checkbox" name="mitra_ids[]" value="{{ $spk->mitra_id }}" form="bulkForm" class="form-check-input mitra-checkbox" style="width: 18px; height: 18px; cursor: pointer;">
+                                    <input type="checkbox" name="mitra_ids[]" value="{{ $spk->mitra_id }}_{{ $spk->kegiatan_id }}" form="bulkForm" class="form-check-input mitra-checkbox" style="width: 18px; height: 18px; cursor: pointer;">
                                 @else
-                                    <input type="checkbox" disabled class="form-check-input opacity-25" style="width: 18px; height: 18px; cursor: not-allowed;" title="Mitra belum memiliki nomor resmi.">
+                                    <input type="checkbox" disabled class="form-check-input opacity-25" style="width: 18px; height: 18px; cursor: not-allowed;" title="Belum memiliki nomor resmi.">
                                 @endif
                             </td>
                             <td class="py-3 sticky-col-2">
                                 <div class="fw-bold text-dark fs-6">{{ $spk->mitra->nama }}</div>
                                 <div class="text-muted extra-small text-truncate" style="max-width: 280px;">{{ $spk->mitra->pekerjaan ?? 'Mitra BPS' }}</div>
+                            </td>
+                            <td class="py-3">
+                                <div class="fw-semibold text-dark">{{ $spk->kegiatan->nama }}</div>
+                                <div class="text-muted extra-small">{{ $spk->kegiatan->bidang->nama ?? '-' }}</div>
                             </td>
                             <td class="py-3 text-nowrap">
                                 <span class="badge bg-light text-dark border font-monospace px-2 py-1.5">{{ $spk->mitra->id_sobat ?? '-' }}</span>
@@ -294,22 +298,19 @@
                                     </span>
                                 @endif
                             </td>
-                            <td class="text-center py-3 text-nowrap">
-                                <span class="badge bg-primary bg-opacity-10 text-primary fw-bold px-2 py-1">{{ $spk->total_kegiatan }} Kegiatan</span>
-                            </td>
                             <td class="text-end fw-bold text-success fs-6 py-3 text-nowrap">
                                 Rp {{ number_format($spk->total_honor, 0, ',', '.') }}
                             </td>
                             <td class="text-center pe-4 py-3 text-nowrap">
                                 @if($isReady)
                                     <div class="d-inline-flex align-items-center gap-2 shadow-none">
-                                        <a href="javascript:void(0)" onclick="cetakIndividu('{{ $spk->mitra_id }}')" class="btn btn-sm btn-outline-danger fw-bold px-3 py-1.5 rounded-3" title="Cetak SPK Mitra Ini (Buka Jendela Print)">
+                                        <a href="javascript:void(0)" onclick="cetakIndividu('{{ $spk->mitra_id }}', '{{ $spk->kegiatan_id }}')" class="btn btn-sm btn-outline-danger fw-bold px-3 py-1.5 rounded-3" title="Cetak SPK Kegiatan Ini (Buka Jendela Print)">
                                             <i class="bi bi-printer-fill me-1"></i> Cetak
                                         </a>
-                                        <a href="javascript:void(0)" onclick="unduhWordIndividu('{{ $spk->mitra_id }}')" class="btn btn-sm btn-primary fw-bold px-3 py-1.5 rounded-3" title="Download File SPK Word (.docx) Otentik">
+                                        <a href="javascript:void(0)" onclick="unduhWordIndividu('{{ $spk->mitra_id }}', '{{ $spk->kegiatan_id }}')" class="btn btn-sm btn-primary fw-bold px-3 py-1.5 rounded-3" title="Download File SPK Word (.docx) Otentik">
                                             <i class="bi bi-file-earmark-word-fill me-1"></i> Unduh Word
                                         </a>
-                                        <a href="javascript:void(0)" onclick="unduhPdfIndividu('{{ $spk->mitra_id }}')" class="btn btn-sm btn-danger fw-bold px-3 py-1.5 rounded-3" title="Download File SPK PDF Otentik (Hasil Konversi Word)">
+                                        <a href="javascript:void(0)" onclick="unduhPdfIndividu('{{ $spk->mitra_id }}', '{{ $spk->kegiatan_id }}')" class="btn btn-sm btn-danger fw-bold px-3 py-1.5 rounded-3" title="Download File SPK PDF Otentik (Hasil Konversi Word)">
                                             <i class="bi bi-file-earmark-pdf-fill me-1"></i> Unduh PDF
                                         </a>
                                     </div>
@@ -335,7 +336,7 @@
         @if($spkList->hasPages())
             <div class="card-footer bg-white border-top py-3 px-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
                 <div class="text-muted small">
-                    Menampilkan <strong>{{ $spkList->firstItem() ?? 0 }}</strong> sampai <strong>{{ $spkList->lastItem() ?? 0 }}</strong> dari <strong>{{ $spkList->total() }}</strong> mitra
+                    Menampilkan <strong>{{ $spkList->firstItem() ?? 0 }}</strong> sampai <strong>{{ $spkList->lastItem() ?? 0 }}</strong> dari <strong>{{ $spkList->total() }}</strong> item
                 </div>
                 <div>
                     {{ $spkList->links('pagination::bootstrap-5') }}
@@ -481,36 +482,33 @@ function toggleSelectAll(source) {
     checkboxes.forEach(cb => cb.checked = source.checked);
 }
 
-function cetakIndividu(mitraId) {
+function cetakIndividu(mitraId, kegiatanId) {
     const templateId = "{{ $currentTemplateId }}";
     const bulanAwal = "{{ $bulanAwal }}";
     const bulanAkhir = "{{ $bulanAkhir }}";
     const tahun = "{{ $tahun }}";
-    const kegiatanId = document.getElementById('hiddenKegiatanIdInput') ? document.getElementById('hiddenKegiatanIdInput').value : '';
     const tanggalDokumen = document.getElementById('filterTanggalDokumen') ? document.getElementById('filterTanggalDokumen').value : '';
 
     const url = `{{ url('/spk') }}/${mitraId}/cetak-utama?tahun=${tahun}&bulan_awal=${bulanAwal}&bulan_akhir=${bulanAkhir}&template_id=${templateId}&kegiatan_id=${kegiatanId}&tanggal_spk=${tanggalDokumen}`;
     window.open(url, '_blank');
 }
 
-function unduhWordIndividu(mitraId) {
+function unduhWordIndividu(mitraId, kegiatanId) {
     const templateId = "{{ $currentTemplateId }}";
     const bulanAwal = "{{ $bulanAwal }}";
     const bulanAkhir = "{{ $bulanAkhir }}";
     const tahun = "{{ $tahun }}";
-    const kegiatanId = document.getElementById('hiddenKegiatanIdInput') ? document.getElementById('hiddenKegiatanIdInput').value : '';
     const tanggalDokumen = document.getElementById('filterTanggalDokumen') ? document.getElementById('filterTanggalDokumen').value : '';
 
     const url = `{{ url('/spk') }}/${mitraId}/download-pdf?tahun=${tahun}&bulan_awal=${bulanAwal}&bulan_akhir=${bulanAkhir}&template_id=${templateId}&kegiatan_id=${kegiatanId}&tanggal_spk=${tanggalDokumen}&format=docx`;
     window.location.href = url;
 }
 
-function unduhPdfIndividu(mitraId) {
+function unduhPdfIndividu(mitraId, kegiatanId) {
     const templateId = "{{ $currentTemplateId }}";
     const bulanAwal = "{{ $bulanAwal }}";
     const bulanAkhir = "{{ $bulanAkhir }}";
     const tahun = "{{ $tahun }}";
-    const kegiatanId = document.getElementById('hiddenKegiatanIdInput') ? document.getElementById('hiddenKegiatanIdInput').value : '';
     const tanggalDokumen = document.getElementById('filterTanggalDokumen') ? document.getElementById('filterTanggalDokumen').value : '';
 
     const url = `{{ url('/spk') }}/${mitraId}/download-pdf?tahun=${tahun}&bulan_awal=${bulanAwal}&bulan_akhir=${bulanAkhir}&template_id=${templateId}&kegiatan_id=${kegiatanId}&tanggal_spk=${tanggalDokumen}&format=pdf`;

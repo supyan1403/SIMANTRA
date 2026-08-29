@@ -206,6 +206,7 @@
             </div>
         </div>
     </div>
+    @if($isAdmin)
     <div class="col-6 col-md-3">
         <div class="card border-0 shadow-sm">
             <div class="card-body d-flex align-items-center justify-content-between">
@@ -217,6 +218,7 @@
             </div>
         </div>
     </div>
+    @endif
     <div class="col-6 col-md-3">
         <div class="card border-0 shadow-sm">
             <div class="card-body d-flex align-items-center justify-content-between">
@@ -407,24 +409,6 @@
     </div>
     <div class="card-body p-4">
         @if($mitraProfile)
-            <div class="d-flex align-items-center justify-content-between mb-3 bg-light p-3 rounded-3 border">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-file-earmark-pdf-fill text-danger fs-4"></i>
-                    <div>
-                        <div class="fw-bold text-dark small">Cetak Dokumen SPK: {{ $mitraProfile->nama }}</div>
-                        <div class="text-muted extra-small">Cetak Surat Perjanjian Kerja & Lampiran Rincian Tugas untuk periode terpilih</div>
-                    </div>
-                </div>
-                <div class="btn-group">
-                    <a href="{{ route('spk.cetak-utama', array_filter(['mitra' => $mitraProfile->id, 'tahun' => $mTahun, 'bulan_awal' => $mBulanAwal, 'bulan_akhir' => $mBulanAkhir, 'kegiatan_id' => $mKegiatanId])) }}" target="_blank" class="btn btn-sm btn-danger fw-bold shadow-sm">
-                        <i class="bi bi-printer me-1"></i> Cetak SPK Utama
-                    </a>
-                    <a href="{{ route('spk.cetak-lampiran', array_filter(['mitra' => $mitraProfile->id, 'tahun' => $mTahun, 'bulan_awal' => $mBulanAwal, 'bulan_akhir' => $mBulanAkhir, 'kegiatan_id' => $mKegiatanId])) }}" target="_blank" class="btn btn-sm btn-primary fw-bold shadow-sm">
-                        <i class="bi bi-paperclip me-1"></i> Cetak Lampiran
-                    </a>
-                </div>
-            </div>
-
             <div class="row g-3 mb-4 align-items-stretch">
                 <div class="col-md-3">
                     <div class="border p-3 rounded-3 h-100 d-flex flex-column justify-content-center bg-white shadow-sm">
@@ -854,24 +838,9 @@
                 @endif
             </div>
             <div class="modal-footer bg-light py-2">
-                @if($mItem->jumlah_alokasi_periode > 0)
-                    <a href="{{ route('spk.cetak-utama', array_filter(['mitra' => $mItem->id, 'tahun' => $sTahun, 'bulan_awal' => $sBulanAwal, 'bulan_akhir' => $sBulanAkhir, 'kegiatan_id' => $sKegiatanId])) }}" target="_blank" class="btn btn-sm btn-danger fw-bold me-auto">
-                        <i class="bi bi-printer me-1"></i> Cetak SPK
-                    </a>
-                @endif
                 <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Tutup</button>
             </div>
         </div>
-                    @if($mItem->jumlah_alokasi_periode > 0)
-                                <a href="{{ route('spk.cetak-utama', array_filter(['mitra' => $mItem->id, 'tahun' => $sTahun, 'bulan_awal' => $sBulanAwal, 'bulan_akhir' => $sBulanAkhir, 'kegiatan_id' => $sKegiatanId])) }}" target="_blank" class="btn btn-sm btn-danger fw-bold me-auto">
-                                    <i class="bi bi-printer me-1"></i> Cetak SPK
-                                </a>
-                            @endif
-                            <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
             @endforeach
 
             @endsection

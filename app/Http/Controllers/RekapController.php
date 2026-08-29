@@ -6,6 +6,7 @@ use App\Models\Periode;
 use App\Models\Bidang;
 use App\Models\Kegiatan;
 use App\Models\AlokasiHonor;
+use App\Traits\HasBidangScope;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -15,12 +16,21 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 class RekapController extends Controller
 {
+    use HasBidangScope;
+
     public function index(Request $request)
     {
+        $user = auth()->user();
+        $isOperatorScoped = ($user->role === 'operator' && $user->bidang_id);
+
         $latestTahun = Periode::max('tahun') ?? date('Y');
         $tahun = $request->tahun ?? $latestTahun;
 
-        $bidangs = Bidang::all();
+        if ($isOperatorScoped) {
+            $bidangs = Bidang::where('id', $user->bidang_id)->get();
+        } else {
+            $bidangs = Bidang::all();
+        }
         $periodes = Periode::where('tahun', $tahun)->orderBy('bulan_angka')->get();
 
         $rekap = [];
@@ -48,6 +58,9 @@ class RekapController extends Controller
 
     public function export(Request $request)
     {
+        $user = auth()->user();
+        $isOperatorScoped = ($user->role === 'operator' && $user->bidang_id);
+
         $latestTahun = Periode::max('tahun') ?? date('Y');
         $tahun = $request->tahun ?? $latestTahun;
         $jenis = $request->jenis ?? 'tahun'; // tahun, triwulan, semester, bulan
@@ -55,7 +68,7 @@ class RekapController extends Controller
         $semester = $request->semester ?? 'S1';
         $bulanAngka = $request->bulan_angka ?? 1;
         $bulanMulti = $request->bulan_multi ?? []; // Multi-select bulan Bab 4.9
-        $bidangId = $request->bidang_id ?? 'all';
+        $bidangId = $isOperatorScoped ? $user->bidang_id : ($request->bidang_id ?? 'all');
 
         // Query Periodes based on Jenis
         $periodesQuery = Periode::where('tahun', $tahun)->orderBy('bulan_angka');

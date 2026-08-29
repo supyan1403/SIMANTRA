@@ -117,10 +117,12 @@ class DashboardController extends Controller
             ->orderBy('nama')->get(['id', 'nama', 'kode_mata_anggaran']);
 
         $honorPerBulan = $this->honorPerBulanSelected($periodeIds, $bulanPencairan, $bidangId, $kegiatanId, null);
-        $honorPerBidang = $this->honorPerBidang($periodeIds, null, $kegiatanId);
+        $honorPerBidang = $this->honorPerBidang($periodeIds, null, $kegiatanId, $bidangId);
 
-        $totalMitra = Mitra::count();
-        $totalOperator = User::where('role', 'operator')->count();
+        $totalMitra = $isOperatorScoped
+            ? AlokasiHonor::whereIn('periode_id', $periodeIds)->whereHas('kegiatan', fn($q) => $q->where('bidang_id', $bidangId))->distinct('mitra_id')->count('mitra_id')
+            : Mitra::count();
+        $totalOperator = $isAdmin ? User::where('role', 'operator')->count() : 0;
         $mitraOptions = Mitra::orderBy('nama')->get(['id', 'nama', 'id_sobat']);
 
         // ===== FILTER 2: MITRA SPECIFIC FILTER (BAWAH GRAFIK) =====
@@ -166,6 +168,7 @@ class DashboardController extends Controller
                     ->where('mitra_id', $mitraId)
                     ->whereIn('periode_id', $mPeriodeIds)
                     ->when($mKegiatanId, fn($q) => $q->where('kegiatan_id', $mKegiatanId))
+                    ->when($mBidangId && !$mKegiatanId, fn($q) => $q->whereHas('kegiatan', fn($qq) => $qq->where('bidang_id', $mBidangId)))
                     ->get();
 
                 $estimasiHonor = (float) $workload->sum('nominal');
@@ -184,6 +187,7 @@ class DashboardController extends Controller
                     $pId = Periode::where('tahun', $mTahun)->where('bulan_angka', $m)->value('id');
                     $sum = $pId ? (float) AlokasiHonor::where('mitra_id', $mitraId)->where('periode_id', $pId)
                         ->when($mKegiatanId, fn($q) => $q->where('kegiatan_id', $mKegiatanId))
+                        ->when($mBidangId && !$mKegiatanId, fn($q) => $q->whereHas('kegiatan', fn($qq) => $qq->where('bidang_id', $mBidangId)))
                         ->sum('nominal') : 0;
                     $sbml = $pId ? SbmlHelper::limitFor($mitraId, $pId) : 0;
                     $workloadMonths->push((object)[
@@ -230,6 +234,10 @@ class DashboardController extends Controller
         $belumDipekerjakanCount = max(0, $totalMitra - $sudahDipekerjakanCount);
 
         $mitraStatusQuery = Mitra::query();
+
+        if ($isOperatorScoped) {
+            $mitraStatusQuery->whereIn('id', AlokasiHonor::whereHas('kegiatan', fn($q) => $q->where('bidang_id', $sBidangId))->distinct('mitra_id')->pluck('mitra_id'));
+        }
 
         if ($sStatus === 'sudah') {
             $mitraStatusQuery->whereIn('id', $allocatedMitraIds);
@@ -283,6 +291,7 @@ class DashboardController extends Controller
                 $pId = Periode::where('tahun', $sTahun)->where('bulan_angka', $b)->value('id');
                 $sum = $pId ? (float) AlokasiHonor::where('mitra_id', $m->id)->where('periode_id', $pId)
                     ->when($sKegiatanId, fn($q) => $q->where('kegiatan_id', $sKegiatanId))
+                    ->when($sBidangId && !$sKegiatanId, fn($q) => $q->whereHas('kegiatan', fn($qq) => $qq->where('bidang_id', $sBidangId)))
                     ->sum('nominal') : 0;
                 $sbml = $pId ? SbmlHelper::limitFor($m->id, $pId) : 0;
                 $mWorkloadMonths->push((object)[
@@ -341,9 +350,14 @@ class DashboardController extends Controller
         return collect($result);
     }
 
-    protected function honorPerBidang($periodeIds, $mitraId, $kegiatanId)
+    protected function honorPerBidang($periodeIds, $mitraId, $kegiatanId, $bidangId = null)
     {
-        return Bidang::orderBy('nama')->get()->map(function ($b) use ($periodeIds, $mitraId, $kegiatanId) {
+        $query = Bidang::orderBy('nama');
+        if ($bidangId) {
+            $query->where('id', $bidangId);
+        }
+
+        return $query->get()->map(function ($b) use ($periodeIds, $mitraId, $kegiatanId) {
             $sum = AlokasiHonor::whereIn('periode_id', $periodeIds)
                 ->when($mitraId, fn($q) => $q->where('mitra_id', $mitraId))
                 ->when($kegiatanId, fn($q) => $q->where('kegiatan_id', $kegiatanId))

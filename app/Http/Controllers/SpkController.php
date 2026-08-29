@@ -8,12 +8,15 @@ use App\Models\DocumentTemplate;
 use App\Models\Kegiatan;
 use App\Models\Mitra;
 use App\Models\Periode;
+use App\Traits\HasBidangScope;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 
 class SpkController extends Controller
 {
+    use HasBidangScope;
+
     protected array $bulanNama = [
         1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
         5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
@@ -68,21 +71,21 @@ class SpkController extends Controller
 
         $alokasis = $query->get();
 
-        // Grouping per Mitra
-        $allSpkList = $alokasis->groupBy('mitra_id')->map(function ($items, $mitraId) {
-            $mitra = $items->first()->mitra;
-            $totalHonor = (float) $items->sum('nominal');
-            $kegiatans = $items->pluck('kegiatan.nama')->unique()->values();
+        // Grouping per Mitra + Kegiatan (1 SPK per kegiatan)
+        $allSpkList = $alokasis->groupBy(fn($item) => $item->mitra_id . '-' . $item->kegiatan_id)
+            ->map(function ($items, $key) {
+                $mitra = $items->first()->mitra;
+                $kegiatan = $items->first()->kegiatan;
 
-            return (object) [
-                'mitra_id' => $mitraId,
-                'mitra' => $mitra,
-                'total_honor' => $totalHonor,
-                'total_kegiatan' => $kegiatans->count(),
-                'list_kegiatan' => $kegiatans->join(', '),
-                'items' => $items,
-            ];
-        })->values();
+                return (object) [
+                    'mitra_id' => $items->first()->mitra_id,
+                    'kegiatan_id' => $items->first()->kegiatan_id,
+                    'mitra' => $mitra,
+                    'kegiatan' => $kegiatan,
+                    'total_honor' => (float) $items->sum('nominal'),
+                    'items' => $items,
+                ];
+            })->values();
 
         // Paginate 15 items per page
         $perPage = 15;
@@ -200,24 +203,25 @@ class SpkController extends Controller
             }
         }
 
-        $allSpkList = $alokasis->groupBy('mitra_id')->map(function ($items, $mitraId) {
-            $mitra = $items->first()->mitra;
-            $totalHonor = (float) $items->sum('nominal');
-            $kegiatans = $items->pluck('kegiatan.nama')->unique()->values();
-            $firstSpk = $items->firstWhere('nomor_spk', '!=', null)?->nomor_spk;
-            $firstBast = $items->firstWhere('nomor_bast', '!=', null)?->nomor_bast;
+        // Grouping per Mitra + Kegiatan (1 SPK per kegiatan)
+        $allSpkList = $alokasis->groupBy(fn($item) => $item->mitra_id . '-' . $item->kegiatan_id)
+            ->map(function ($items, $key) {
+                $mitra = $items->first()->mitra;
+                $kegiatan = $items->first()->kegiatan;
+                $nomor_spk = $items->firstWhere('nomor_spk', '!=', null)?->nomor_spk;
+                $nomor_bast = $items->firstWhere('nomor_bast', '!=', null)?->nomor_bast;
 
-            return (object) [
-                'mitra_id' => $mitraId,
-                'mitra' => $mitra,
-                'total_honor' => $totalHonor,
-                'total_kegiatan' => $kegiatans->count(),
-                'list_kegiatan' => $kegiatans->join(', '),
-                'nomor_spk' => $firstSpk,
-                'nomor_bast' => $firstBast,
-                'items' => $items,
-            ];
-        })->values();
+                return (object) [
+                    'mitra_id' => $items->first()->mitra_id,
+                    'kegiatan_id' => $items->first()->kegiatan_id,
+                    'mitra' => $mitra,
+                    'kegiatan' => $kegiatan,
+                    'total_honor' => (float) $items->sum('nominal'),
+                    'nomor_spk' => $nomor_spk,
+                    'nomor_bast' => $nomor_bast,
+                    'items' => $items,
+                ];
+            })->values();
 
         // Paginate 15 items per page
         $perPage = 15;
@@ -247,6 +251,31 @@ class SpkController extends Controller
             return redirect()->back()->with('error', 'Pilih minimal 1 mitra untuk diterapkan nomornya.');
         }
 
+        $user = auth()->user();
+        if ($user->role === 'operator' && $user->bidang_id) {
+            $tahun = $request->tahun ?? date('Y');
+            $bulanAwal = (int) ($request->bulan_awal ?? 1);
+            $bulanAkhir = (int) ($request->bulan_akhir ?? 12);
+            $kegiatanId = $request->kegiatan_id ?: null;
+            $periodeIds = Periode::where('tahun', $tahun)
+                ->where('bulan_angka', '>=', $bulanAwal)
+                ->where('bulan_angka', '<=', $bulanAkhir)
+                ->pluck('id');
+
+            $rawMitraIds = array_map(fn($v) => (int) explode('_', $v)[0], $mitraIds);
+            $rawMitraIds = array_unique($rawMitraIds);
+
+            $invalidCount = AlokasiHonor::whereIn('mitra_id', $rawMitraIds)
+                ->whereIn('periode_id', $periodeIds)
+                ->when($kegiatanId, fn($q) => $q->where('kegiatan_id', $kegiatanId))
+                ->whereHas('kegiatan', fn($q) => $q->where('bidang_id', '!=', $user->bidang_id))
+                ->count();
+
+            if ($invalidCount > 0) {
+                return redirect()->back()->with('error', 'Beberapa mitra memiliki alokasi di luar bidang Anda. Aksi dibatalkan.');
+            }
+        }
+
         $jenisDokumen = $request->jenis_dokumen ?? 'spk';
         $formatSpk = $request->format_spk ?? 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}';
         $tahun = $request->tahun ?? date('Y');
@@ -266,29 +295,48 @@ class SpkController extends Controller
         $counter = $nomorStart;
         $savedCount = 0;
 
-        foreach ($mitraIds as $mId) {
-            $items = AlokasiHonor::where('mitra_id', $mId)
+        // Parse composite key: each value is "mitraId_kegiatanId"
+        $pairs = [];
+        foreach ($mitraIds as $val) {
+            $parts = explode('_', $val);
+            $mId = (int) $parts[0];
+            $kId = (int) ($parts[1] ?? 0);
+            $pairs[] = ['mitra_id' => $mId, 'kegiatan_id' => $kId];
+        }
+
+        // Group by mitra_id
+        $byMitra = collect($pairs)->groupBy('mitra_id');
+
+        foreach ($byMitra as $mId => $kegiatanPairs) {
+            $kegiatanIds = $kegiatanPairs->pluck('kegiatan_id')->filter()->unique()->values();
+
+            $allItems = AlokasiHonor::where('mitra_id', $mId)
                 ->whereIn('periode_id', $periodeIds)
-                ->when($kegiatanId, fn($q) => $q->where('kegiatan_id', $kegiatanId))
+                ->when($kegiatanIds->isNotEmpty(), fn($q) => $q->whereIn('kegiatan_id', $kegiatanIds))
                 ->get();
 
-            if ($items->isEmpty()) continue;
+            if ($allItems->isEmpty()) continue;
 
-            if (!empty($customNomors[$mId])) {
-                $nomorDoc = trim($customNomors[$mId]);
-            } else {
-                $nomorDoc = $this->generateNomorDokumen($formatSpk, $counter, $bulanSpk, $tahunSpk, $jenisDokumen);
-                $counter++;
-            }
+            $grouped = $allItems->groupBy('kegiatan_id');
 
-            foreach ($items as $item) {
-                if ($jenisDokumen === 'bast') {
-                    $item->update(['nomor_bast' => $nomorDoc]);
+            foreach ($grouped as $kegId => $items) {
+                $customKey = $mId . '_' . $kegId;
+                if (!empty($customNomors[$customKey])) {
+                    $nomorDoc = trim($customNomors[$customKey]);
                 } else {
-                    $item->update(['nomor_spk' => $nomorDoc]);
+                    $nomorDoc = $this->generateNomorDokumen($formatSpk, $counter, $bulanSpk, $tahunSpk, $jenisDokumen);
+                    $counter++;
                 }
+
+                foreach ($items as $item) {
+                    if ($jenisDokumen === 'bast') {
+                        $item->update(['nomor_bast' => $nomorDoc]);
+                    } else {
+                        $item->update(['nomor_spk' => $nomorDoc]);
+                    }
+                }
+                $savedCount++;
             }
-            $savedCount++;
         }
 
         return redirect()->back()->with('success', "Berhasil menerapkan & menyimpan nomor resmi untuk {$savedCount} mitra ke database.");
@@ -396,6 +444,17 @@ class SpkController extends Controller
     public function cetakUtama(Request $request, $mitraId)
     {
         $mitra = Mitra::findOrFail($mitraId);
+
+        $user = auth()->user();
+        if ($user->role === 'operator' && $user->bidang_id) {
+            $hasAlokasiInBidang = AlokasiHonor::where('mitra_id', $mitraId)
+                ->whereHas('kegiatan', fn($q) => $q->where('bidang_id', $user->bidang_id))
+                ->exists();
+            if (!$hasAlokasiInBidang) {
+                return redirect()->back()->with('error', 'Mitra ini tidak memiliki alokasi di bidang Anda. Aksi dibatalkan.');
+            }
+        }
+
         $tahun = $request->tahun ?? date('Y');
         $bulanAwal = (int) ($request->bulan_awal ?? 1);
         $bulanAkhir = (int) ($request->bulan_akhir ?? 12);
@@ -463,6 +522,17 @@ class SpkController extends Controller
     public function downloadPdf(Request $request, $mitraId)
     {
         $mitra = Mitra::findOrFail($mitraId);
+
+        $user = auth()->user();
+        if ($user->role === 'operator' && $user->bidang_id) {
+            $hasAlokasiInBidang = AlokasiHonor::where('mitra_id', $mitraId)
+                ->whereHas('kegiatan', fn($q) => $q->where('bidang_id', $user->bidang_id))
+                ->exists();
+            if (!$hasAlokasiInBidang) {
+                return redirect()->back()->with('error', 'Mitra ini tidak memiliki alokasi di bidang Anda. Aksi dibatalkan.');
+            }
+        }
+
         $tahun = $request->tahun ?? date('Y');
         $bulanAwal = (int) ($request->bulan_awal ?? 1);
         $bulanAkhir = (int) ($request->bulan_akhir ?? 12);
@@ -636,6 +706,17 @@ class SpkController extends Controller
     public function downloadLampiranPdf(Request $request, $mitraId)
     {
         $mitra = Mitra::findOrFail($mitraId);
+
+        $user = auth()->user();
+        if ($user->role === 'operator' && $user->bidang_id) {
+            $hasAlokasiInBidang = AlokasiHonor::where('mitra_id', $mitraId)
+                ->whereHas('kegiatan', fn($q) => $q->where('bidang_id', $user->bidang_id))
+                ->exists();
+            if (!$hasAlokasiInBidang) {
+                return redirect()->back()->with('error', 'Mitra ini tidak memiliki alokasi di bidang Anda. Aksi dibatalkan.');
+            }
+        }
+
         $tahun = $request->tahun ?? date('Y');
         $bulanAwal = (int) ($request->bulan_awal ?? 1);
         $bulanAkhir = (int) ($request->bulan_akhir ?? 12);
@@ -682,6 +763,17 @@ class SpkController extends Controller
     public function cetakLampiran(Request $request, $mitraId)
     {
         $mitra = Mitra::findOrFail($mitraId);
+
+        $user = auth()->user();
+        if ($user->role === 'operator' && $user->bidang_id) {
+            $hasAlokasiInBidang = AlokasiHonor::where('mitra_id', $mitraId)
+                ->whereHas('kegiatan', fn($q) => $q->where('bidang_id', $user->bidang_id))
+                ->exists();
+            if (!$hasAlokasiInBidang) {
+                return redirect()->back()->with('error', 'Mitra ini tidak memiliki alokasi di bidang Anda. Aksi dibatalkan.');
+            }
+        }
+
         $tahun = $request->tahun ?? date('Y');
         $bulanAwal = (int) ($request->bulan_awal ?? 1);
         $bulanAkhir = (int) ($request->bulan_akhir ?? 12);
@@ -716,6 +808,28 @@ class SpkController extends Controller
             return redirect()->back()->with('error', 'Pilih minimal 1 mitra untuk dicetak secara massal.');
         }
 
+        $user = auth()->user();
+        if ($user->role === 'operator' && $user->bidang_id) {
+            $tahun = $request->tahun ?? date('Y');
+            $bulanAwal = (int) ($request->bulan_awal ?? 1);
+            $bulanAkhir = (int) ($request->bulan_akhir ?? 12);
+            $kegiatanId = $request->kegiatan_id ?: null;
+            $periodeIds = Periode::where('tahun', $tahun)
+                ->where('bulan_angka', '>=', $bulanAwal)
+                ->where('bulan_angka', '<=', $bulanAkhir)
+                ->pluck('id');
+
+            $invalidCount = AlokasiHonor::whereIn('mitra_id', $mitraIds)
+                ->whereIn('periode_id', $periodeIds)
+                ->when($kegiatanId, fn($q) => $q->where('kegiatan_id', $kegiatanId))
+                ->whereHas('kegiatan', fn($q) => $q->where('bidang_id', '!=', $user->bidang_id))
+                ->count();
+
+            if ($invalidCount > 0) {
+                return redirect()->back()->with('error', 'Beberapa mitra memiliki alokasi di luar bidang Anda. Cetak massal dibatalkan.');
+            }
+        }
+
         $templateId = $request->template_id;
         $jenisDokumen = $request->jenis_dokumen ?? 'spk'; // spk or bast
         if ($templateId) {
@@ -740,35 +854,53 @@ class SpkController extends Controller
 
         $batchList = collect();
 
-        foreach ($mitraIds as $mId) {
+        // Parse composite key: each value is "mitraId_kegiatanId"
+        $pairs = [];
+        foreach ($mitraIds as $val) {
+            $parts = explode('_', $val);
+            $mId = (int) $parts[0];
+            $kId = (int) ($parts[1] ?? 0);
+            $pairs[] = ['mitra_id' => $mId, 'kegiatan_id' => $kId];
+        }
+
+        // Group by mitra_id
+        $byMitra = collect($pairs)->groupBy('mitra_id');
+
+        foreach ($byMitra as $mId => $kegiatanPairs) {
             $mitra = Mitra::find($mId);
             if (!$mitra) continue;
 
-            $items = AlokasiHonor::with(['kegiatan.bidang', 'periode'])
+            $kegiatanIds = $kegiatanPairs->pluck('kegiatan_id')->filter()->unique()->values();
+
+            $allItems = AlokasiHonor::with(['kegiatan.bidang', 'periode'])
                 ->where('mitra_id', $mId)
                 ->whereIn('periode_id', $periodeIds)
-                ->when($kegiatanId, fn($q) => $q->where('kegiatan_id', $kegiatanId))
+                ->when($kegiatanIds->isNotEmpty(), fn($q) => $q->whereIn('kegiatan_id', $kegiatanIds))
                 ->get();
 
-            if ($items->isEmpty()) continue;
+            if ($allItems->isEmpty()) continue;
 
-            $nomorDoc = ($jenisDokumen === 'bast')
-                ? $items->firstWhere('nomor_bast', '!=', null)?->nomor_bast
-                : $items->firstWhere('nomor_spk', '!=', null)?->nomor_spk;
+            $grouped = $allItems->groupBy('kegiatan_id');
 
-            // Proteksi: Lewati atau tolak jika nomor belum ditetapkan
-            if (empty($nomorDoc)) {
-                return redirect()->route('spk.penomoran.index')->with('error', "Gagal mencetak massal: Mitra {$mitra->nama} belum memiliki nomor {$jenisDokumen} resmi. Silakan tetapkan nomor terlebih dahulu.");
+            foreach ($grouped as $kegId => $items) {
+                $nomorDoc = ($jenisDokumen === 'bast')
+                    ? $items->firstWhere('nomor_bast', '!=', null)?->nomor_bast
+                    : $items->firstWhere('nomor_spk', '!=', null)?->nomor_spk;
+
+                if (empty($nomorDoc)) {
+                    return redirect()->route('spk.penomoran.index')->with('error', "Gagal mencetak massal: Mitra {$mitra->nama} belum memiliki nomor {$jenisDokumen} resmi untuk kegiatan ini.");
+                }
+
+                $totalHonor = (float) $items->sum('nominal');
+
+                $batchList->push((object) [
+                    'mitra' => $mitra,
+                    'kegiatan' => $items->first()->kegiatan,
+                    'items' => $items,
+                    'total_honor' => $totalHonor,
+                    'nomor_dokumen' => $nomorDoc,
+                ]);
             }
-
-            $totalHonor = (float) $items->sum('nominal');
-
-            $batchList->push((object) [
-                'mitra' => $mitra,
-                'items' => $items,
-                'total_honor' => $totalHonor,
-                'nomor_dokumen' => $nomorDoc,
-            ]);
         }
 
         $tanggalSpkInput = $request->tanggal_spk ?? $request->tanggal_dokumen ?? date('Y-m-d');
@@ -786,35 +918,78 @@ class SpkController extends Controller
             return redirect()->back()->with('error', 'Pilih minimal 1 mitra yang ingin direset nomornya.');
         }
 
+        $user = auth()->user();
+        if ($user->role === 'operator' && $user->bidang_id) {
+            $tahun = $request->tahun ?? date('Y');
+            $bulanAwal = (int) ($request->bulan_awal ?? 1);
+            $bulanAkhir = (int) ($request->bulan_akhir ?? 12);
+            $kegiatanId = $request->kegiatan_id ?: null;
+            $periodeIds = Periode::where('tahun', $tahun)
+                ->where('bulan_angka', '>=', $bulanAwal)
+                ->where('bulan_angka', '<=', $bulanAkhir)
+                ->pluck('id');
+
+            $invalidCount = AlokasiHonor::whereIn('mitra_id', $mitraIds)
+                ->whereIn('periode_id', $periodeIds)
+                ->when($kegiatanId, fn($q) => $q->where('kegiatan_id', $kegiatanId))
+                ->whereHas('kegiatan', fn($q) => $q->where('bidang_id', '!=', $user->bidang_id))
+                ->count();
+
+            if ($invalidCount > 0) {
+                return redirect()->back()->with('error', 'Beberapa mitra memiliki alokasi di luar bidang Anda. Reset dibatalkan.');
+            }
+        }
+
         $tahun = $request->tahun ?? date('Y');
         $bulanAwal = (int) ($request->bulan_awal ?? 1);
         $bulanAkhir = (int) ($request->bulan_akhir ?? 12);
-        $kegiatanId = $request->kegiatan_id ?: null;
         $jenis = $request->jenis_reset ?? 'semua'; // 'spk', 'bast', atau 'semua'
+
+        $mitraIds = $request->mitra_ids ?? [];
+        $kegiatanIds = $request->kegiatan_ids ?? [];
 
         $periodeIds = Periode::where('tahun', $tahun)
             ->where('bulan_angka', '>=', $bulanAwal)
             ->where('bulan_angka', '<=', $bulanAkhir)
             ->pluck('id');
 
-        $query = AlokasiHonor::whereIn('mitra_id', $mitraIds)
-            ->whereIn('periode_id', $periodeIds)
-            ->when($kegiatanId, fn($q) => $q->where('kegiatan_id', $kegiatanId));
+        $resetCount = 0;
+        foreach ($mitraIds as $idx => $mId) {
+            $kId = $kegiatanIds[$idx] ?? null;
 
-        if ($jenis === 'spk') {
-            $query->update(['nomor_spk' => null, 'tanggal_spk' => null]);
-        } elseif ($jenis === 'bast') {
-            $query->update(['nomor_bast' => null]);
-        } else {
-            $query->update(['nomor_spk' => null, 'nomor_bast' => null, 'tanggal_spk' => null]);
+            $query = AlokasiHonor::where('mitra_id', $mId)
+                ->whereIn('periode_id', $periodeIds);
+
+            if ($kId) {
+                $query->where('kegiatan_id', $kId);
+            }
+
+            if ($jenis === 'spk') {
+                $resetCount += $query->update(['nomor_spk' => null, 'tanggal_spk' => null]);
+            } elseif ($jenis === 'bast') {
+                $resetCount += $query->update(['nomor_bast' => null]);
+            } else {
+                $resetCount += $query->update(['nomor_spk' => null, 'nomor_bast' => null, 'tanggal_spk' => null]);
+            }
         }
 
-        return redirect()->back()->with('success', count($mitraIds) . ' mitra terpilih berhasil direset nomor SPK & BAST-nya menjadi kosong.');
+        return redirect()->back()->with('success', "{$resetCount} item berhasil direset nomor SPK & BAST-nya menjadi kosong.");
     }
 
     public function downloadDocx(Request $request, $mitraId)
     {
         $mitra = Mitra::findOrFail($mitraId);
+
+        $user = auth()->user();
+        if ($user->role === 'operator' && $user->bidang_id) {
+            $hasAlokasiInBidang = AlokasiHonor::where('mitra_id', $mitraId)
+                ->whereHas('kegiatan', fn($q) => $q->where('bidang_id', $user->bidang_id))
+                ->exists();
+            if (!$hasAlokasiInBidang) {
+                return redirect()->back()->with('error', 'Mitra ini tidak memiliki alokasi di bidang Anda. Aksi dibatalkan.');
+            }
+        }
+
         $tahun = $request->tahun ?? date('Y');
         $bulanAwal = (int) ($request->bulan_awal ?? 1);
         $bulanAkhir = (int) ($request->bulan_akhir ?? 12);

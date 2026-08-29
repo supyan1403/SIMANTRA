@@ -8,10 +8,12 @@ use App\Models\AlokasiHonor;
 use App\Models\Bidang;
 use App\Models\Kegiatan;
 use App\Support\SbmlHelper;
+use App\Traits\HasBidangScope;
 use Illuminate\Http\Request;
 
 class MonitoringController extends Controller
 {
+    use HasBidangScope;
     public function index(Request $request)
     {
         $periodes = Periode::orderBy('tahun', 'desc')->orderBy('bulan_angka')->get();
@@ -88,6 +90,10 @@ class MonitoringController extends Controller
             'nominal' => 'required|numeric|min:0',
         ]);
 
+        if (!$this->validateOperatorKegiatan($validated['kegiatan_id'])) {
+            return $this->bidangAccessDenied();
+        }
+
         $alokasi = AlokasiHonor::create($validated);
 
         // Check total honor for this Mitra in this Periode against SBML (Requirement 4.8)
@@ -136,6 +142,11 @@ class MonitoringController extends Controller
             'kegiatan_id' => 'required|exists:kegiatans,id',
             'nominal' => 'required|numeric|min:0',
         ]);
+
+        if (!$this->validateOperatorKegiatan($validated['kegiatan_id'])) {
+            return $this->bidangAccessDenied();
+        }
+
         $alokasi->update($validated);
 
         // Check total honor for this Mitra in this Periode against SBML (Requirement 4.8)
@@ -158,6 +169,10 @@ class MonitoringController extends Controller
 
     public function destroy(AlokasiHonor $monitoring)
     {
+        if (!$this->validateSingleAlokasi($monitoring->id)) {
+            return $this->bidangAccessDenied();
+        }
+
         $monitoring->delete();
         return redirect()->route('monitoring.index')->with('success', 'Data alokasi honor berhasil dihapus.');
     }
@@ -192,8 +207,12 @@ class MonitoringController extends Controller
 
         $availableMitras = [];
         if ($exceeded) {
-            // Find alternative mitras whose current total honor is still below SBML limit
-            $allMitras = Mitra::where('id', '!=', $mitraId)->orderBy('nama')->get();
+            $user = auth()->user();
+            $allMitras = Mitra::where('id', '!=', $mitraId)->orderBy('nama');
+            if ($user && $user->role === 'operator' && $user->bidang_id) {
+                $allMitras->whereHas('alokasiHonors.kegiatan', fn($q) => $q->where('bidang_id', $user->bidang_id));
+            }
+            $allMitras = $allMitras->get();
             foreach ($allMitras as $m) {
                 $mTotal = floatval(AlokasiHonor::where('mitra_id', $m->id)->where('periode_id', $periodeId)->sum('nominal'));
                 $mLimit = SbmlHelper::limitFor($m->id, $periodeId);

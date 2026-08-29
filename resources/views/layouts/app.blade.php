@@ -171,6 +171,25 @@
             flex-grow: 1;
             overflow-y: auto;
             overflow-x: hidden;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(100, 116, 139, 0.4) transparent;
+        }
+
+        .sidebar-menu::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .sidebar-menu::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar-menu::-webkit-scrollbar-thumb {
+            background: rgba(100, 116, 139, 0.4);
+            border-radius: 10px;
+        }
+
+        .sidebar-menu::-webkit-scrollbar-thumb:hover {
+            background: rgba(100, 116, 139, 0.6);
         }
 
         #sidebar.collapsed .sidebar-menu {
@@ -186,11 +205,17 @@
             padding: 0.5rem 0.85rem 0.35rem 0.85rem;
         }
 
+        .sidebar-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.08);
+            margin: 0.75rem 0.85rem;
+        }
+
         .sidebar-link {
             display: flex;
             align-items: center;
             gap: 0.85rem;
-            padding: 0.65rem 0.85rem;
+            padding: 0.6rem 0.85rem;
             color: #94a3b8;
             text-decoration: none;
             font-weight: 600;
@@ -198,7 +223,7 @@
             border-radius: 0.6rem;
             transition: all 0.2s ease;
             white-space: nowrap;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.15rem;
         }
 
         #sidebar.collapsed .sidebar-link {
@@ -207,11 +232,11 @@
         }
 
         .sidebar-link i {
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             color: #64748b;
             transition: color 0.2s ease, transform 0.2s ease;
             flex-shrink: 0;
-            width: 22px;
+            width: 20px;
             text-align: center;
         }
 
@@ -229,7 +254,7 @@
             color: #ffffff;
             background: #2563eb;
             font-weight: 700;
-            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
         }
 
         .sidebar-link.active i {
@@ -471,7 +496,7 @@
         /* Pagination */
         .pagination {
             margin-bottom: 0;
-            gap: 2px;
+            gap: 4px;
         }
 
         .pagination .page-item .page-link {
@@ -480,13 +505,25 @@
             color: #334155;
             font-weight: 600;
             font-size: 0.8rem;
-            padding: 0.25rem 0.65rem;
+            padding: 0.3rem 0.7rem;
+            line-height: 1.4;
         }
 
         .pagination .page-item.active .page-link {
             background-color: #2563eb;
             border-color: #2563eb;
             color: #ffffff;
+        }
+
+        .pagination .page-item .page-link:hover {
+            background-color: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .pagination .page-item.disabled .page-link {
+            color: #94a3b8;
+            background-color: #f8fafc;
+            border-color: #e2e8f0;
         }
 
         .btn {
@@ -585,7 +622,7 @@
         </div>
 
         <div class="sidebar-menu">
-            <div class="sidebar-group-title">Menu Utama</div>
+            <div class="sidebar-group-title">Data & Master</div>
             
             <a href="{{ route('dashboard') }}" class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" title="Dashboard">
                 <i class="bi bi-grid-fill"></i>
@@ -597,9 +634,9 @@
                 <span class="nav-text">Data Mitra</span>
             </a>
 
-            <a href="{{ route('kegiatan.index') }}" class="sidebar-link {{ request()->routeIs('kegiatan.*') ? 'active' : '' }}" title="Mata Anggaran">
-                <i class="bi bi-journal-bookmark-fill"></i>
-                <span class="nav-text">Mata Anggaran</span>
+            <a href="{{ route('kegiatan.index') }}" class="sidebar-link {{ request()->routeIs('kegiatan.*') ? 'active' : '' }}" title="Kegiatan & Anggaran">
+                <i class="bi bi-cash-stack"></i>
+                <span class="nav-text">Kegiatan & Anggaran</span>
             </a>
 
             <a href="{{ route('periode.index') }}" class="sidebar-link {{ request()->routeIs('periode.*') ? 'active' : '' }}" title="Periode">
@@ -607,37 +644,41 @@
                 <span class="nav-text">Periode</span>
             </a>
 
-            <a href="{{ route('monitoring.index') }}" class="sidebar-link {{ request()->routeIs('monitoring.*') ? 'active' : '' }}" title="Monitoring Honor">
-                <i class="bi bi-wallet2"></i>
-                <span class="nav-text">Monitoring Honor</span>
+            <a href="{{ route('import.index') }}" class="sidebar-link {{ request()->routeIs('import.*') ? 'active' : '' }}" title="Import Excel MANTRA">
+                <i class="bi bi-cloud-arrow-up-fill"></i>
+                <span class="nav-text">Import Excel MANTRA</span>
+            </a>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-group-title">Pemanfaatan & Dokumen</div>
+
+            <a href="{{ route('monitoring.index') }}" class="sidebar-link {{ request()->routeIs('monitoring.*') ? 'active' : '' }}" title="Monitoring Alokasi">
+                <i class="bi bi-clipboard-data"></i>
+                <span class="nav-text">Monitoring Alokasi</span>
             </a>
 
             <a href="{{ route('spk.penomoran.index') }}" class="sidebar-link {{ request()->routeIs('spk.penomoran.*') ? 'active' : '' }}" title="Penomoran SPK & BAST">
-                <i class="bi bi-sort-numeric-down"></i>
+                <i class="bi bi-hash"></i>
                 <span class="nav-text">Penomoran SPK & BAST</span>
             </a>
 
-            <a href="{{ route('spk.index') }}" class="sidebar-link {{ request()->routeIs('spk.index') || request()->routeIs('spk.cetak*') ? 'active' : '' }}" title="Cetak & Unduh SPK/BAST">
+            <a href="{{ route('spk.index') }}" class="sidebar-link {{ request()->routeIs('spk.index') || request()->routeIs('spk.cetak*') ? 'active' : '' }}" title="Cetak & Unduh Dokumen">
                 <i class="bi bi-printer-fill"></i>
                 <span class="nav-text">Cetak & Unduh Dokumen</span>
             </a>
 
             <a href="{{ route('rekap.index') }}" class="sidebar-link {{ request()->routeIs('rekap.*') ? 'active' : '' }}" title="Rekap Tahunan">
-                <i class="bi bi-file-earmark-bar-graph-fill"></i>
+                <i class="bi bi-bar-chart-line-fill"></i>
                 <span class="nav-text">Rekap Tahunan</span>
             </a>
 
-
-
-            <div class="sidebar-group-title mt-3">Alat & Pengaturan</div>
-
-            <a href="{{ route('import.index') }}" class="sidebar-link {{ request()->routeIs('import.*') ? 'active' : '' }}" title="Import Excel">
-                <i class="bi bi-cloud-arrow-up-fill"></i>
-                <span class="nav-text">Import Excel MANTRA</span>
-            </a>
-
             @if(auth()->user()?->role === 'admin')
-            <a href="{{ route('master-sbml.index') }}" class="sidebar-link {{ request()->routeIs('master-sbml.*') ? 'active' : '' }}" title="Master Batas Honor (SBML)">
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-group-title">Pengaturan</div>
+
+            <a href="{{ route('master-sbml.index') }}" class="sidebar-link {{ request()->routeIs('master-sbml.*') ? 'active' : '' }}" title="Master SBML">
                 <i class="bi bi-piggy-bank-fill"></i>
                 <span class="nav-text">Master SBML</span>
             </a>
@@ -667,9 +708,6 @@
                 <button type="button" class="logout-btn-sidebar border-0" data-bs-toggle="modal" data-bs-target="#modalConfirmLogout" title="Logout dari Sistem">
                     <i class="bi bi-box-arrow-right fs-6"></i>
                 </button>
-            </div>
-            <div class="sidebar-copyright-text">
-                &copy; {{ date('Y') }} BPS Kab. Tasikmalaya
             </div>
         </div>
     </aside>

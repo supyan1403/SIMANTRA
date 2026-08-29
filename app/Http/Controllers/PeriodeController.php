@@ -35,7 +35,11 @@ class PeriodeController extends Controller
 
     public function create()
     {
-        return view('periode.form');
+        $bulanList = [
+            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+        ];
+        return view('periode.form', compact('bulanList'));
     }
 
     public function store(Request $request)
@@ -53,7 +57,11 @@ class PeriodeController extends Controller
 
     public function edit(Periode $periode)
     {
-        return view('periode.form', compact('periode'));
+        $bulanList = [
+            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+        ];
+        return view('periode.form', compact('periode', 'bulanList'));
     }
 
     public function update(Request $request, Periode $periode)
