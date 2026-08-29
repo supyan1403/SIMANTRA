@@ -456,7 +456,6 @@ function submitFilter() {
     document.getElementById('hiddenTahun').value = document.getElementById('filterTahun').value;
     document.getElementById('hiddenBulanAwal').value = document.getElementById('filterBulanAwal').value;
     document.getElementById('hiddenBulanAkhir').value = document.getElementById('filterBulanAkhir').value;
-    document.getElementById('hiddenKategori').value = document.getElementById('kategoriKegiatanSelect').value;
     
     const filterBidang = document.getElementById('filterBidang');
     if (filterBidang) {
