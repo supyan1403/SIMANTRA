@@ -337,6 +337,7 @@ class SpkController extends Controller
 
         $jenisDokumen = $request->jenis_dokumen ?? 'spk';
         $formatSpk = $request->format_spk ?? 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}';
+        $jenisIsi = $request->jenis_isi ?? 'kegiatan'; // 'dokumen' atau 'kegiatan'
         $tahun = $request->tahun ?? date('Y');
         $bulanAwal = (int) ($request->bulan_awal ?? 1);
         $bulanAkhir = (int) ($request->bulan_akhir ?? 12);
@@ -389,9 +390,12 @@ class SpkController extends Controller
                 if (!empty($customNomors[$customKey])) {
                     $nomorDoc = trim($customNomors[$customKey]);
                 } else {
+                    // Hitung {jenis} berdasarkan radio toggle
+                    $jenisPlaceholder = ($jenisIsi === 'dokumen') ? $jenisDokumen : $shortName;
+
                     // Ambil counter berikutnya untuk format ini
                     $nextNum = SpkCounter::getNextNumber($fmt, $jenisDokumen, $tahunSpk);
-                    $nomorDoc = $this->generateNomorDokumen($fmt, $nextNum, $bulanSpk, $tahunSpk, $shortName);
+                    $nomorDoc = $this->generateNomorDokumen($fmt, $nextNum, $bulanSpk, $tahunSpk, $jenisPlaceholder);
 
                     // Track max number per format
                     if (!isset($formatMaxNumbers[$fmt]) || $nextNum > $formatMaxNumbers[$fmt]) {
@@ -1098,7 +1102,9 @@ class SpkController extends Controller
         $firstKegiatan = $items->first()?->kegiatan;
         $fmt = $firstKegiatan?->format_spk ?: $formatSpk;
         $shortName = $firstKegiatan?->short_name ?? '';
-        $nomorDokumen = $this->generateNomorDokumen($fmt, $nomorAwal, $bulanSpk, $tahunSpk, $shortName);
+        $jenisIsi = $request->jenis_isi ?? 'kegiatan';
+        $jenisPlaceholder = ($jenisIsi === 'dokumen') ? $jenisDokumen : $shortName;
+        $nomorDokumen = $this->generateNomorDokumen($fmt, $nomorAwal, $bulanSpk, $tahunSpk, $jenisPlaceholder);
 
         $docTmpl = $templateId ? DocumentTemplate::find($templateId) : null;
         $isBast = ($docTmpl && $docTmpl->jenis_dokumen === 'bast') || ($request->jenis_dokumen === 'bast');

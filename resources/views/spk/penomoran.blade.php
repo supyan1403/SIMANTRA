@@ -40,7 +40,21 @@
                     </select>
                 </div>
 
-                <div class="col-12 col-md-8">
+                <div class="col-12 col-md-4">
+                    <label class="form-label text-secondary fw-bold small mb-1.5">ISI TAG <code>{jenis}</code></label>
+                    <div class="d-flex gap-3 align-items-center py-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="jenis_isi" id="jenisIsiDokumen" value="dokumen" onchange="onJenisIsiChanged()">
+                            <label class="form-check-label fw-semibold small" for="jenisIsiDokumen">Jenis Dokumen (SPK/BAST)</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="jenis_isi" id="jenisIsiKegiatan" value="kegiatan" checked onchange="onJenisIsiChanged()">
+                            <label class="form-check-label fw-semibold small" for="jenisIsiKegiatan">Jenis Kegiatan (SUSENAS, SPAK)</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-4">
                     <label class="form-label text-secondary fw-bold small mb-1.5">POLA / FORMAT NOMOR</label>
                     <div class="input-group">
                         <select id="formatSpkSelect" class="form-select border-primary-subtle fw-semibold font-monospace py-2" onchange="onFormatSpkChanged(this.value)">
@@ -73,6 +87,7 @@
                         </ul>
                     </div>
                     <input type="hidden" name="format_spk" id="formatSpkInput" value="{{ $formatSpk }}">
+                    <input type="hidden" name="jenis_isi" id="jenisIsiInput" value="kegiatan">
                 </div>
             </div>
 
@@ -449,23 +464,25 @@ const allSpkMitraList = {!! json_encode($allSpkList ?? $spkList) !!};
 document.addEventListener('DOMContentLoaded', function() {
     initFormatOptions();
 
-    // Auto-sync: jika kegiatan sudah terpilih dari URL, set pola ke format kegiatan
+    // Auto-sync: jika kegiatan sudah terpilih dari URL, cari pola di dropdown via short_name
     const hiddenInputSync = document.getElementById('hiddenKegiatanIdInput');
     const currentKegiatanId = hiddenInputSync ? hiddenInputSync.value : '';
     if (currentKegiatanId) {
         const matchedKegiatan = allKegiatansData.find(k => String(k.id) === String(currentKegiatanId));
-        const fmt = matchedKegiatan?.format_spk || 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}';
         if (matchedKegiatan) {
-            document.getElementById('formatSpkInput').value = fmt;
+            const shortName = matchedKegiatan.short_name || '';
             const fmtSelect = document.getElementById('formatSpkSelect');
-            const exists = Array.from(fmtSelect.options).some(o => o.value === fmt);
-            if (!exists) {
-                const opt = document.createElement('option');
-                opt.value = fmt;
-                opt.textContent = (matchedKegiatan.short_name || 'custom') + ' → ' + fmt;
-                fmtSelect.appendChild(opt);
+
+            // Cari pola di dropdown yang mengandung short_name
+            if (shortName) {
+                const matchOpt = Array.from(fmtSelect.options).find(o =>
+                    o.value.toUpperCase().includes(shortName.toUpperCase())
+                );
+                if (matchOpt) {
+                    fmtSelect.value = matchOpt.value;
+                    document.getElementById('formatSpkInput').value = matchOpt.value;
+                }
             }
-            fmtSelect.value = fmt;
             updateLivePreview();
         }
     }
@@ -531,25 +548,23 @@ document.addEventListener('DOMContentLoaded', function() {
                         selectedText.textContent = k.nama;
                         closeDropdown();
 
-                        // Auto-set format pola dari kegiatan yang dipilih
-                        const kFmt = k.format_spk || 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}';
-                        document.getElementById('formatSpkInput').value = kFmt;
-
-                        // Tambah ke dropdown jika belum ada
+                        // Auto-match pola di dropdown via short_name
                         const fmtSelect = document.getElementById('formatSpkSelect');
-                        const exists = Array.from(fmtSelect.options).some(o => o.value === kFmt);
-                        if (!exists) {
-                            const opt = document.createElement('option');
-                            opt.value = kFmt;
-                            opt.textContent = (k.short_name || 'custom') + ' → ' + kFmt;
-                            fmtSelect.appendChild(opt);
+                        if (k.short_name) {
+                            const matchOpt = Array.from(fmtSelect.options).find(o =>
+                                o.value.toUpperCase().includes(k.short_name.toUpperCase())
+                            );
+                            if (matchOpt) {
+                                fmtSelect.value = matchOpt.value;
+                                document.getElementById('formatSpkInput').value = matchOpt.value;
+                            }
                         }
-                        fmtSelect.value = kFmt;
 
                         // Fetch counter untuk format ini
+                        const selectedFormat = document.getElementById('formatSpkInput').value;
                         const tahunSpk = document.getElementById('tahunSpkInput').value || '{{ $tahun }}';
                         const jenisDok = document.getElementById('jenisDokumenSelect').value || 'spk';
-                        fetch('{{ route("spk.penomoran.counter") }}?format=' + encodeURIComponent(kFmt) + '&tahun=' + tahunSpk + '&jenis=' + jenisDok)
+                        fetch('{{ route("spk.penomoran.counter") }}?format=' + encodeURIComponent(selectedFormat) + '&tahun=' + tahunSpk + '&jenis=' + jenisDok)
                             .then(r => r.json())
                             .then(data => {
                                 document.getElementById('nomorAwalInput').value = data.next_number;
@@ -726,22 +741,50 @@ function resetPolaKeDefault() {
     initFormatOptions();
 }
 
+function getJenisValue(kegiatanShortName) {
+    const isKegiatan = document.getElementById('jenisIsiKegiatan')?.checked;
+    if (isKegiatan) {
+        return (kegiatanShortName || '').toUpperCase();
+    }
+    return (document.getElementById('jenisDokumenSelect')?.value || 'spk').toUpperCase();
+}
+
+function onJenisIsiChanged() {
+    const val = document.getElementById('jenisIsiDokumen').checked ? 'dokumen' : 'kegiatan';
+    document.getElementById('jenisIsiInput').value = val;
+    updateLivePreview();
+}
+
 function initFormatOptions() {
     const select = document.getElementById('formatSpkSelect');
     select.innerHTML = '';
 
+    // 1. Default BPS patterns
     const allPatterns = getAllActivePatterns();
+    const allValues = new Set();
 
     allPatterns.forEach(opt => {
         const el = document.createElement('option');
         el.value = opt.value;
         el.textContent = opt.label;
         select.appendChild(el);
+        allValues.add(opt.value);
     });
 
-    let currentVal = document.getElementById('formatSpkInput').value;
-    let matched = allPatterns.find(o => o.value === currentVal);
+    // 2. Tambah pola dari semua kegiatan di DB (belum ada di dropdown)
+    allKegiatansData.forEach(k => {
+        if (k.format_spk && !allValues.has(k.format_spk)) {
+            const el = document.createElement('option');
+            el.value = k.format_spk;
+            el.textContent = (k.short_name || k.nama) + ' → ' + k.format_spk;
+            select.appendChild(el);
+            allValues.add(k.format_spk);
+        }
+    });
 
+    // 3. Set current value
+    let currentVal = document.getElementById('formatSpkInput').value;
+    let matched = allValues.has(currentVal);
     if (matched) {
         select.value = currentVal;
     } else {
@@ -815,16 +858,21 @@ function updateLivePreview() {
     const bulanSpk = parseInt(document.getElementById('bulanSpkSelect').value) || 1;
     const tahunSpk = document.getElementById('tahunSpkInput').value || '{{ $tahun }}';
 
-    // Coba ambil short_name dari kegiatan pertama yang dicentang
-    const firstChecked = document.querySelector('.mitra-checkbox:checked');
+    // Ambil short_name: prioritas mitra dicentang → kegiatan filter → kosong
     let shortName = '';
+    const firstChecked = document.querySelector('.mitra-checkbox:checked');
     if (firstChecked) {
         const parts = firstChecked.value.split('_');
         const kId = parts.slice(1).join('_');
         const meta = kegiatanMetaMap[kId];
-        if (meta) {
-            shortName = meta.short_name || '';
-            if (meta.format_spk) pattern = meta.format_spk;
+        if (meta) shortName = meta.short_name || '';
+    }
+    // Fallback: ambil dari kegiatan yang sedang difilter
+    if (!shortName) {
+        const kIdFilter = document.getElementById('hiddenKegiatanIdInput')?.value;
+        if (kIdFilter) {
+            const kData = allKegiatansData.find(k => String(k.id) === String(kIdFilter));
+            if (kData) shortName = kData.short_name || '';
         }
     }
 
@@ -835,13 +883,15 @@ function updateLivePreview() {
     const bulanPad = String(bulanSpk).padStart(2, '0');
     const bulanRom = romawiMap[bulanSpk] || 'I';
 
+    const jenisVal = getJenisValue(shortName);
+
     let preview = pattern
         .replace(/{nomor}/g, nomorPad)
         .replace(/{nomor_raw}/g, nomorAwal)
         .replace(/{bulan}/g, bulanPad)
         .replace(/{bulan_romawi}/g, bulanRom)
         .replace(/{tahun}/g, tahunSpk)
-        .replace(/{jenis}/g, (shortName || 'SPK').toUpperCase());
+        .replace(/{jenis}/g, jenisVal);
 
     document.getElementById('livePreviewBadge').textContent = preview;
     updateLastNomorInfo();
@@ -922,19 +972,17 @@ function bukaModalPratinjau() {
         const mitraData = allSpkMitraList.find(m => String(m.mitra_id) === String(mitraId) && String(m.kegiatan_id) === String(kegiatanId));
         if (!mitraData) return;
 
-        // Ambil format & short_name dari kegiatan
-        const meta = kegiatanMetaMap[mitraData.kegiatan_id] || {};
-        const fmt = meta.format_spk || globalPattern;
-        const shortName = meta.short_name || '';
+        const shortName = mitraData.kegiatan?.short_name || '';
+        const jenisVal = getJenisValue(shortName);
 
         const nomorPad = String(currentCounter).padStart(4, '0');
-        const defaultNomor = fmt
+        const defaultNomor = globalPattern
             .replace(/{nomor}/g, nomorPad)
             .replace(/{nomor_raw}/g, currentCounter)
             .replace(/{bulan}/g, bulanPad)
             .replace(/{bulan_romawi}/g, bulanRom)
             .replace(/{tahun}/g, tahunSpk)
-            .replace(/{jenis}/g, shortName.toUpperCase());
+            .replace(/{jenis}/g, jenisVal);
 
         const row = document.createElement('tr');
         row.innerHTML = `
