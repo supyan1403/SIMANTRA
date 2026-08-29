@@ -341,9 +341,14 @@
                     PILIH SEMUA MITRA <span class="badge bg-light text-primary border ms-1">{{ $spkList->count() }} Item Ditemukan</span>
                 </label>
             </div>
-            <div>
+            <div class="d-flex align-items-center gap-2">
+                <select id="jenisResetSelect" class="form-select form-select-sm fw-bold border-warning py-1.5" style="width: auto; font-size: 0.82rem;">
+                    <option value="semua">Reset SPK & BAST</option>
+                    <option value="spk">Reset No. SPK Saja</option>
+                    <option value="bast">Reset No. BAST Saja</option>
+                </select>
                 <button type="button" class="btn btn-outline-warning text-dark fw-bold btn-sm px-3 py-1.5 shadow-sm rounded-3" onclick="eksekusiResetNomor()">
-                    <i class="bi bi-arrow-counterclockwise text-danger me-1"></i> Reset Nomor Mitra Terpilih
+                    <i class="bi bi-arrow-counterclockwise text-danger me-1"></i> Reset Nomor Terpilih
                 </button>
             </div>
         </div>
@@ -897,7 +902,11 @@ function eksekusiResetNomor() {
         return;
     }
 
-    if (!confirm(`Apakah Anda yakin ingin MERESET (MENGOSONGKAN) nomor SPK & BAST untuk ${checkedBoxes.length} item terpilih?`)) {
+    const jenisReset = document.getElementById('jenisResetSelect').value;
+    const labelMap = { 'spk': 'nomor SPK', 'bast': 'nomor BAST', 'semua': 'nomor SPK & BAST' };
+    const resetLabel = labelMap[jenisReset] || 'nomor SPK & BAST';
+
+    if (!confirm(`Apakah Anda yakin ingin MERESET (MENGOSONGKAN) ${resetLabel} untuk ${checkedBoxes.length} item terpilih?`)) {
         return;
     }
 
@@ -928,6 +937,12 @@ function eksekusiResetNomor() {
     bAkhirInput.name = 'bulan_akhir';
     bAkhirInput.value = "{{ $bulanAkhir }}";
     form.appendChild(bAkhirInput);
+
+    const jenisInput = document.createElement('input');
+    jenisInput.type = 'hidden';
+    jenisInput.name = 'jenis_reset';
+    jenisInput.value = jenisReset;
+    form.appendChild(jenisInput);
 
     checkedBoxes.forEach(cb => {
         const parts = cb.value.split('_');
