@@ -58,6 +58,7 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
     Route::get('/spk/{mitra}/download-lampiran-pdf', [\App\Http\Controllers\SpkController::class, 'downloadLampiranPdf'])->name('spk.download-lampiran-pdf');
     Route::get('/spk-templates', [\App\Http\Controllers\SpkController::class, 'templateIndex'])->name('spk.templates.index');
     Route::post('/spk-templates', [\App\Http\Controllers\SpkController::class, 'templateStore'])->name('spk.templates.store');
+    Route::get('/spk-templates/{id}/download', [\App\Http\Controllers\SpkController::class, 'templateDownload'])->name('spk.templates.download');
     Route::put('/spk-templates/{id}', [\App\Http\Controllers\SpkController::class, 'templateUpdate'])->name('spk.templates.update');
     Route::delete('/spk-templates/{id}', [\App\Http\Controllers\SpkController::class, 'templateDestroy'])->name('spk.templates.destroy');
 

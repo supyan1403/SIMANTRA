@@ -11,22 +11,6 @@
     </a>
 </div>
 
-@if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm d-flex align-items-center mb-4" role="alert">
-        <i class="bi bi-check-circle-fill me-2 fs-5"></i>
-        <div>{{ session('success') }}</div>
-        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
-
-@if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm d-flex align-items-center mb-4" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
-        <div>{{ session('error') }}</div>
-        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
-
 @if($errors->any())
     <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
         <div class="fw-bold mb-1"><i class="bi bi-exclamation-octagon-fill me-1"></i> Terdapat kendala saat menyimpan template:</div>
@@ -112,9 +96,7 @@
                                         </span>
                                     </td>
                                     <td class="text-center pe-3">
-                                        @if($tmpl->file_path)
-                                            <a href="{{ asset('storage/' . $tmpl->file_path) }}" target="_blank" class="btn btn-sm btn-outline-info p-1 me-1" title="Unduh Berkas"><i class="bi bi-download"></i></a>
-                                        @endif
+                                        <a href="{{ route('spk.templates.download', $tmpl->id) }}" class="btn btn-sm btn-outline-info p-1 me-1" title="Unduh Berkas Template"><i class="bi bi-download"></i></a>
                                         <button type="button" class="btn btn-sm btn-outline-primary p-1 me-1" data-bs-toggle="modal" data-bs-target="#editTemplateModal{{ $tmpl->id }}" title="Edit Template">
                                             <i class="bi bi-pencil-square"></i>
                                         </button>

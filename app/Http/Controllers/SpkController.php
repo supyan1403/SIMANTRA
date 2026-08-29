@@ -1322,6 +1322,29 @@ class SpkController extends Controller
         return redirect()->route('spk.templates.index')->with('success', 'Template Dokumen berhasil diperbarui.');
     }
 
+    public function templateDownload($id)
+    {
+        $template = DocumentTemplate::findOrFail($id);
+
+        if ($template->file_path && Storage::disk('public')->exists($template->file_path)) {
+            $ext = pathinfo($template->file_path, PATHINFO_EXTENSION) ?: 'docx';
+            $downloadName = \Illuminate\Support\Str::slug($template->nama) . '.' . $ext;
+            return Storage::disk('public')->download($template->file_path, $downloadName);
+        }
+
+        // Fallback ke master template fisik BPS
+        $isBast = ($template->jenis_dokumen === 'bast');
+        $defaultTemplate = $isBast ? 'BAST PETUGAS (Sumber -2).docx' : (file_exists(base_path('File SPK (Sumber - 3 hasil edit).docx')) ? 'File SPK (Sumber - 3 hasil edit).docx' : 'File SPK (Sumber -2).docx');
+        $templatePath = base_path($defaultTemplate);
+
+        if (file_exists($templatePath)) {
+            $downloadName = \Illuminate\Support\Str::slug($template->nama) . '.docx';
+            return response()->download($templatePath, $downloadName);
+        }
+
+        return redirect()->back()->with('error', 'Berkas template fisik tidak ditemukan.');
+    }
+
     public function templateDestroy($id)
     {
         $template = DocumentTemplate::findOrFail($id);
