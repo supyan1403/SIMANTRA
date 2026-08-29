@@ -721,10 +721,10 @@ function onFormatSpkChanged(val) {
             const infoContainer = document.getElementById('lastNomorInfoText');
             if (data.last_number > 0) {
                 infoContainer.innerHTML = `<span class="text-success fw-semibold">
-                    <i class="bi bi-info-circle me-1"></i>Counter pola ini: <strong>${data.last_number}</strong> → mulai dari <strong>${data.next_number}</strong>
+                    <i class="bi bi-info-circle me-1"></i>Pola ini: <strong>No. ${data.last_number}</strong> → mulai dari <strong>${data.next_number}</strong> | Total di DB: <strong>${data.global_total}</strong> nomor
                 </span>`;
             } else {
-                infoContainer.innerHTML = `<span class="text-muted"><i class="bi bi-info-circle me-1"></i>Pola ini belum ada di DB → mulai dari <strong>1</strong></span>`;
+                infoContainer.innerHTML = `<span class="text-muted"><i class="bi bi-info-circle me-1"></i>Pola ini belum ada → mulai dari <strong>1</strong> | Total di DB: <strong>${data.global_total}</strong> nomor</span>`;
             }
         })
         .catch(() => {
@@ -818,10 +818,10 @@ function updateLastNomorInfo() {
             const infoContainer = document.getElementById('lastNomorInfoText');
             if (data.last_number > 0) {
                 infoContainer.innerHTML = `<span class="text-success fw-semibold text-truncate">
-                    <i class="bi bi-info-circle me-1"></i>Terakhir di DB: <strong>No. ${data.last_number}</strong> → mulai dari <strong>${data.next_number}</strong>
+                    <i class="bi bi-info-circle me-1"></i>Pola ini: <strong>No. ${data.last_number}</strong> → mulai dari <strong>${data.next_number}</strong> | Total di DB: <strong>${data.global_total}</strong> nomor
                 </span>`;
             } else {
-                infoContainer.innerHTML = `<span class="text-muted"><i class="bi bi-info-circle me-1"></i>Belum ada nomor di DB → mulai dari <strong>1</strong></span>`;
+                infoContainer.innerHTML = `<span class="text-muted"><i class="bi bi-info-circle me-1"></i>Pola ini belum ada → mulai dari <strong>1</strong> | Total di DB: <strong>${data.global_total}</strong> nomor</span>`;
             }
         });
 }

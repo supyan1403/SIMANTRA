@@ -259,14 +259,7 @@ class SpkController extends Controller
         $tahun = $request->query('tahun', date('Y'));
         $jenisDokumen = $request->query('jenis', 'spk');
 
-        if (empty($formatPattern)) {
-            return response()->json(['last_number' => 0, 'next_number' => 1]);
-        }
-
-        // Hitung counter dari database berdasarkan format + tahun
-        // Kita perlu query semua nomor yang sudah ada dan match dengan pola ini
         $periodeIds = Periode::where('tahun', $tahun)->pluck('id');
-
         $field = ($jenisDokumen === 'bast') ? 'nomor_bast' : 'nomor_spk';
         $existingNomors = AlokasiHonor::whereIn('periode_id', $periodeIds)
             ->whereNotNull($field)
@@ -274,10 +267,15 @@ class SpkController extends Controller
             ->pluck($field)
             ->unique();
 
-        // Filter nomor yang match dengan pola format ini
-        // Konversi pola ke regex: {nomor} -> (\d+), sisanya escape
-        $pattern = $formatPattern;
-        $regex = preg_quote($pattern, '/');
+        // Global counter: total nomor untuk tahun ini
+        $globalTotal = $existingNomors->count();
+
+        if (empty($formatPattern)) {
+            return response()->json(['last_number' => 0, 'next_number' => 1, 'global_total' => $globalTotal]);
+        }
+
+        // Counter per pola: regex match
+        $regex = preg_quote($formatPattern, '/');
         $regex = str_replace('\\{nomor\\}', '(\\d+)', $regex);
         $regex = str_replace('\\{nomor_raw\\}', '(\\d+)', $regex);
         $regex = str_replace('\\{jenis\\}', '[A-Z0-9_]+', $regex);
@@ -296,12 +294,12 @@ class SpkController extends Controller
             }
         }
 
-        // Simpan ke spk_counters untuk caching
         SpkCounter::incrementTo($formatPattern, $jenisDokumen, $tahun, $maxSeq);
 
         return response()->json([
             'last_number' => $maxSeq,
             'next_number' => $maxSeq + 1,
+            'global_total' => $globalTotal,
         ]);
     }
 
