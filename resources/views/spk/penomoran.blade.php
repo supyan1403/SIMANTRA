@@ -509,6 +509,33 @@ document.addEventListener('DOMContentLoaded', function() {
                         hiddenInput.value = k.id;
                         selectedText.textContent = k.nama;
                         closeDropdown();
+
+                        // Auto-set format pola dari kegiatan yang dipilih
+                        if (k.format_spk) {
+                            document.getElementById('formatSpkInput').value = k.format_spk;
+
+                            // Tambah ke dropdown jika belum ada
+                            const fmtSelect = document.getElementById('formatSpkSelect');
+                            const exists = Array.from(fmtSelect.options).some(o => o.value === k.format_spk);
+                            if (!exists) {
+                                const opt = document.createElement('option');
+                                opt.value = k.format_spk;
+                                opt.textContent = (k.short_name || 'custom') + ' → ' + k.format_spk;
+                                fmtSelect.appendChild(opt);
+                            }
+                            fmtSelect.value = k.format_spk;
+                        }
+
+                        // Fetch counter untuk format ini
+                        const tahunSpk = document.getElementById('tahunSpkInput').value || '{{ $tahun }}';
+                        const jenisDok = document.getElementById('jenisDokumenSelect').value || 'spk';
+                        fetch('{{ route("spk.penomoran.counter") }}?format=' + encodeURIComponent(k.format_spk || '') + '&tahun=' + tahunSpk + '&jenis=' + jenisDok)
+                            .then(r => r.json())
+                            .then(data => {
+                                document.getElementById('nomorAwalInput').value = data.next_number;
+                                updateLivePreview();
+                            });
+
                         submitFilter();
                     });
                     optionsList.appendChild(item);
@@ -707,6 +734,17 @@ function initFormatOptions() {
 
 function onFormatSpkChanged(val) {
     document.getElementById('formatSpkInput').value = val;
+
+    // Cari kegiatan yang punya format_spk sama → auto-select di filter
+    const matchKegiatan = allKegiatansData.find(k => k.format_spk === val);
+    if (matchKegiatan) {
+        const hiddenInput = document.getElementById('hiddenKegiatanIdInput');
+        const selectedText = document.getElementById('kegiatanSelectedText');
+        if (hiddenInput && selectedText) {
+            hiddenInput.value = matchKegiatan.id;
+            selectedText.textContent = matchKegiatan.nama;
+        }
+    }
 
     // Fetch counter dari server untuk pola ini
     const tahunSpk = document.getElementById('tahunSpkInput').value || '{{ $tahun }}';
