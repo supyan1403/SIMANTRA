@@ -615,10 +615,23 @@ document.addEventListener('DOMContentLoaded', function() {
 const DEFAULT_PATTERN = 'B-{nomor}/BPS/3206/{jenis}/{bulan}/{tahun}';
 const defaultBpsPatterns = [{ label: 'Pola BPS Default', value: DEFAULT_PATTERN }];
 
-// Clear old broken localStorage data
-localStorage.removeItem('simantra_active_spk_patterns');
+// Force-clear ALL old localStorage data
+const LS_VERSION_KEY = 'simantra_patterns_version';
+const CURRENT_VERSION = '2';
+const storedVersion = localStorage.getItem(LS_VERSION_KEY);
+if (storedVersion !== CURRENT_VERSION) {
+    localStorage.removeItem('simantra_active_spk_patterns');
+    localStorage.setItem(LS_VERSION_KEY, CURRENT_VERSION);
+}
 
 function getAllActivePatterns() {
+    try {
+        const data = localStorage.getItem('simantra_active_spk_patterns');
+        if (data) {
+            const parsed = JSON.parse(data);
+            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+    } catch (e) {}
     return [...defaultBpsPatterns];
 }
 
