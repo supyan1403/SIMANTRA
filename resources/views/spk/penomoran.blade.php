@@ -449,6 +449,26 @@ const allSpkMitraList = {!! json_encode($allSpkList ?? $spkList) !!};
 document.addEventListener('DOMContentLoaded', function() {
     initFormatOptions();
 
+    // Auto-sync: jika kegiatan sudah terpilih dari URL, set pola ke format kegiatan
+    const hiddenInputSync = document.getElementById('hiddenKegiatanIdInput');
+    const currentKegiatanId = hiddenInputSync ? hiddenInputSync.value : '';
+    if (currentKegiatanId) {
+        const matchedKegiatan = allKegiatansData.find(k => String(k.id) === String(currentKegiatanId));
+        if (matchedKegiatan && matchedKegiatan.format_spk) {
+            document.getElementById('formatSpkInput').value = matchedKegiatan.format_spk;
+            const fmtSelect = document.getElementById('formatSpkSelect');
+            const exists = Array.from(fmtSelect.options).some(o => o.value === matchedKegiatan.format_spk);
+            if (!exists) {
+                const opt = document.createElement('option');
+                opt.value = matchedKegiatan.format_spk;
+                opt.textContent = (matchedKegiatan.short_name || 'custom') + ' → ' + matchedKegiatan.format_spk;
+                fmtSelect.appendChild(opt);
+            }
+            fmtSelect.value = matchedKegiatan.format_spk;
+            updateLivePreview();
+        }
+    }
+
     // Dropdown Kegiatan Searchable
     const triggerBtn = document.getElementById('kegiatanDropdownTrigger');
     const menuPopup = document.getElementById('kegiatanMenuPopup');
