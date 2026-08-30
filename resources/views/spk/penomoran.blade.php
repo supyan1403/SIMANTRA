@@ -16,6 +16,7 @@
 <!-- FORM TERAPKAN PENOMORAN -->
 <form action="{{ route('spk.penomoran.terapkan') }}" method="POST" id="penomoranForm">
     @csrf
+    <input type="hidden" name="mode" value="{{ $mode }}">
     <input type="hidden" name="tahun" value="{{ $tahun }}">
     <input type="hidden" name="bulan_awal" value="{{ $bulanAwal }}">
     <input type="hidden" name="bulan_akhir" value="{{ $bulanAkhir }}">
@@ -274,6 +275,7 @@
 
 <!-- Hidden form for GET filtering -->
 <form method="GET" action="{{ route('spk.penomoran.index') }}" id="getFilterForm">
+    <input type="hidden" name="mode" id="hiddenMode" value="{{ $mode }}">
     <input type="hidden" name="tahun" id="hiddenTahun" value="{{ $tahun }}">
     <input type="hidden" name="bulan_awal" id="hiddenBulanAwal" value="{{ $bulanAwal }}">
     <input type="hidden" name="bulan_akhir" id="hiddenBulanAkhir" value="{{ $bulanAkhir }}">
@@ -289,6 +291,26 @@
         <div class="d-flex align-items-center mb-3">
             <span class="badge bg-primary bg-opacity-10 text-primary fw-bold me-2 px-2.5 py-1.5 rounded-pill"><i class="bi bi-funnel-fill me-1"></i>FILTER MITRA</span>
             <span class="text-uppercase small fw-bold text-muted">Saring Berdasarkan Periode &amp; Lingkup Kegiatan</span>
+        </div>
+
+        <!-- Mode Tabs: Mode Per Kegiatan vs Mode Per Bulan -->
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 pb-3 border-bottom">
+            <div class="btn-group p-1 bg-light rounded-3 shadow-none border" role="group">
+                <button type="button" class="btn btn-sm fw-bold px-3 py-1.5 rounded-2 {{ $mode !== 'bulan' ? 'btn-primary shadow-sm text-white' : 'btn-light text-secondary' }}" onclick="switchMode('kegiatan')">
+                    <i class="bi bi-briefcase-fill me-1.5"></i> Mode Per Kegiatan
+                </button>
+                <button type="button" class="btn btn-sm fw-bold px-3 py-1.5 rounded-2 {{ $mode === 'bulan' ? 'btn-primary shadow-sm text-white' : 'btn-light text-secondary' }}" onclick="switchMode('bulan')">
+                    <i class="bi bi-calendar-check-fill me-1.5"></i> Mode Per Bulan (Gabungan)
+                </button>
+            </div>
+            <span class="text-muted extra-small">
+                <i class="bi bi-info-circle me-1"></i>
+                @if($mode === 'bulan')
+                    <strong>Mode Per Bulan:</strong> Menggabungkan seluruh alokasi kegiatan mitra per bulan (1 nomor SPK/BAST per bulan).
+                @else
+                    <strong>Mode Per Kegiatan:</strong> Memberikan nomor SPK/BAST terpisah untuk setiap kegiatan mitra.
+                @endif
+            </span>
         </div>
 
         <div class="row g-3 mb-3">
@@ -976,6 +998,14 @@ function onJenisDokumenChanged() {
 
 function onFormatSpkChanged(val) {
     document.getElementById('formatSpkInput').value = val;
+}
+
+function switchMode(newMode) {
+    const hiddenMode = document.getElementById('hiddenMode');
+    if (hiddenMode) {
+        hiddenMode.value = newMode;
+    }
+    submitFilter();
 }
 
 function submitFilter() {

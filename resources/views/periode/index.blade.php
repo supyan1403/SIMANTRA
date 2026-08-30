@@ -15,13 +15,6 @@
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body p-3">
         <form method="GET" action="{{ route('periode.index') }}" class="row g-2 align-items-center">
-            <div class="col-12 col-md-5">
-                <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                    <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Cari nama bulan atau tahun..." value="{{ $search }}">
-                </div>
-            </div>
-            
             <div class="col-12 col-md-4">
                 <select name="tahun" class="form-select" onchange="this.form.submit()">
                     <option value="all">Semua Tahun Anggaran</option>
@@ -31,11 +24,20 @@
                 </select>
             </div>
 
+            <div class="col-12 col-md-5">
+                <select name="bulan" class="form-select" onchange="this.form.submit()">
+                    <option value="all">Semua Bulan</option>
+                    @foreach($bulanList as $b)
+                        <option value="{{ $b }}" {{ $bulan == $b ? 'selected' : '' }}>{{ $b }}</option>
+                    @endforeach
+                </select>
+            </div>
+
             <div class="col-12 col-md-3 d-flex gap-2">
-                <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-1">
-                    <i class="bi bi-filter"></i> Filter
+                <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-1.5 fw-semibold">
+                    <i class="bi bi-search"></i> Cari
                 </button>
-                @if($search || ($tahun && $tahun !== 'all'))
+                @if(($bulan && $bulan !== 'all') || ($tahun && $tahun !== 'all') || $search)
                     <a href="{{ route('periode.index') }}" class="btn btn-outline-secondary d-flex align-items-center justify-content-center" title="Reset Filter">
                         <i class="bi bi-arrow-counterclockwise"></i>
                     </a>

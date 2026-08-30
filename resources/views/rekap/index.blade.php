@@ -17,10 +17,6 @@
             </select>
         </form>
 
-        <button type="button" class="btn btn-sm btn-success d-flex align-items-center gap-1 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalExportExcel">
-            <i class="bi bi-file-earmark-excel-fill"></i> Export Excel (Kustom)
-        </button>
-
         <a href="{{ route('monitoring.create') }}" class="btn btn-sm btn-primary d-flex align-items-center gap-1 shadow-sm">
             <i class="bi bi-plus-circle-fill"></i> Tambah Honor
         </a>

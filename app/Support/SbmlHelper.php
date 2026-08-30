@@ -2,7 +2,6 @@
 
 namespace App\Support;
 
-use App\Models\Sbml;
 use App\Models\SbmlMaster;
 use App\Models\Periode;
 use App\Models\AlokasiHonor;
@@ -25,26 +24,13 @@ class SbmlHelper
 
     /**
      * Batas honor maksimal efektif untuk seorang mitra pada satu periode (bulan).
+     * Mengambil acuan dari tabel sbml_masters sesuai tahun anggaran kegiatan.
      * @param int $mitraId
      * @param int $periodeId
      * @param string|null $jenis 'Pencacahan', 'Pengolahan', atau null (Total Gabungan)
      */
     public static function limitFor(int $mitraId, int $periodeId, ?string $jenis = null): float
     {
-        $query = Sbml::where('mitra_id', $mitraId)->where('periode_id', $periodeId);
-        
-        if ($jenis !== null && in_array($jenis, ['Pencacahan', 'Pengolahan'])) {
-            $imported = (float) $query->where('jenis', $jenis)->value('nominal');
-            if ($imported > 0) {
-                return $imported;
-            }
-        } else {
-            $importedTotal = (float) $query->sum('nominal');
-            if ($importedTotal > 0) {
-                return $importedTotal;
-            }
-        }
-
         // Cek pengaturan Master SBML per tahun
         $periode = Periode::find($periodeId);
         $tahun = $periode ? (int) $periode->tahun : (int) date('Y');

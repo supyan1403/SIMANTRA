@@ -98,12 +98,10 @@ class LandingController extends Controller
         $paguMataAnggaran = (float) $paguQuery()->sum('total');
         $sisaAnggaran = $paguMataAnggaran - $realisasiHonor;
 
-        $sbmlQuery = Sbml::query()->whereIn('periode_id', $periodeIds);
-        if ($bidangId || $kegiatanId) {
-            $scopeMitraIds = collect($honorQuery()->pluck('mitra_id')->unique());
-            $sbmlQuery->whereIn('mitra_id', $scopeMitraIds);
-        }
-        $paguSBML = (float) $sbmlQuery->sum('nominal');
+        $sbmlMaster = \App\Models\SbmlMaster::where('tahun', $tahun)->first();
+        $paguSBML = $sbmlMaster ? (float) $sbmlMaster->nominal : (float) \App\Support\SbmlHelper::DEFAULT_LIMIT;
+        $sbmlPencacahan = $sbmlMaster ? (float) $sbmlMaster->nominal_pencacahan : (float) \App\Support\SbmlHelper::DEFAULT_PENCACAHAN_2024;
+        $sbmlPengolahan = $sbmlMaster ? (float) $sbmlMaster->nominal_pengolahan : (float) \App\Support\SbmlHelper::DEFAULT_PENGOLAHAN_2024;
 
         $bidangOptions = Bidang::orderBy('nama')->get();
         $kegiatanOptions = Kegiatan::when($bidangId, fn($q) => $q->where('bidang_id', $bidangId))
@@ -125,7 +123,7 @@ class LandingController extends Controller
             'tahunList', 'tahun',
             'monthOptions', 'bulanPencairan',
             'bidangOptions', 'bidangId', 'kegiatanOptions', 'kegiatanId',
-            'paguMataAnggaran', 'realisasiHonor', 'sisaAnggaran', 'paguSBML',
+            'paguMataAnggaran', 'realisasiHonor', 'sisaAnggaran', 'paguSBML', 'sbmlPencacahan', 'sbmlPengolahan',
             'totalTransaksi', 'totalMitra', 'totalOperator',
             'sudahDipekerjakanCount', 'belumDipekerjakanCount',
             'honorPerBulan', 'honorPerBidang'

@@ -26,22 +26,36 @@ class MitraAddressTest extends TestCase
             'nama' => 'CIHERAS'
         ]);
 
-        // 1. Create Mitra via POST with separated address fields & kabupaten_kota
+        // 1. Create Mitra via POST with separated address fields & SOBAT fields
         $response = $this->post(route('mitra.store'), [
             'nama' => 'Mitra BPS Test',
             'id_sobat' => '320699001',
+            'nik' => '3206010101900001',
+            'posisi' => 'Pendata Lapangan',
+            'email' => 'mitra@bps.go.id',
             'no_hp' => '08123456789',
+            'npwp' => '12.345.678.9-425.000',
+            'pendidikan' => 'S1 / Sarjana',
             'kabupaten_kota' => 'Kabupaten Tasikmalaya',
             'kecamatan' => 'CIPATUJAH',
             'desa' => 'CIHERAS',
             'alamat_detail' => 'Kp. Ciheras RT 01 RW 02',
             'pekerjaan' => 'Mitra Statistik',
             'jk' => 'L',
+            'exp_sp' => 1,
+            'exp_st' => 1,
+            'exp_susenas' => 1,
         ]);
 
         $response->assertRedirect(route('mitra.index'));
         $this->assertDatabaseHas('mitras', [
             'nama' => 'Mitra BPS Test',
+            'nik' => '3206010101900001',
+            'posisi' => 'Pendata Lapangan',
+            'email' => 'mitra@bps.go.id',
+            'exp_sp' => true,
+            'exp_st' => true,
+            'exp_susenas' => true,
             'kabupaten_kota' => 'Kabupaten Tasikmalaya',
             'kecamatan' => 'CIPATUJAH',
             'desa' => 'CIHERAS',
@@ -60,6 +74,8 @@ class MitraAddressTest extends TestCase
         // 3. Update Mitra
         $updateResponse = $this->put(route('mitra.update', $mitra), [
             'nama' => 'Mitra BPS Test Updated',
+            'nik' => '3206010101900001',
+            'posisi' => 'Pengolah Data',
             'kabupaten_kota' => 'Kota Tasikmalaya',
             'kecamatan' => 'CIPATUJAH',
             'desa' => 'CIHERAS',
@@ -71,6 +87,7 @@ class MitraAddressTest extends TestCase
         $updateResponse->assertRedirect(route('mitra.index'));
         $this->assertDatabaseHas('mitras', [
             'id' => $mitra->id,
+            'posisi' => 'Pengolah Data',
             'kabupaten_kota' => 'Kota Tasikmalaya',
             'alamat_detail' => 'Jl. Baru No. 45',
         ]);

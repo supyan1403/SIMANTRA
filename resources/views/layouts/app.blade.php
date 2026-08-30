@@ -532,6 +532,17 @@
             white-space: nowrap;
         }
 
+        .btn-action-view {
+            color: #1d4ed8;
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+        }
+
+        .btn-action-view:hover {
+            color: #1e40af;
+            background-color: #dbeafe;
+        }
+
         .btn-action-edit {
             color: #b45309;
             background-color: #fef3c7;
@@ -849,9 +860,9 @@
                 <span class="nav-text">Periode</span>
             </a>
 
-            <a href="{{ route('import.index') }}" class="sidebar-link {{ request()->routeIs('import.*') ? 'active' : '' }}" title="Import Excel MANTRA">
-                <i class="bi bi-cloud-arrow-up-fill"></i>
-                <span class="nav-text">Import Excel MANTRA</span>
+            <a href="{{ route('import.index') }}" class="sidebar-link {{ request()->routeIs('import.*') ? 'active' : '' }}" title="Import & Template Excel">
+                <i class="bi bi-file-earmark-excel-fill"></i>
+                <span class="nav-text">Import &amp; Template Excel</span>
             </a>
 
             <div class="sidebar-divider"></div>
@@ -891,6 +902,11 @@
             <a href="{{ route('pengaturan.index') }}" class="sidebar-link {{ request()->routeIs('pengaturan.*') ? 'active' : '' }}" title="Pengaturan User">
                 <i class="bi bi-gear-fill"></i>
                 <span class="nav-text">Pengaturan User</span>
+            </a>
+
+            <a href="{{ route('database.index') }}" class="sidebar-link {{ request()->routeIs('database.*') ? 'active' : '' }}" title="Manajemen Database">
+                <i class="bi bi-database-fill-gear"></i>
+                <span class="nav-text">Manajemen Database</span>
             </a>
             @endif
         </div>

@@ -204,9 +204,9 @@
             @foreach($items as $idx => $item)
                 @php
                     $rentangBulan = \App\Http\Controllers\SpkController::formatRentangTanggalBulan($item->periode->bulan_angka, $item->periode->tahun);
-                    $vol = (float)($item->volume ?? 1);
+                    $vol = (int) round($item->volume ?? 1);
                     $sat = $item->satuan ?? 'Dokumen';
-                    $hargaSat = ($vol > 0) ? ($item->nominal / $vol) : $item->nominal;
+                    $hargaSat = ($item->tarif_satuan > 0) ? $item->tarif_satuan : (($vol > 0) ? ($item->nominal / $vol) : $item->nominal);
                 @endphp
                 <tr>
                     <td>{{ $idx + 1 }}</td>

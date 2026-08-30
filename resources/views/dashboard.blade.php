@@ -122,7 +122,7 @@
             </div>
             @endif
             <div class="col-12 col-md-1 d-flex gap-1">
-                <button type="submit" class="btn btn-primary w-100" title="Filter Makro"><i class="bi bi-filter"></i></button>
+                <button type="submit" class="btn btn-primary w-100" title="Cari"><i class="bi bi-search"></i></button>
                 <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary" title="Reset"><i class="bi bi-arrow-counterclockwise"></i></a>
             </div>
         </form>
@@ -173,9 +173,9 @@
         <div class="card metric-card metric-card-purple shadow-sm h-100">
             <div class="card-body d-flex align-items-center justify-content-between p-3.5">
                 <div>
-                    <span class="text-white-50 small fw-bold text-uppercase" style="font-size: 0.7rem;">Kapasitas Honor (SBML)</span>
+                    <span class="text-white-50 small fw-bold text-uppercase" style="font-size: 0.7rem;">Standar SBML / Bulan</span>
                     <h3 class="fw-extrabold text-white mt-1 mb-0 text-nowrap" style="font-size: 1.3rem;" data-counter-value="{{ $paguSBML }}" data-counter-prefix="Rp ">Rp {{ number_format($paguSBML, 0, ',', '.') }}</h3>
-                    <span class="text-white-50 extra-small">Total acuan SBML dalam rentang</span>
+                    <span class="text-white-50 extra-small" style="font-size: 0.68rem;">Cacah: Rp {{ number_format($sbmlPencacahan / 1000000, 1, ',', '.') }}jt • Olah: Rp {{ number_format($sbmlPengolahan / 1000000, 1, ',', '.') }}jt</span>
                 </div>
                 <div class="metric-icon-bg"><i class="bi bi-piggy-bank-fill fs-3"></i></div>
             </div>
@@ -780,7 +780,7 @@
                                 </div>
                             </div>
                             <div class="d-flex align-items-center justify-content-between mt-2 border-top pt-1.5" style="font-size: 0.725rem;">
-                                <span class="text-muted extra-small">{{ $monthOptions[$sBulanAwal] ?? '' }} - {{ $monthOptions[$sBulanAkhir] ?? '' }} {{ $sTahun }}</span>
+                                <span class="text-muted extra-small fw-semibold">{{ $mItem->periode_aktif_teks ?? ($monthOptions[$sBulanAwal] ?? '') . ' - ' . ($monthOptions[$sBulanAkhir] ?? '') . ' ' . $sTahun }}</span>
                                 <span class="badge {{ ($mItem->total_honor_periode ?? 0) > 0 ? 'bg-success' : 'bg-secondary' }} px-2 py-0.5" style="font-size: 0.675rem;">{{ $mItem->jumlah_alokasi_periode ?? 0 }} Alokasi</span>
                             </div>
                         </div>
@@ -793,7 +793,7 @@
                     <div class="alert alert-light border text-center py-3 mb-3">
                         <i class="bi bi-clock-history fs-3 d-block text-warning mb-1"></i>
                         <span class="fw-bold text-dark small">Belum di-Pekerjakan</span>
-                        <div class="text-muted extra-small">Mitra ini belum memiliki alokasi honor pada rentang {{ $monthOptions[$sBulanAwal] ?? '' }} - {{ $monthOptions[$sBulanAkhir] ?? '' }} {{ $sTahun }}.</div>
+                        <div class="text-muted extra-small">Mitra ini belum memiliki alokasi honor pada Tahun {{ $sTahun }}.</div>
                     </div>
                 @else
                     <div class="table-responsive mb-3">

@@ -180,6 +180,8 @@ class SpkController extends Controller
         $bulanAkhir = max(1, min(12, $bulanAkhir));
         if ($bulanAkhir < $bulanAwal) { $bulanAkhir = $bulanAwal; }
 
+        $mode = $request->mode ?? 'kegiatan'; // 'kegiatan' (default) or 'bulan'
+
         $bidangId = ($isOperatorScoped) ? $user->bidang_id : ($request->bidang_id ?? null);
         if ($bidangId === '' || $bidangId === 'all') $bidangId = null;
 
@@ -254,25 +256,55 @@ class SpkController extends Controller
             }
         }
 
-        // Grouping per Mitra + Kegiatan (1 SPK per kegiatan)
-        $allSpkList = $alokasis->groupBy(fn($item) => $item->mitra_id . '-' . $item->kegiatan_id)
-            ->map(function ($items, $key) {
-                $mitra = $items->first()->mitra;
-                $kegiatan = $items->first()->kegiatan;
-                $nomor_spk = $items->firstWhere('nomor_spk', '!=', null)?->nomor_spk;
-                $nomor_bast = $items->firstWhere('nomor_bast', '!=', null)?->nomor_bast;
+        if ($mode === 'bulan') {
+            // Grouping per Mitra + Bulan Periode (1 SPK per bulan untuk semua kegiatan di bulan tsb)
+            $allSpkList = $alokasis->groupBy(fn($item) => $item->mitra_id . '-' . $item->periode_id)
+                ->map(function ($items, $key) {
+                    $mitra = $items->first()->mitra;
+                    $periode = $items->first()->periode;
+                    $kegiatanNames = $items->pluck('kegiatan.nama')->filter()->unique()->join(', ');
+                    $nomor_spk = $items->firstWhere('nomor_spk', '!=', null)?->nomor_spk;
+                    $nomor_bast = $items->firstWhere('nomor_bast', '!=', null)?->nomor_bast;
 
-                return (object) [
-                    'mitra_id' => $items->first()->mitra_id,
-                    'kegiatan_id' => $items->first()->kegiatan_id,
-                    'mitra' => $mitra,
-                    'kegiatan' => $kegiatan,
-                    'total_honor' => (float) $items->sum('nominal'),
-                    'nomor_spk' => $nomor_spk,
-                    'nomor_bast' => $nomor_bast,
-                    'items' => $items,
-                ];
-            })->values();
+                    return (object) [
+                        'mitra_id' => $items->first()->mitra_id,
+                        'kegiatan_id' => null,
+                        'periode_id' => $items->first()->periode_id,
+                        'bulan_angka' => $periode ? $periode->bulan_angka : 1,
+                        'tahun' => $periode ? $periode->tahun : date('Y'),
+                        'periode_label' => $periode ? ($periode->bulan . ' ' . $periode->tahun) : '',
+                        'mitra' => $mitra,
+                        'kegiatan' => (object) [
+                            'nama' => $kegiatanNames ?: 'Kegiatan Gabungan',
+                            'bidang' => (object) ['nama' => $items->pluck('kegiatan.bidang.nama')->filter()->unique()->join(', ') ?: '-'],
+                        ],
+                        'total_honor' => (float) $items->sum('nominal'),
+                        'nomor_spk' => $nomor_spk,
+                        'nomor_bast' => $nomor_bast,
+                        'items' => $items,
+                    ];
+                })->values();
+        } else {
+            // Grouping per Mitra + Kegiatan (1 SPK per kegiatan)
+            $allSpkList = $alokasis->groupBy(fn($item) => $item->mitra_id . '-' . $item->kegiatan_id)
+                ->map(function ($items, $key) {
+                    $mitra = $items->first()->mitra;
+                    $kegiatan = $items->first()->kegiatan;
+                    $nomor_spk = $items->firstWhere('nomor_spk', '!=', null)?->nomor_spk;
+                    $nomor_bast = $items->firstWhere('nomor_bast', '!=', null)?->nomor_bast;
+
+                    return (object) [
+                        'mitra_id' => $items->first()->mitra_id,
+                        'kegiatan_id' => $items->first()->kegiatan_id,
+                        'mitra' => $mitra,
+                        'kegiatan' => $kegiatan,
+                        'total_honor' => (float) $items->sum('nominal'),
+                        'nomor_spk' => $nomor_spk,
+                        'nomor_bast' => $nomor_bast,
+                        'items' => $items,
+                    ];
+                })->values();
+        }
 
         // Paginate 15 items per page
         $perPage = 15;
@@ -295,6 +327,7 @@ class SpkController extends Controller
         ])->toArray();
 
         return view('spk.penomoran', compact(
+            'mode',
             'tahunList', 'tahun', 'monthOptions', 'bulanAwal', 'bulanAkhir',
             'bidangOptions', 'bidangId', 'kegiatanOptions', 'kegiatanId', 'search',
             'jenisDokumen', 'formatSpk', 'nomorAwal', 'bulanSpk', 'tahunSpk',
@@ -1084,6 +1117,225 @@ class SpkController extends Controller
         $viewName = ($jenisDokumen === 'bast') ? 'spk.template_bast' : 'spk.cetak_massal';
 
         return view($viewName, compact('batchList', 'jenisDokumen', 'kategoriKegiatan', 'tahun', 'periodeLabel', 'tanggalTerbilang'));
+    }
+
+    public function unduhMassalZip(Request $request)
+    {
+        $mitraIds = $request->mitra_ids ?? [];
+        if (empty($mitraIds)) {
+            return redirect()->back()->with('error', 'Pilih minimal 1 mitra untuk diunduh secara massal.');
+        }
+
+        $user = auth()->user();
+        if ($user->role === 'operator' && $user->bidang_id) {
+            $tahun = $request->tahun ?? date('Y');
+            $bulanAwal = (int) ($request->bulan_awal ?? 1);
+            $bulanAkhir = (int) ($request->bulan_akhir ?? 12);
+            $kegiatanId = $request->kegiatan_id ?: null;
+            $periodeIds = Periode::where('tahun', $tahun)
+                ->where('bulan_angka', '>=', $bulanAwal)
+                ->where('bulan_angka', '<=', $bulanAkhir)
+                ->pluck('id');
+
+            $invalidCount = AlokasiHonor::whereIn('mitra_id', $mitraIds)
+                ->whereIn('periode_id', $periodeIds)
+                ->when($kegiatanId, fn($q) => $q->where('kegiatan_id', $kegiatanId))
+                ->whereHas('kegiatan', fn($q) => $q->where('bidang_id', '!=', $user->bidang_id))
+                ->count();
+
+            if ($invalidCount > 0) {
+                return redirect()->back()->with('error', 'Beberapa mitra memiliki alokasi di luar bidang Anda. Unduh massal dibatalkan.');
+            }
+        }
+
+        $templateId = $request->template_id;
+        $jenisDokumen = $request->jenis_dokumen ?? 'spk'; // spk or bast
+        if ($templateId) {
+            $docTmpl = DocumentTemplate::find($templateId);
+            if ($docTmpl && $docTmpl->jenis_dokumen) {
+                $jenisDokumen = $docTmpl->jenis_dokumen;
+            }
+        }
+
+        $docTmpl = $templateId ? DocumentTemplate::find($templateId) : null;
+        $isBast = ($jenisDokumen === 'bast');
+        $defaultTemplate = $isBast ? 'BAST PETUGAS (Sumber -2).docx' : (file_exists(base_path('File SPK (Sumber - 3 hasil edit).docx')) ? 'File SPK (Sumber - 3 hasil edit).docx' : 'File SPK (Sumber -2).docx');
+        $templatePath = base_path($defaultTemplate);
+
+        if ($docTmpl && $docTmpl->file_path && Storage::disk('public')->exists($docTmpl->file_path)) {
+            $templatePath = Storage::disk('public')->path($docTmpl->file_path);
+        }
+
+        $tahun = $request->tahun ?? date('Y');
+        $bulanAwal = (int) ($request->bulan_awal ?? 1);
+        $bulanAkhir = (int) ($request->bulan_akhir ?? 12);
+        $kegiatanId = $request->kegiatan_id ?: null;
+
+        $periodeIds = Periode::where('tahun', $tahun)
+            ->where('bulan_angka', '>=', $bulanAwal)
+            ->where('bulan_angka', '<=', $bulanAkhir)
+            ->pluck('id');
+
+        $periodeLabel = $this->bulanNama[$bulanAwal] . ($bulanAwal !== $bulanAkhir ? ' s.d ' . $this->bulanNama[$bulanAkhir] : '') . ' ' . $tahun;
+
+        // Parse composite keys
+        $pairs = [];
+        foreach ($mitraIds as $val) {
+            $parts = explode('_', $val);
+            $mId = (int) $parts[0];
+            $kId = (int) ($parts[1] ?? 0);
+            $pairs[] = ['mitra_id' => $mId, 'kegiatan_id' => $kId];
+        }
+
+        $byMitra = collect($pairs)->groupBy('mitra_id');
+        $downloadFormat = strtolower($request->format ?? 'docx'); // docx or pdf
+        $isPdfReq = ($downloadFormat === 'pdf');
+        $pdfFlag = $isPdfReq ? ' --pdf' : '';
+
+        $tempBase = storage_path('app/temp_zip_' . uniqid());
+        if (!file_exists($tempBase)) {
+            mkdir($tempBase, 0777, true);
+        }
+
+        $zipPath = $tempBase . DIRECTORY_SEPARATOR . 'Arsip_Dokumen_' . strtoupper($jenisDokumen) . '_' . date('Ymd_His') . '.zip';
+        $zip = new \ZipArchive();
+        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+            return redirect()->back()->with('error', 'Gagal membuat file arsip ZIP.');
+        }
+
+        $filesAdded = 0;
+        $tanggalSpkInput = $request->tanggal_spk ?? $request->tanggal_dokumen ?? date('Y-m-d');
+        $tanggalInfo = self::formatTanggalTerbilang($tanggalSpkInput);
+
+        foreach ($byMitra as $mId => $kegiatanPairs) {
+            $mitra = Mitra::find($mId);
+            if (!$mitra) continue;
+
+            $kegiatanIds = $kegiatanPairs->pluck('kegiatan_id')->filter()->unique()->values();
+
+            $allItems = AlokasiHonor::with(['kegiatan.bidang', 'periode'])
+                ->where('mitra_id', $mId)
+                ->whereIn('periode_id', $periodeIds)
+                ->when($kegiatanIds->isNotEmpty(), fn($q) => $q->whereIn('kegiatan_id', $kegiatanIds))
+                ->get();
+
+            if ($allItems->isEmpty()) continue;
+
+            $grouped = $allItems->groupBy('kegiatan_id');
+
+            foreach ($grouped as $kegId => $items) {
+                $nomorDoc = ($jenisDokumen === 'bast')
+                    ? $items->firstWhere('nomor_bast', '!=', null)?->nomor_bast
+                    : $items->firstWhere('nomor_spk', '!=', null)?->nomor_spk;
+
+                if (empty($nomorDoc)) {
+                    continue;
+                }
+
+                $totalHonor = (float) $items->sum('nominal');
+                $terbilangHonor = self::terbilang($totalHonor) . ' Rupiah';
+                $nomorSpkRef = $items->firstWhere('nomor_spk', '!=', null)?->nomor_spk ?? '';
+                $nomorBastRef = $items->firstWhere('nomor_bast', '!=', null)?->nomor_bast ?? $nomorDoc;
+
+                $fileUid = uniqid($isBast ? 'bast_' : 'spk_');
+                $tempDocx = $tempBase . DIRECTORY_SEPARATOR . $fileUid . '.docx';
+                $tempJson = $tempBase . DIRECTORY_SEPARATOR . $fileUid . '.json';
+
+                if ($isBast) {
+                    $payload = [
+                        'nomor_bast' => $nomorBastRef,
+                        'nomor_spk' => $nomorSpkRef ?: str_replace('BAST', 'SPK', $nomorBastRef),
+                        'nama_mitra' => strtoupper($mitra->nama),
+                        'pekerjaan_mitra' => $mitra->pekerjaan_clean,
+                        'alamat_mitra' => $mitra->alamat_clean,
+                        'tahun' => $tahun,
+                        'hari' => $tanggalInfo['hari'],
+                        'tanggal_teks' => $tanggalInfo['tanggal_teks'],
+                        'bulan_teks' => $tanggalInfo['bulan_teks'],
+                        'tahun_teks' => $tanggalInfo['tahun_teks'],
+                        'tanggal_angka' => date('j', strtotime($tanggalSpkInput)) . ' ' . $this->bulanNama[(int)date('n', strtotime($tanggalSpkInput))] . ' ' . date('Y', strtotime($tanggalSpkInput)),
+                        'tanggal_spk_text' => date('j', strtotime($tanggalSpkInput)) . ' ' . $this->bulanNama[(int)date('n', strtotime($tanggalSpkInput))],
+                    ];
+                    $pyScript = base_path('scripts/export_bast_docx.py');
+                    $docPrefix = 'BAST_';
+                } else {
+                    $itemsData = [];
+                    foreach ($items as $it) {
+                        $rentangBulan = self::formatRentangTanggalBulan($it->periode->bulan_angka, $it->periode->tahun);
+                        $volume = (float)($it->volume ?? 1);
+                        $satuan = $it->satuan ?? 'dokumen';
+                        $hargaSatuan = ($volume > 0) ? ($it->nominal / $volume) : $it->nominal;
+
+                        $itemsData[] = [
+                            'nama' => $it->kegiatan->nama,
+                            'periode' => $rentangBulan,
+                            'volume' => $volume,
+                            'satuan' => $satuan,
+                            'harga_satuan' => 'Rp. ' . number_format($hargaSatuan, 0, ',', '.') . ',00',
+                            'nilai_perjanjian' => 'Rp. ' . number_format($it->nominal, 0, ',', '.') . ', 00',
+                            'mak' => $it->kegiatan->kode_mata_anggaran ?: '-',
+                        ];
+                    }
+                    $payload = [
+                        'nomor_spk' => $nomorDoc,
+                        'nama_mitra' => strtoupper($mitra->nama),
+                        'pekerjaan_mitra' => $mitra->pekerjaan_clean,
+                        'alamat_mitra' => $mitra->alamat_clean,
+                        'periode_label' => $periodeLabel,
+                        'total_honor' => 'Rp. ' . number_format($totalHonor, 0, ',', '.'),
+                        'terbilang_honor' => $terbilangHonor,
+                        'tahun' => $tahun,
+                        'hari' => $tanggalInfo['hari'],
+                        'tanggal_teks' => $tanggalInfo['tanggal_teks'],
+                        'bulan_teks' => $tanggalInfo['bulan_teks'],
+                        'tahun_teks' => $tanggalInfo['tahun_teks'],
+                        'full_pembuka' => $tanggalInfo['full_text'],
+                        'items' => $itemsData,
+                    ];
+                    $pyScript = base_path('scripts/export_spk_docx.py');
+                    $docPrefix = 'SPK_';
+                }
+
+                file_put_contents($tempJson, json_encode($payload));
+
+                if (file_exists($templatePath)) {
+                    exec("python \"{$pyScript}\" \"{$templatePath}\" \"{$tempDocx}\" \"{$tempJson}\"{$pdfFlag}");
+                }
+
+                $kegiatanSlug = \Illuminate\Support\Str::slug($items->first()->kegiatan->nama ?? 'Kegiatan');
+                $mitraSlug = \Illuminate\Support\Str::slug($mitra->nama);
+
+                if ($isPdfReq) {
+                    $tempPdf = $tempBase . DIRECTORY_SEPARATOR . $fileUid . '.pdf';
+                    if (file_exists($tempPdf)) {
+                        $entryName = $docPrefix . $mitraSlug . '_' . $kegiatanSlug . '.pdf';
+                        $zip->addFile($tempPdf, $entryName);
+                        $filesAdded++;
+                    }
+                } else {
+                    if (!file_exists($tempDocx) && file_exists($templatePath)) {
+                        $this->generateWordDocxFallback($templatePath, $tempDocx, $payload);
+                    }
+                    if (file_exists($tempDocx)) {
+                        $entryName = $docPrefix . $mitraSlug . '_' . $kegiatanSlug . '.docx';
+                        $zip->addFile($tempDocx, $entryName);
+                        $filesAdded++;
+                    }
+                }
+            }
+        }
+
+        $zip->close();
+
+        if ($filesAdded === 0) {
+            @unlink($zipPath);
+            @rmdir($tempBase);
+            return redirect()->back()->with('error', 'Tidak ada dokumen resmi yang siap diunduh (pastikan mitra terpilih sudah memiliki nomor SPK/BAST resmi).');
+        }
+
+        $downloadFilename = strtoupper($jenisDokumen) . '_Massal_' . preg_replace('/[^a-zA-Z0-9]/', '_', $periodeLabel) . '_' . strtoupper($downloadFormat) . '.zip';
+
+        return response()->download($zipPath, $downloadFilename)->deleteFileAfterSend(true);
     }
 
     public function resetNomor(Request $request)

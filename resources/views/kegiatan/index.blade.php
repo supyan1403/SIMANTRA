@@ -6,13 +6,13 @@
         <h2 class="page-title"><i class="bi bi-journal-bookmark-fill text-primary me-2"></i>Data Mata Anggaran</h2>
         <p class="page-subtitle">Kelola data mata anggaran kegiatan statistik, kode MAK, volume, harga satuan, dan pagu anggaran per tim kerja</p>
     </div>
-    <div class="d-flex align-items-center gap-2 flex-shrink-0 text-nowrap">
+    <div class="d-flex align-items-center gap-2 flex-shrink-0 text-nowrap flex-wrap">
         @if(auth()->user()?->role === 'admin' || auth()->user()?->role === 'operator')
             <a href="{{ route('kegiatan.import.template') }}" class="btn btn-outline-success d-flex align-items-center gap-2 shadow-sm text-nowrap">
-                <i class="bi bi-download"></i> Download Template
+                <i class="bi bi-download"></i> Template Excel
             </a>
             <a href="{{ route('kegiatan.import.index') }}" class="btn btn-success d-flex align-items-center gap-2 shadow-sm text-nowrap">
-                <i class="bi bi-cloud-arrow-up-fill"></i> Upload Template
+                <i class="bi bi-cloud-arrow-up-fill"></i> Import Excel
             </a>
         @endif
         @if(auth()->user()?->role === 'admin')
@@ -27,14 +27,16 @@
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body p-3">
         <form method="GET" action="{{ route('kegiatan.index') }}" class="row g-2 align-items-center">
-            <div class="col-12 col-md-5">
-                <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                    <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Cari nama kegiatan atau kode MAK..." value="{{ $search }}">
-                </div>
+            <div class="col-6 col-md-2">
+                <select name="tahun" class="form-select" onchange="this.form.submit()">
+                    <option value="all">Semua Tahun</option>
+                    @foreach($tahunList as $t)
+                        <option value="{{ $t }}" {{ ($tahun == $t) ? 'selected' : '' }}>Tahun {{ $t }}</option>
+                    @endforeach
+                </select>
             </div>
             
-            <div class="col-12 col-md-4">
+            <div class="col-6 col-md-3">
                 <select name="bidang_id" class="form-select" onchange="this.form.submit()" {{ auth()->user()->role === 'operator' && auth()->user()->bidang_id ? 'disabled' : '' }}>
                     @if(!auth()->user()->bidang_id || auth()->user()->role !== 'operator')
                         <option value="all">Semua Bidang / Tim Kerja</option>
@@ -45,11 +47,18 @@
                 </select>
             </div>
 
+            <div class="col-12 col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Cari nama kegiatan atau kode MAK..." value="{{ $search }}">
+                </div>
+            </div>
+
             <div class="col-12 col-md-3 d-flex gap-2">
-                <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-1">
-                    <i class="bi bi-filter"></i> Filter
+                <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-1.5 fw-semibold">
+                    <i class="bi bi-search"></i> Cari
                 </button>
-                @if($search || ($bidangId && $bidangId !== 'all'))
+                @if($search || ($bidangId && $bidangId !== 'all') || ($tahun && $tahun !== 'all'))
                     <a href="{{ route('kegiatan.index') }}" class="btn btn-outline-secondary d-flex align-items-center justify-content-center" title="Reset Filter">
                         <i class="bi bi-arrow-counterclockwise"></i>
                     </a>
@@ -59,44 +68,109 @@
     </div>
 </div>
 
+<style>
+    .table-kegiatan-scroll {
+        overflow-x: auto;
+        position: relative;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table-sticky-freeze {
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+    }
+
+    .table-sticky-freeze th,
+    .table-sticky-freeze td {
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    /* Base Sticky Columns for Kegiatan */
+    .sticky-keg-1, .sticky-keg-2, .sticky-keg-3 {
+        position: sticky !important;
+        background-color: #ffffff;
+        z-index: 5;
+    }
+
+    th.sticky-keg-1, th.sticky-keg-2, th.sticky-keg-3 {
+        z-index: 6 !important;
+        background-color: #f8fafc !important;
+        border-bottom: 2px solid #e2e8f0 !important;
+    }
+
+    .sticky-keg-1 {
+        left: 0;
+        width: 50px;
+        min-width: 50px;
+        max-width: 50px;
+    }
+
+    .sticky-keg-2 {
+        left: 50px;
+        width: 80px;
+        min-width: 80px;
+        max-width: 80px;
+    }
+
+    .sticky-keg-3 {
+        left: 130px;
+        width: 380px;
+        min-width: 360px;
+        box-shadow: 4px 0 6px -2px rgba(0, 0, 0, 0.08) !important;
+        border-right: 1px solid #cbd5e1 !important;
+    }
+
+    .table-hover tbody tr:hover .sticky-keg-1,
+    .table-hover tbody tr:hover .sticky-keg-2,
+    .table-hover tbody tr:hover .sticky-keg-3 {
+        background-color: #f1f5f9 !important;
+    }
+</style>
+
 <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+        <div class="table-kegiatan-scroll">
+            <table class="table table-hover table-sticky-freeze align-middle mb-0" style="min-width: 1550px;">
                 <thead>
                     <tr>
-                        <th class="ps-3" style="width: 50px;">NO</th>
-                        <th style="width: 80px;">TAHUN</th>
-                        <th>NAMA KEGIATAN & MAK</th>
-                        <th>BIDANG / TIM</th>
-                        <th>VOLUME & PAGU ANGGARAN</th>
-                        <th>JADWAL KEGIATAN</th>
-                        <th class="text-center">MITRA BERTUGAS</th>
+                        <th class="ps-3 text-center sticky-keg-1">NO</th>
+                        <th class="text-center sticky-keg-2">TAHUN</th>
+                        <th class="sticky-keg-3">NAMA KEGIATAN</th>
+                        <th style="width: 140px;">TIPE KEGIATAN</th>
+                        <th style="min-width: 220px;">KODE MAK</th>
+                        <th style="width: 130px;">BIDANG / TIM</th>
+                        <th style="min-width: 180px;">VOLUME & PAGU ANGGARAN</th>
+                        <th style="min-width: 170px;">JADWAL KEGIATAN</th>
+                        <th class="text-center" style="width: 120px;">MITRA BERTUGAS</th>
                         <th class="text-end pe-3" style="width: 150px;">AKSI</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($kegiatans as $index => $kegiatan)
                     <tr>
-                        <td class="ps-3 fw-bold text-muted">{{ $kegiatans->firstItem() + $index }}</td>
-                        <td>
+                        <td class="ps-3 text-center fw-bold text-muted sticky-keg-1">{{ $kegiatans->firstItem() + $index }}</td>
+                        <td class="text-center sticky-keg-2">
                             <span class="badge bg-light text-dark border">{{ $kegiatan->tahun ?? '2024' }}</span>
                         </td>
+                        <td class="sticky-keg-3">
+                            <div class="fw-bold text-dark fs-6" style="white-space: normal; word-break: break-word; line-height: 1.4;">{{ $kegiatan->nama }}</div>
+                        </td>
                         <td>
-                            <div class="mb-1">
-                                @if($kegiatan->isPengolahan())
-                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-0.5 extra-small fw-semibold">
-                                        <i class="bi bi-cpu-fill me-1"></i>Pengolahan
-                                    </span>
-                                @else
-                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-0.5 extra-small fw-semibold">
-                                        <i class="bi bi-geo-alt-fill me-1"></i>Pencacahan
-                                    </span>
-                                @endif
-                            </div>
-                            <div class="fw-bold text-dark" style="white-space: normal; word-break: break-word;">{{ $kegiatan->nama }}</div>
+                            @if($kegiatan->isPengolahan())
+                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2.5 py-1 extra-small fw-semibold">
+                                    <i class="bi bi-cpu-fill me-1"></i>Pengolahan
+                                </span>
+                            @else
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1 extra-small fw-semibold">
+                                    <i class="bi bi-geo-alt-fill me-1"></i>Pencacahan
+                                </span>
+                            @endif
+                        </td>
+                        <td>
                             @if($kegiatan->kode_mata_anggaran)
-                                <code class="px-2 py-0.5 bg-light border rounded text-dark small mt-1 d-inline-block">MAK: {{ $kegiatan->kode_mata_anggaran }}</code>
+                                <code class="px-2 py-1 bg-light border rounded text-dark font-monospace fw-bold small d-inline-block">{{ $kegiatan->kode_mata_anggaran }}</code>
+                            @else
+                                <span class="text-muted extra-small fst-italic">-</span>
                             @endif
                         </td>
                         <td>
@@ -107,6 +181,7 @@
                                     'Produksi' => 'warning',
                                     'Sosial' => 'info',
                                     'Cadangan' => 'secondary',
+                                    'IPDS' => 'danger',
                                 ];
                                 $color = $colorMap[$kegiatan->bidang->nama ?? ''] ?? 'primary';
                             @endphp
@@ -125,28 +200,12 @@
                             @endif
                         </td>
                         <td>
-                            @if($kegiatan->jadwal->isNotEmpty())
-                                @php
-                                    $bulanNama = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-                                    $jadwalBulan = $kegiatan->jadwal->pluck('bulan_angka')->map(fn($b) => $bulanNama[$b - 1]);
-                                    $jr = $kegiatan->jadwal->sortBy('bulan_angka');
-                                    $first = $bulanNama[$jr->first()->bulan_angka - 1];
-                                    $last = $bulanNama[$jr->last()->bulan_angka - 1];
-                                @endphp
-                                <span class="badge badge-soft-info" title="{{ $jadwalBulan->implode(', ') }}"><i class="bi bi-calendar-event me-1"></i>{{ $first == $last ? $first : $first . ' - ' . $last }} {{ $kegiatan->tahun ?? '' }}</span>
-                            @elseif($kegiatan->tgl_mulai || $kegiatan->tgl_selesai)
-                                <span class="text-muted small"><i class="bi bi-calendar-range me-1 text-primary"></i>{{ $kegiatan->tgl_mulai ? date('d/m/Y', strtotime($kegiatan->tgl_mulai)) : '-' }} s/d {{ $kegiatan->tgl_selesai ? date('d/m/Y', strtotime($kegiatan->tgl_selesai)) : '-' }}</span>
+                            @if($kegiatan->jadwal_teks !== '-')
+                                <span class="badge bg-light text-primary border px-2 py-1 fw-semibold">
+                                    <i class="bi bi-calendar3 me-1 text-primary"></i>{{ $kegiatan->jadwal_teks }}
+                                </span>
                             @else
-                                @php
-                                    $periodes = $kegiatan->alokasiHonors->map(fn($a) => $a->periode)->filter()->sortBy('bulan_angka');
-                                    $firstBulan = $periodes->first()?->bulan;
-                                    $lastBulan = $periodes->last()?->bulan;
-                                @endphp
-                                @if($firstBulan)
-                                    <span class="badge badge-soft-info"><i class="bi bi-calendar-event me-1"></i>{{ $firstBulan == $lastBulan ? $firstBulan : $firstBulan . ' - ' . $lastBulan }} {{ $kegiatan->tahun ?? '2024' }}</span>
-                                @else
-                                    <span class="text-muted small">-</span>
-                                @endif
+                                <span class="text-muted small">-</span>
                             @endif
                         </td>
                         <td class="text-center">
@@ -182,7 +241,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="text-center py-5 text-muted">
+                        <td colspan="10" class="text-center py-5 text-muted">
                             <i class="bi bi-inbox fs-1 d-block mb-2 text-slate-300"></i>
                             Tidak ada data mata anggaran yang ditemukan.
                         </td>
@@ -268,5 +327,31 @@
     </div>
     @endif
 @endforeach
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        function syncKegiatanStickyColumns() {
+            const table = document.querySelector('.table-kegiatan-scroll table');
+            if (!table) return;
+            const ths = table.querySelectorAll('thead tr th');
+            if (ths.length < 3) return;
+
+            const w1 = Math.round(ths[0].getBoundingClientRect().width);
+            const w2 = Math.round(ths[1].getBoundingClientRect().width);
+
+            const left1 = 0;
+            const left2 = w1;
+            const left3 = w1 + w2;
+
+            document.querySelectorAll('.sticky-keg-1').forEach(el => el.style.left = left1 + 'px');
+            document.querySelectorAll('.sticky-keg-2').forEach(el => el.style.left = left2 + 'px');
+            document.querySelectorAll('.sticky-keg-3').forEach(el => el.style.left = left3 + 'px');
+        }
+
+        syncKegiatanStickyColumns();
+        setTimeout(syncKegiatanStickyColumns, 100);
+        window.addEventListener('resize', syncKegiatanStickyColumns);
+    });
+</script>
 
 @endsection

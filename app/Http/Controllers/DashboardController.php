@@ -98,12 +98,10 @@ class DashboardController extends Controller
         $paguMataAnggaran = (float) $paguQuery()->sum('total');
         $sisaAnggaran = $paguMataAnggaran - $realisasiHonor;
 
-        $sbmlQuery = Sbml::query()->whereIn('periode_id', $periodeIds);
-        if ($bidangId || $kegiatanId) {
-            $scopeMitraIds = collect($honorQuery()->pluck('mitra_id')->unique());
-            $sbmlQuery->whereIn('mitra_id', $scopeMitraIds);
-        }
-        $paguSBML = (float) $sbmlQuery->sum('nominal');
+        $sbmlMaster = \App\Models\SbmlMaster::where('tahun', $tahun)->first();
+        $paguSBML = $sbmlMaster ? (float) $sbmlMaster->nominal : (float) \App\Support\SbmlHelper::DEFAULT_LIMIT;
+        $sbmlPencacahan = $sbmlMaster ? (float) $sbmlMaster->nominal_pencacahan : (float) \App\Support\SbmlHelper::DEFAULT_PENCACAHAN_2024;
+        $sbmlPengolahan = $sbmlMaster ? (float) $sbmlMaster->nominal_pengolahan : (float) \App\Support\SbmlHelper::DEFAULT_PENGOLAHAN_2024;
 
         if ($isAdmin) {
             $bidangOptions = Bidang::orderBy('nama')->get();
@@ -275,6 +273,16 @@ class DashboardController extends Controller
             $m->jumlah_alokasi_periode = $jumlahAlokasi;
             $m->status_pekerjaan = $isAllocated ? 'Sudah di-Pekerjakan' : 'Belum di-Pekerjakan';
 
+            // Bulan kerja aktif mitra (Contoh: "Februari 2025" jika hanya Februari)
+            $activeMonths = $allocs->sortBy('periode.bulan_angka')->pluck('periode.bulan')->filter()->unique()->values();
+            if ($activeMonths->count() === 1) {
+                $m->periode_aktif_teks = $activeMonths->first() . ' ' . $sTahun;
+            } elseif ($activeMonths->count() > 1) {
+                $m->periode_aktif_teks = $activeMonths->first() . ' - ' . $activeMonths->last() . ' ' . $sTahun;
+            } else {
+                $m->periode_aktif_teks = 'Tahun ' . $sTahun;
+            }
+
             // Grouped activities for modal popup
             $m->modal_workload_kegiatans = $allocs->groupBy('kegiatan_id')->map(function ($items) {
                 $first = $items->first();
@@ -317,7 +325,7 @@ class DashboardController extends Controller
             'tahunList', 'tahun',
             'monthOptions', 'bulanPencairan', 'bulanAwal', 'bulanAkhir',
             'bidangOptions', 'bidangId', 'kegiatanOptions', 'kegiatanId',
-            'paguMataAnggaran', 'realisasiHonor', 'sisaAnggaran', 'paguSBML',
+            'paguMataAnggaran', 'realisasiHonor', 'sisaAnggaran', 'paguSBML', 'sbmlPencacahan', 'sbmlPengolahan',
             'totalTransaksi', 'totalMitra', 'totalOperator', 'totalKegiatan',
             'mitraOptions', 'searchMitra',
             'honorPerBulan', 'honorPerBidang',

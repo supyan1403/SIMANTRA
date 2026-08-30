@@ -223,6 +223,7 @@ class RekapController extends Controller
             $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i);
             $sheet1->getColumnDimension($colLetter)->setAutoSize(true);
         }
+        $sheet1->freezePane('C4');
 
         // ==========================================
         // SHEET 2: Rincian Detail Kegiatan
@@ -248,62 +249,55 @@ class RekapController extends Controller
         ]);
         $sheet2->getRowDimension(3)->setRowHeight(25);
 
-        // Fetch Kegiatan details ONLY that have active alokasi honors in selected period & filter out #REF!
-        $kegiatans = Kegiatan::with(['bidang', 'alokasiHonors' => function ($q) use ($periodeIds) {
-            $q->whereIn('periode_id', $periodeIds);
-        }])
-        ->where('nama', 'NOT LIKE', '%#REF!%')
-        ->where('kode_mata_anggaran', 'NOT LIKE', '%#REF!%')
-        ->whereIn('bidang_id', $bidangIds)
-        ->whereHas('alokasiHonors', function ($q) use ($periodeIds) {
-            $q->whereIn('periode_id', $periodeIds);
-        })
-        ->get();
+        // Fetch Kegiatan details
+        $kegiatanList = Kegiatan::with(['bidang'])
+            ->where('nama', 'NOT LIKE', '%#REF!%')
+            ->where('kode_mata_anggaran', 'NOT LIKE', '%#REF!%')
+            ->whereIn('bidang_id', $bidangIds)
+            ->get();
 
         $rIdx = 4;
-        $totalHonorKegiatan = 0;
-        $noKeg = 1;
-        foreach ($kegiatans as $keg) {
-            $alokasisByPeriode = $keg->alokasiHonors->groupBy('periode_id');
-            
-            foreach ($alokasisByPeriode as $pId => $alokasiList) {
-                $pObj = $periodes->firstWhere('id', $pId);
-                $namaBulan = $pObj ? strtoupper($pObj->bulan) . ' ' . $pObj->tahun : '-';
-                $jumlahMitra = $alokasiList->count();
-                $totalHonorPerKeg = (float) $alokasiList->sum('nominal');
+        $totalKegiatanHonor = 0;
+        foreach ($kegiatanList as $idx => $keg) {
+            $sumHonor = AlokasiHonor::where('kegiatan_id', $keg->id)
+                ->whereIn('periode_id', $periodeIds)
+                ->sum('nominal');
 
-                $sheet2->setCellValue("A{$rIdx}", $noKeg++);
-                $sheet2->setCellValue("B{$rIdx}", $keg->kode_mata_anggaran ?? '-');
+            $mitraCount = AlokasiHonor::where('kegiatan_id', $keg->id)
+                ->whereIn('periode_id', $periodeIds)
+                ->distinct('mitra_id')
+                ->count('mitra_id');
+
+            if ($sumHonor > 0 || count($kegiatanList) < 50) {
+                $sheet2->setCellValue("A{$rIdx}", $idx + 1);
+                $sheet2->setCellValue("B{$rIdx}", $keg->kode_mata_anggaran ?: '-');
                 $sheet2->setCellValue("C{$rIdx}", $keg->nama);
                 $sheet2->setCellValue("D{$rIdx}", $keg->bidang->nama ?? '-');
-                $sheet2->setCellValue("E{$rIdx}", $namaBulan);
-                $sheet2->setCellValue("F{$rIdx}", $jumlahMitra);
-                $sheet2->setCellValue("G{$rIdx}", $totalHonorPerKeg);
+                
+                $kegPeriodeNames = AlokasiHonor::where('kegiatan_id', $keg->id)
+                    ->whereIn('periode_id', $periodeIds)
+                    ->with('periode')
+                    ->get()
+                    ->pluck('periode.bulan')
+                    ->unique()
+                    ->filter()
+                    ->implode(', ');
+
+                $sheet2->setCellValue("E{$rIdx}", $kegPeriodeNames ?: $judulPeriode);
+                $sheet2->setCellValue("F{$rIdx}", $mitraCount);
+                $sheet2->setCellValue("G{$rIdx}", (float) $sumHonor);
                 $sheet2->getStyle("G{$rIdx}")->getNumberFormat()->setFormatCode('"Rp "#,##0');
 
-                $totalHonorKegiatan += $totalHonorPerKeg;
+                $totalKegiatanHonor += $sumHonor;
                 $rIdx++;
             }
         }
 
-        // If no kegiatan found for this specific filter
-        if ($rIdx === 4) {
-            $sheet2->setCellValue("A4", 1);
-            $sheet2->setCellValue("B4", "-");
-            $sheet2->setCellValue("C4", "Tidak ada alokasi kegiatan pada periode ini");
-            $sheet2->setCellValue("D4", "-");
-            $sheet2->setCellValue("E4", "-");
-            $sheet2->setCellValue("F4", 0);
-            $sheet2->setCellValue("G4", 0);
-            $sheet2->getStyle("G4")->getNumberFormat()->setFormatCode('"Rp "#,##0');
-            $rIdx = 5;
-        }
-
         // Sheet 2 Total Row
-        $sheet2->setCellValue("A{$rIdx}", 'TOTAL ALOKASI KEGIATAN');
+        $sheet2->setCellValue("A{$rIdx}", 'TOTAL RINCIAN KEGIATAN');
         $sheet2->mergeCells("A{$rIdx}:F{$rIdx}");
         $sheet2->getStyle("A{$rIdx}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-        $sheet2->setCellValue("G{$rIdx}", $totalHonorKegiatan);
+        $sheet2->setCellValue("G{$rIdx}", $totalKegiatanHonor);
         $sheet2->getStyle("G{$rIdx}")->getNumberFormat()->setFormatCode('"Rp "#,##0');
 
         $sheet2->getStyle("A{$rIdx}:G{$rIdx}")->applyFromArray([
@@ -324,6 +318,8 @@ class RekapController extends Controller
             $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i);
             $sheet2->getColumnDimension($colLetter)->setAutoSize(true);
         }
+        $sheet2->freezePane('A4');
+        $sheet2->setAutoFilter("A3:G{$rIdx}");
 
         // ==========================================
         // SHEET 3: Rincian Detail Alokasi Honor Mitra
@@ -355,7 +351,7 @@ class RekapController extends Controller
         ]);
         $sheet3->getRowDimension(3)->setRowHeight(25);
 
-        // Query Detailed Alokasi Honor & Filter out #REF!
+        // Query Detailed Alokasi Honor
         $detailHonors = AlokasiHonor::with(['mitra', 'periode', 'kegiatan.bidang'])
             ->whereIn('periode_id', $periodeIds)
             ->whereHas('kegiatan', function ($q) use ($bidangIds) {
@@ -417,6 +413,8 @@ class RekapController extends Controller
             $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i);
             $sheet3->getColumnDimension($colLetter)->setAutoSize(true);
         }
+        $sheet3->freezePane('A4');
+        $sheet3->setAutoFilter("A3:L{$rIndex}");
 
         // Set Active Sheet back to 0 (Matriks)
         $spreadsheet->setActiveSheetIndex(0);
@@ -424,13 +422,20 @@ class RekapController extends Controller
         // Export to XLSX
         $cleanJudul = str_replace([' ', '(', ')'], '_', $judulPeriode);
         $filename = "Laporan_Honor_SIMANTRA_{$cleanJudul}.xlsx";
-
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header("Content-Disposition: attachment;filename=\"{$filename}\"");
-        header('Cache-Control: max-age=0');
-
         $writer = new Xlsx($spreadsheet);
+
+        ob_start();
         $writer->save('php://output');
-        exit;
+        $content = ob_get_clean();
+
+        return response($content)
+            ->header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            ->header('Content-Disposition', 'attachment; filename="'.$filename.'"');
+    }
+
+    public function exportMantraMatrix(Request $request)
+    {
+        $tahun = (int)($request->tahun ?? date('Y'));
+        return \App\Support\MantraMatrixService::exportFilledMatrix($tahun);
     }
 }

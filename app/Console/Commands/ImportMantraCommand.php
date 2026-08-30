@@ -92,7 +92,7 @@ class ImportMantraCommand extends Command
                 if (str_contains(strtoupper($sName), 'DB MITRA') || (str_contains(strtoupper($sName), 'MITRA') && !str_contains(strtoupper($sName), 'JANUARI'))) {
                     $mitraSheet = $spreadsheet->getSheetByName($sName);
                     if ($mitraSheet) {
-                        $this->info("Mengimpor data SOBAT ID & No HP dari sheet {$sName}...");
+                        $this->info("Mengimpor data SOBAT lengkap (NIK, Posisi, HP, Pengalaman Sensus) dari sheet {$sName}...");
                         $mHighestRow = $mitraSheet->getHighestRow();
                         for ($mr = 3; $mr <= $mHighestRow; $mr++) {
                             $mNama = trim((string)$this->getCellValue($mitraSheet->getCell('B' . $mr)));
@@ -100,25 +100,68 @@ class ImportMantraCommand extends Command
 
                             $mAlamat = trim((string)$this->getCellValue($mitraSheet->getCell('C' . $mr)));
                             $mPekerjaan = trim((string)$this->getCellValue($mitraSheet->getCell('E' . $mr)));
+                            $mNik = trim((string)$this->getCellValue($mitraSheet->getCell('G' . $mr)));
+                            $mPosisi = trim((string)$this->getCellValue($mitraSheet->getCell('H' . $mr)));
+                            $mStatusSeleksi = trim((string)$this->getCellValue($mitraSheet->getCell('I' . $mr)));
+                            $mEmail = trim((string)$this->getCellValue($mitraSheet->getCell('J' . $mr)));
+                            $mTglLahir = trim((string)$this->getCellValue($mitraSheet->getCell('Q' . $mr)));
+                            $mNpwp = trim((string)$this->getCellValue($mitraSheet->getCell('R' . $mr)));
+                            $mJkRaw = trim((string)$this->getCellValue($mitraSheet->getCell('S' . $mr)));
+                            $mJk = in_array(strtoupper($mJkRaw), ['L', 'LAKI-LAKI', '1']) ? 'L' : (in_array(strtoupper($mJkRaw), ['P', 'PEREMPUAN', '2']) ? 'P' : null);
+                            $mAgama = trim((string)$this->getCellValue($mitraSheet->getCell('T' . $mr)));
+                            $mStatusKawin = trim((string)$this->getCellValue($mitraSheet->getCell('U' . $mr)));
+                            $mPendidikan = trim((string)$this->getCellValue($mitraSheet->getCell('V' . $mr)));
                             $mNoHp = trim((string)$this->getCellValue($mitraSheet->getCell('Y' . $mr)));
+                            
+                            $expSp = (int)$this->getCellValue($mitraSheet->getCell('AA' . $mr)) === 1;
+                            $expSt = (int)$this->getCellValue($mitraSheet->getCell('AB' . $mr)) === 1;
+                            $expSe = (int)$this->getCellValue($mitraSheet->getCell('AC' . $mr)) === 1;
+                            $expSusenas = (int)$this->getCellValue($mitraSheet->getCell('AD' . $mr)) === 1;
+                            $expSakernas = (int)$this->getCellValue($mitraSheet->getCell('AE' . $mr)) === 1;
+                            $expSbh = (int)$this->getCellValue($mitraSheet->getCell('AF' . $mr)) === 1;
+                            $mCatatan = trim((string)$this->getCellValue($mitraSheet->getCell('AG' . $mr)));
+                            $mPosisiDaftar = trim((string)$this->getCellValue($mitraSheet->getCell('AH' . $mr)));
                             $mSobatId = trim((string)$this->getCellValue($mitraSheet->getCell('AJ' . $mr)));
+                            $nilaiRaw = $this->getCellValue($mitraSheet->getCell('AK' . $mr));
+                            $mNilaiUjian = is_numeric($nilaiRaw) ? (float)$nilaiRaw : null;
 
-                            $existingMitra = Mitra::where('nama', $mNama)->first();
+                            $existingMitra = Mitra::where('nama', $mNama)
+                                ->orWhere(function($q) use ($mSobatId, $mNik) {
+                                    if (!empty($mSobatId)) $q->where('id_sobat', $mSobatId);
+                                    if (!empty($mNik)) $q->orWhere('nik', $mNik);
+                                })->first();
+
+                            $sobatPayload = array_filter([
+                                'nama' => $mNama,
+                                'id_sobat' => $mSobatId ?: null,
+                                'nik' => $mNik ?: null,
+                                'posisi' => $mPosisi ?: null,
+                                'posisi_daftar' => $mPosisiDaftar ?: null,
+                                'status_seleksi' => $mStatusSeleksi ?: null,
+                                'email' => $mEmail ?: null,
+                                'tanggal_lahir' => $mTglLahir ?: null,
+                                'npwp' => $mNpwp ?: null,
+                                'jk' => $mJk ?: null,
+                                'agama' => $mAgama ?: null,
+                                'status_perkawinan' => $mStatusKawin ?: null,
+                                'pendidikan' => $mPendidikan ?: null,
+                                'no_hp' => $mNoHp ?: null,
+                                'alamat' => ($mAlamat && !str_starts_with($mAlamat, '=') && !str_contains($mAlamat, '#')) ? $mAlamat : null,
+                                'pekerjaan' => ($mPekerjaan && !str_starts_with($mPekerjaan, '=') && !str_contains($mPekerjaan, '#')) ? $mPekerjaan : null,
+                                'catatan_mitra' => $mCatatan ?: null,
+                                'nilai_ujian' => $mNilaiUjian,
+                            ]);
+                            $sobatPayload['exp_sp'] = $expSp;
+                            $sobatPayload['exp_st'] = $expSt;
+                            $sobatPayload['exp_se'] = $expSe;
+                            $sobatPayload['exp_susenas'] = $expSusenas;
+                            $sobatPayload['exp_sakernas'] = $expSakernas;
+                            $sobatPayload['exp_sbh'] = $expSbh;
+
                             if ($existingMitra) {
-                                $existingMitra->update(array_filter([
-                                    'id_sobat' => $mSobatId ?: $existingMitra->id_sobat,
-                                    'no_hp' => $mNoHp ?: $existingMitra->no_hp,
-                                    'alamat' => ($mAlamat && !str_starts_with($mAlamat, '=')) ? $mAlamat : $existingMitra->alamat,
-                                    'pekerjaan' => ($mPekerjaan && !str_starts_with($mPekerjaan, '=')) ? $mPekerjaan : $existingMitra->pekerjaan,
-                                ]));
+                                $existingMitra->update($sobatPayload);
                             } else {
-                                Mitra::create([
-                                    'nama' => $mNama,
-                                    'id_sobat' => $mSobatId ?: null,
-                                    'no_hp' => $mNoHp ?: null,
-                                    'alamat' => ($mAlamat && !str_starts_with($mAlamat, '=')) ? $mAlamat : null,
-                                    'pekerjaan' => ($mPekerjaan && !str_starts_with($mPekerjaan, '=')) ? $mPekerjaan : null,
-                                ]);
+                                Mitra::create($sobatPayload);
                             }
                         }
                     }
@@ -230,25 +273,6 @@ class ImportMantraCommand extends Command
                         $totalAlokasiCount++;
                     }
 
-                    // SBML Pencacahan & Pengolahan
-                    $sbmlPencacahan = $this->getCellValue($sheet->getCell('BO' . $row)) ?? 0;
-                    $sbmlPengolahan = $this->getCellValue($sheet->getCell('BS' . $row)) ?? 0;
-
-                    $sbmlPencacahanVal = is_numeric($sbmlPencacahan) ? floatval($sbmlPencacahan) : 0;
-                    $sbmlPengolahanVal = is_numeric($sbmlPengolahan) ? floatval($sbmlPengolahan) : 0;
-
-                    if ($sbmlPencacahanVal > 0) {
-                        Sbml::updateOrCreate(
-                            ['mitra_id' => $mitra->id, 'periode_id' => $periode->id, 'jenis' => 'Pencacahan'],
-                            ['nominal' => $sbmlPencacahanVal]
-                        );
-                    }
-                    if ($sbmlPengolahanVal > 0) {
-                        Sbml::updateOrCreate(
-                            ['mitra_id' => $mitra->id, 'periode_id' => $periode->id, 'jenis' => 'Pengolahan'],
-                            ['nominal' => $sbmlPengolahanVal]
-                        );
-                    }
                 }
             }
 

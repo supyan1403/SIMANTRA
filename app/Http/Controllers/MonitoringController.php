@@ -38,11 +38,16 @@ class MonitoringController extends Controller
         if ($request->kegiatan_id) {
             $query->where('kegiatan_id', $request->kegiatan_id);
         }
+        if ($request->filled('volume') && $request->volume !== 'all') {
+            $query->where('volume', (float)$request->volume);
+        }
         if ($request->search) {
             $query->whereHas('mitra', fn ($q) => $q->where('nama', 'like', '%' . $request->search . '%'));
         }
 
-        $alokasis = $query->orderBy('created_at', 'desc')->paginate(20)->onEachSide(1);
+        $volumeList = AlokasiHonor::whereNotNull('volume')->where('volume', '>', 0)->distinct()->orderBy('volume')->pluck('volume');
+
+        $alokasis = $query->orderBy('created_at', 'desc')->paginate(20)->onEachSide(1)->withQueryString();
 
         // ===== Peringatan SBML: akumulasi honor per mitra per periode =====
         $sbmlWarnings = [];
@@ -62,7 +67,111 @@ class MonitoringController extends Controller
         }
         $kegiatans = $kegiatansQuery->orderBy('nama')->get();
 
-        return view('monitoring.index', compact('alokasis', 'periodes', 'bidangs', 'tahunList', 'sbmlWarnings', 'kegiatans'));
+        return view('monitoring.index', compact('alokasis', 'periodes', 'bidangs', 'tahunList', 'sbmlWarnings', 'kegiatans', 'volumeList'));
+    }
+
+    public function export(Request $request)
+    {
+        $query = AlokasiHonor::with(['mitra', 'periode', 'kegiatan.bidang']);
+
+        $user = auth()->user();
+        if ($user && $user->role === 'operator' && $user->bidang_id) {
+            $query->whereHas('kegiatan', fn ($q) => $q->where('bidang_id', $user->bidang_id));
+        } else {
+            if ($request->bidang_id && $request->bidang_id !== 'all') {
+                $query->whereHas('kegiatan', fn ($q) => $q->where('bidang_id', $request->bidang_id));
+            }
+        }
+
+        if ($request->periode_id) {
+            $query->where('periode_id', $request->periode_id);
+        }
+        if ($request->kegiatan_id) {
+            $query->where('kegiatan_id', $request->kegiatan_id);
+        }
+        if ($request->filled('volume') && $request->volume !== 'all') {
+            $query->where('volume', (float)$request->volume);
+        }
+        if ($request->search) {
+            $query->whereHas('mitra', fn ($q) => $q->where('nama', 'like', '%' . $request->search . '%'));
+        }
+
+        $alokasis = $query->orderBy('created_at', 'desc')->get();
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Monitoring Alokasi Honor');
+
+        $headers = [
+            'No.',
+            'ID Sobat',
+            'Nama Mitra',
+            'Bidang / Tim Kerja',
+            'Nama Kegiatan Statistik',
+            'Periode (Bulan & Tahun)',
+            'Volume',
+            'Satuan',
+            'Alokasi Honor (Rp)',
+            'No. SPK',
+            'No. BAST',
+            'Status Batas SBML',
+        ];
+
+        foreach ($headers as $i => $h) {
+            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1);
+            $sheet->setCellValue($col . '1', $h);
+        }
+
+        $rowIdx = 2;
+        foreach ($alokasis as $idx => $a) {
+            $evaluated = SbmlHelper::evaluate($a->mitra_id, $a->periode_id);
+            $statusSbml = $evaluated['exceeded'] ? 'PERINGATAN (Melebihi Limit SBML)' : 'Normal';
+
+            $sheet->setCellValue('A' . $rowIdx, $idx + 1);
+            $sheet->setCellValueExplicit('B' . $rowIdx, (string)($a->mitra->id_sobat ?? '-'), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $sheet->setCellValue('C' . $rowIdx, $a->mitra->nama ?? '-');
+            $sheet->setCellValue('D' . $rowIdx, $a->kegiatan->bidang->nama ?? '-');
+            $sheet->setCellValue('E' . $rowIdx, $a->kegiatan->nama ?? '-');
+            $sheet->setCellValue('F' . $rowIdx, ($a->periode->nama_bulan ?? '-') . ' ' . ($a->periode->tahun ?? ''));
+            $sheet->setCellValue('G' . $rowIdx, (float)($a->volume ?? 1));
+            $sheet->setCellValue('H' . $rowIdx, $a->satuan ?? 'dokumen');
+            $sheet->setCellValue('I' . $rowIdx, (float)$a->nominal);
+            $sheet->setCellValueExplicit('J' . $rowIdx, (string)($a->nomor_spk ?? '-'), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit('K' . $rowIdx, (string)($a->nomor_bast ?? '-'), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $sheet->setCellValue('L' . $rowIdx, $statusSbml);
+
+            if ($evaluated['exceeded']) {
+                $sheet->getStyle('L' . $rowIdx)->getFont()->getColor()->setARGB('FFE53E3E');
+                $sheet->getStyle('L' . $rowIdx)->getFont()->setBold(true);
+            }
+
+            $rowIdx++;
+        }
+
+        $lastRow = max(2, $rowIdx - 1);
+
+        \App\Support\ExcelStyler::applyHeaderStyle($sheet, 'A1:L1');
+        \App\Support\ExcelStyler::applyTableGrid($sheet, "A1:L{$lastRow}");
+        \App\Support\ExcelStyler::applyAlignCenter($sheet, "A2:B{$lastRow}");
+        \App\Support\ExcelStyler::applyAlignCenter($sheet, "F2:F{$lastRow}");
+        \App\Support\ExcelStyler::applyAlignCenter($sheet, "H2:H{$lastRow}");
+        \App\Support\ExcelStyler::applyAlignCenter($sheet, "J2:L{$lastRow}");
+        \App\Support\ExcelStyler::applyNumberFormat($sheet, "G2:G{$lastRow}");
+        \App\Support\ExcelStyler::applyCurrencyFormat($sheet, "I2:I{$lastRow}");
+        \App\Support\ExcelStyler::applyAutoWidth($sheet, 1, 12);
+        \App\Support\ExcelStyler::freezeHeader($sheet, 'A2');
+        $sheet->setAutoFilter("A1:L{$lastRow}");
+
+        $filename = 'Monitoring_Alokasi_Honor_' . date('Ymd_His') . '.xlsx';
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+
+        ob_start();
+        $writer->save('php://output');
+        $content = ob_get_clean();
+
+        return response($content)
+            ->header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            ->header('Content-Disposition', 'attachment; filename="'.$filename.'"');
     }
 
     public function create()
@@ -95,6 +204,11 @@ class MonitoringController extends Controller
 
         $validated['volume'] = $validated['volume'] ?? 1;
         $validated['satuan'] = $validated['satuan'] ?? 'dokumen';
+
+        $kegiatan = Kegiatan::find($validated['kegiatan_id']);
+        if (empty($validated['tarif_satuan']) && $kegiatan) {
+            $validated['tarif_satuan'] = ($kegiatan->harga > 0) ? $kegiatan->harga : (($validated['volume'] > 0) ? ($validated['nominal'] / $validated['volume']) : $validated['nominal']);
+        }
 
         if (!$this->validateOperatorKegiatan($validated['kegiatan_id'])) {
             return $this->bidangAccessDenied();
@@ -151,6 +265,11 @@ class MonitoringController extends Controller
 
         $validated['volume'] = $validated['volume'] ?? 1;
         $validated['satuan'] = $validated['satuan'] ?? 'dokumen';
+
+        $kegiatan = Kegiatan::find($validated['kegiatan_id']);
+        if (empty($validated['tarif_satuan']) && $kegiatan) {
+            $validated['tarif_satuan'] = ($kegiatan->harga > 0) ? $kegiatan->harga : (($validated['volume'] > 0) ? ($validated['nominal'] / $validated['volume']) : $validated['nominal']);
+        }
 
         if (!$this->validateOperatorKegiatan($validated['kegiatan_id'])) {
             return $this->bidangAccessDenied();

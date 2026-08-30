@@ -235,8 +235,8 @@ def generate_exact_spk_docx(input_docx_path, output_docx_path, data_json_path):
                     if len(row.cells) >= 8:
                         format_cell(row.cells[0], str(i + 1), font_size_pt=9.0, align=docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER)
                         format_cell(row.cells[1], item.get('nama', ''), font_size_pt=9.0, align=docx.enum.text.WD_ALIGN_PARAGRAPH.LEFT)
-                        format_cell(row.cells[2], item.get('periode', ''), font_size_pt=9.0, align=docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER)
-                        format_cell(row.cells[3], str(item.get('volume', 1)), font_size_pt=9.0, align=docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER)
+                        vol_int = int(round(float(item.get('volume', 1) or 1)))
+                        format_cell(row.cells[3], str(vol_int), font_size_pt=9.0, align=docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER)
                         format_cell(row.cells[4], item.get('satuan', 'dokumen'), font_size_pt=9.0, align=docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER)
                         format_cell(row.cells[5], item.get('harga_satuan', ''), font_size_pt=9.0, align=docx.enum.text.WD_ALIGN_PARAGRAPH.RIGHT)
                         format_cell(row.cells[6], item.get('nilai_perjanjian', ''), font_size_pt=9.0, align=docx.enum.text.WD_ALIGN_PARAGRAPH.RIGHT)

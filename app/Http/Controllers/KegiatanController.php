@@ -18,9 +18,20 @@ class KegiatanController extends Controller
         $user = auth()->user();
         $search = $request->query('search');
         $bidangId = $request->query('bidang_id');
+        $tahun = $request->query('tahun');
+
+        $tahunList = Kegiatan::select('tahun')->distinct()->whereNotNull('tahun')->orderBy('tahun', 'desc')->pluck('tahun');
+        if ($tahunList->isEmpty()) {
+            $tahunList = \App\Models\Periode::select('tahun')->distinct()->orderBy('tahun', 'desc')->pluck('tahun');
+        }
 
         $query = Kegiatan::with(['bidang', 'jadwal', 'alokasiHonors.mitra', 'alokasiHonors.periode'])
             ->withCount('alokasiHonors as total_alokasi');
+
+        // Filter Tahun
+        if ($tahun && $tahun !== 'all') {
+            $query->where('tahun', $tahun);
+        }
 
         // Scope Operator Khusus Bidangnya (Bab 3.2)
         if ($user && $user->role === 'operator' && $user->bidang_id) {
@@ -43,7 +54,7 @@ class KegiatanController extends Controller
 
         $kegiatans = $query->latest()->paginate(15)->withQueryString();
 
-        return view('kegiatan.index', compact('kegiatans', 'bidangs', 'search', 'bidangId'));
+        return view('kegiatan.index', compact('kegiatans', 'bidangs', 'search', 'bidangId', 'tahunList', 'tahun'));
     }
 
     public function create()
@@ -77,13 +88,16 @@ class KegiatanController extends Controller
             'jumlah' => 'nullable|numeric|min:0',
             'satuan' => 'nullable|string|max:50',
             'harga' => 'nullable|numeric|min:0',
+            'total' => 'nullable|numeric|min:0',
             'tgl_mulai' => 'nullable|date',
             'tgl_selesai' => 'nullable|date',
         ]);
 
         $validated['jumlah'] = $validated['jumlah'] ?? 0;
         $validated['harga'] = $validated['harga'] ?? 0;
-        $validated['total'] = $validated['jumlah'] * $validated['harga'];
+        if (!isset($validated['total']) || $validated['total'] === null || $validated['total'] === '') {
+            $validated['total'] = $validated['jumlah'] * $validated['harga'];
+        }
 
         Kegiatan::create($validated);
 
@@ -116,13 +130,16 @@ class KegiatanController extends Controller
             'jumlah' => 'nullable|numeric|min:0',
             'satuan' => 'nullable|string|max:50',
             'harga' => 'nullable|numeric|min:0',
+            'total' => 'nullable|numeric|min:0',
             'tgl_mulai' => 'nullable|date',
             'tgl_selesai' => 'nullable|date',
         ]);
 
         $validated['jumlah'] = $validated['jumlah'] ?? 0;
         $validated['harga'] = $validated['harga'] ?? 0;
-        $validated['total'] = $validated['jumlah'] * $validated['harga'];
+        if (!isset($validated['total']) || $validated['total'] === null || $validated['total'] === '') {
+            $validated['total'] = $validated['jumlah'] * $validated['harga'];
+        }
 
         $kegiatan->update($validated);
 
@@ -150,6 +167,98 @@ class KegiatanController extends Controller
         return response()->json($kegiatans);
     }
 
+    public function export(Request $request)
+    {
+        $user = auth()->user();
+        $search = $request->query('search');
+        $bidangId = $request->query('bidang_id');
+
+        $query = Kegiatan::with(['bidang', 'jadwal']);
+
+        if ($user && $user->role === 'operator' && $user->bidang_id) {
+            $query->where('bidang_id', $user->bidang_id);
+        } elseif ($bidangId && $bidangId !== 'all') {
+            $query->where('bidang_id', $bidangId);
+        }
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                  ->orWhere('kode_mata_anggaran', 'like', "%{$search}%");
+            });
+        }
+
+        $kegiatans = $query->orderBy('nama', 'asc')->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Data Mata Anggaran');
+
+        $bulanNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        $headers = ['No.', 'Tahun', 'Nama Kegiatan', 'Tipe Kegiatan', 'Kode MAK', 'Bidang / Tim Kerja', 'Target Volume', 'Satuan', 'Harga Satuan (Rp)', 'Total Pagu Anggaran (Rp)'];
+        foreach ($bulanNames as $b) {
+            $headers[] = $b;
+        }
+
+        foreach ($headers as $i => $h) {
+            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1);
+            $sheet->setCellValue($col . '1', $h);
+        }
+
+        $rowIdx = 2;
+        foreach ($kegiatans as $idx => $keg) {
+            $jadwalMap = $keg->jadwal->keyBy('bulan_angka');
+            $harga = (float)($keg->harga ?? 0);
+            $vol = (float)($keg->jumlah ?? 0);
+            $total = (float)($keg->total ?? ($harga * $vol));
+
+            $sheet->setCellValue('A' . $rowIdx, $idx + 1);
+            $sheet->setCellValue('B' . $rowIdx, $keg->tahun ?? date('Y'));
+            $sheet->setCellValue('C' . $rowIdx, $keg->nama);
+            $sheet->setCellValue('D' . $rowIdx, $keg->jenis_tugas ?? 'Pencacahan');
+            $sheet->setCellValueExplicit('E' . $rowIdx, (string)($keg->kode_mata_anggaran ?? '-'), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $sheet->setCellValue('F' . $rowIdx, $keg->bidang->nama ?? '-');
+            $sheet->setCellValue('G' . $rowIdx, $vol);
+            $sheet->setCellValue('H' . $rowIdx, $keg->satuan ?? 'Dokumen');
+            $sheet->setCellValue('I' . $rowIdx, $harga);
+            $sheet->setCellValue('J' . $rowIdx, $total);
+
+            // Bulan Jan - Des (kolom K - V / index 11 - 22)
+            for ($m = 1; $m <= 12; $m++) {
+                $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(10 + $m);
+                $volBulan = $jadwalMap->has($m) ? ($jadwalMap[$m]->target_volume ?? 1) : '-';
+                $sheet->setCellValue($colLetter . $rowIdx, $volBulan);
+            }
+
+            $rowIdx++;
+        }
+
+        $lastRow = max(2, $rowIdx - 1);
+
+        \App\Support\ExcelStyler::applyHeaderStyle($sheet, 'A1:V1');
+        \App\Support\ExcelStyler::applyTableGrid($sheet, "A1:V{$lastRow}");
+        \App\Support\ExcelStyler::applyAlignCenter($sheet, "A2:B{$lastRow}");
+        \App\Support\ExcelStyler::applyAlignCenter($sheet, "D2:E{$lastRow}");
+        \App\Support\ExcelStyler::applyAlignCenter($sheet, "H2:H{$lastRow}");
+        \App\Support\ExcelStyler::applyAlignCenter($sheet, "K2:V{$lastRow}");
+        \App\Support\ExcelStyler::applyNumberFormat($sheet, "G2:G{$lastRow}");
+        \App\Support\ExcelStyler::applyCurrencyFormat($sheet, "I2:J{$lastRow}");
+        \App\Support\ExcelStyler::applyAutoWidth($sheet, 1, 22);
+        \App\Support\ExcelStyler::freezeHeader($sheet, 'A2');
+        $sheet->setAutoFilter("A1:V{$lastRow}");
+
+        $filename = 'Master_Mata_Anggaran_BPS_' . date('Ymd_His') . '.xlsx';
+        $writer = new Xlsx($spreadsheet);
+
+        ob_start();
+        $writer->save('php://output');
+        $content = ob_get_clean();
+
+        return response($content)
+            ->header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            ->header('Content-Disposition', 'attachment; filename="'.$filename.'"');
+    }
+
     public function importIndex()
     {
         return view('kegiatan.import');
@@ -163,35 +272,37 @@ class KegiatanController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Template Anggaran');
 
-        $header = ['Nomor','Bidang','Kegiatan','Akun (MAK)','Tahun','Jumlah','Satuan','Harga','Total'];
+        $header = ['No.','Tahun','Nama Kegiatan','Tipe Kegiatan','Kode MAK','Bidang / Tim Kerja','Target Volume','Satuan','Harga Satuan (Rp)','Total Pagu Anggaran (Rp)'];
         foreach ($bulan as $b) {
             $header[] = $b;
         }
 
-        $colLetters = [];
-        for ($c = 1; $c <= 21; $c++) {
-            $colLetters[] = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($c);
+        foreach ($header as $i => $h) {
+            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1);
+            $sheet->setCellValue($col . '1', $h);
         }
 
-        foreach ($header as $i => $h) {
-            $col = $colLetters[$i];
-            $sheet->setCellValue($col . '1', $h);
-            $sheet->getColumnDimension($col)->setWidth($h === 'Kegiatan' ? 40 : ($h === 'Akun (MAK)' ? 24 : 13));
-            $sheet->getStyle($col . '1')->getFont()->setBold(true);
-        }
-        $sheet->getStyle('A1:U1')->getFill()
-            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-            ->getStartColor()->setARGB('2D5FA8');
-        $sheet->getStyle('A1:U1')->getFont()->getColor()->setARGB('FFFFFFFF');
+        \App\Support\ExcelStyler::applyHeaderStyle($sheet, 'A1:V1');
 
         // Satu contoh baris
-        $example = ['1','Distribusi','Contoh Kegiatan Survei','2894.BMA.001.051.A','2025','12','Kegiatan','500000','6000000', '1','1','1','1','1','1','1','1','1','1','1'];
+        $example = ['1','2024','Contoh Kegiatan Survei Lapangan','Pencacahan','054.01.GG.2903.BMA.009.005.A.521213','Distribusi','108','Dokumen','60000','6480000','9','9','9','9','9','9','9','9','9','9','9','9'];
         foreach ($example as $i => $val) {
-            $sheet->setCellValue($colLetters[$i] . '2', $val);
-            $sheet->getStyle($colLetters[$i] . '2')->getFill()
+            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1);
+            $sheet->setCellValueExplicit($col . '2', (string)$val, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $sheet->getStyle($col . '2')->getFill()
                 ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
                 ->getStartColor()->setARGB('FFFBE6');
         }
+
+        \App\Support\ExcelStyler::applyTableGrid($sheet, 'A1:V2');
+        \App\Support\ExcelStyler::applyAlignCenter($sheet, 'A2:B2');
+        \App\Support\ExcelStyler::applyAlignCenter($sheet, 'D2:E2');
+        \App\Support\ExcelStyler::applyAlignCenter($sheet, 'H2:H2');
+        \App\Support\ExcelStyler::applyCurrencyFormat($sheet, 'I2:J2');
+        \App\Support\ExcelStyler::applyDropdownValidation($sheet, 'D2:D500', ['Pencacahan', 'Pengolahan'], 'Tipe Kegiatan', 'Pilih tipe kegiatan');
+        \App\Support\ExcelStyler::applyDropdownValidation($sheet, 'F2:F500', ['Distribusi', 'Neraca', 'Produksi', 'Sosial', 'IPDS', 'Cadangan', 'Bagian Umum'], 'Bidang Kerja', 'Pilih tim kerja BPS');
+        \App\Support\ExcelStyler::applyAutoWidth($sheet, 1, 22);
+        \App\Support\ExcelStyler::freezeHeader($sheet, 'A2');
 
         // Sheet Petunjuk
         $petunjuk = $spreadsheet->createSheet();
@@ -214,7 +325,9 @@ class KegiatanController extends Controller
             $petunjuk->setCellValue('A'.($row+$i+1), $i+1);
             $petunjuk->setCellValue('B'.($row+$i+1), $b->nama);
         }
-        $sheet->getColumnDimension('U')->setWidth(14);
+        \App\Support\ExcelStyler::applyAutoWidth($petunjuk, 1, 2);
+
+        $spreadsheet->setActiveSheetIndex(0);
 
         $objWriter = new Xlsx($spreadsheet);
         $filename = 'Template_Mata_Anggaran.xlsx';
@@ -229,9 +342,6 @@ class KegiatanController extends Controller
 
     public function importPreview(Request $request)
     {
-        ini_set('memory_limit', '-1');
-        set_time_limit(300);
-
         $request->validate(['file' => 'required|file|mimes:xlsx,xls']);
 
         $file = $request->file('file');
@@ -241,7 +351,21 @@ class KegiatanController extends Controller
             mkdir($importsDir, 0777, true);
         }
         $file->move($importsDir, $filename);
+
+        return $this->importPreviewFromPath($filename);
+    }
+
+    public function importPreviewFromPath(string $filename)
+    {
+        ini_set('memory_limit', '-1');
+        set_time_limit(300);
+
+        $importsDir = storage_path('app/imports');
         $fullPath = $importsDir . DIRECTORY_SEPARATOR . $filename;
+
+        if (!file_exists($fullPath)) {
+            return redirect()->route('kegiatan.index')->with('error', 'File import tidak ditemukan.');
+        }
 
         $reader = IOFactory::createReaderForFile($fullPath);
         $reader->setReadDataOnly(true);

@@ -87,7 +87,7 @@
     <div class="card border-0 shadow-sm rounded-4 mb-4">
         <div class="card-body p-4">
             <div class="row g-3 align-items-center">
-                <div class="col-12 col-md-4 col-lg-5">
+                <div class="col-12 col-md-4 col-lg-4">
                     <label class="form-label text-secondary fw-bold small mb-1.5">
                         <i class="bi bi-file-earmark-text text-primary me-1"></i>PILIH TEMPLATE DOKUMEN YANG AKAN DICETAK
                     </label>
@@ -107,13 +107,30 @@
                     </label>
                     <input type="date" id="filterTanggalDokumen" class="form-control border-primary-subtle fw-bold py-2" value="{{ $tanggalDokumen }}" onchange="document.getElementById('hiddenTanggalDokumen').value=this.value;">
                 </div>
-                <div class="col-12 col-md-5 col-lg-4 text-md-end mt-3 mt-md-0 pt-md-4 d-flex gap-2 justify-content-md-end flex-wrap">
-                    <button type="submit" class="btn btn-danger fw-bold shadow-sm px-3 py-2 fs-6 rounded-3 flex-grow-1 flex-md-grow-0">
+                <div class="col-12 col-md-5 col-lg-5 text-md-end mt-3 mt-md-0 pt-md-4 d-flex gap-2 justify-content-md-end flex-wrap">
+                    <button type="button" onclick="submitBulkPrint()" class="btn btn-danger fw-bold shadow-sm px-3 py-2 fs-6 rounded-3 flex-grow-1 flex-md-grow-0" title="Buka jendela preview multi-halaman untuk langsung dicetak">
                         <i class="bi bi-printer-fill me-1.5"></i> CETAK MASSAL
                     </button>
-                    <button type="submit" class="btn btn-primary fw-bold shadow-sm px-3 py-2 fs-6 rounded-3 flex-grow-1 flex-md-grow-0" title="Buka jendela dokumen untuk simpan/download PDF">
-                        <i class="bi bi-file-earmark-pdf-fill me-1.5"></i> UNDUH PDF MASSAL
-                    </button>
+                    <div class="btn-group shadow-sm flex-grow-1 flex-md-grow-0">
+                        <button type="button" class="btn btn-primary fw-bold px-3 py-2 fs-6 rounded-start-3" onclick="submitBulkZip('docx')" title="Unduh arsip ZIP berisi berkas Word (.docx) seluruh mitra terpilih">
+                            <i class="bi bi-file-earmark-word-fill me-1.5"></i> UNDUH ZIP (DOCX)
+                        </button>
+                        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split px-2 py-2 rounded-end-3" data-bs-toggle="dropdown" aria-expanded="false" title="Pilih format unduhan arsip massal">
+                            <span class="visually-hidden">Pilihan Format</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3">
+                            <li>
+                                <a class="dropdown-item py-2 fw-semibold" href="javascript:void(0)" onclick="submitBulkZip('docx')">
+                                    <i class="bi bi-file-earmark-word-fill text-primary me-2"></i>Unduh Arsip Word (.docx) .ZIP
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item py-2 fw-semibold" href="javascript:void(0)" onclick="submitBulkZip('pdf')">
+                                    <i class="bi bi-file-earmark-pdf-fill text-danger me-2"></i>Unduh Arsip PDF (.pdf) .ZIP
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -518,6 +535,45 @@ function switchMode(newMode) {
 function toggleSelectAll(source) {
     const checkboxes = document.querySelectorAll('.mitra-checkbox:not(:disabled)');
     checkboxes.forEach(cb => cb.checked = source.checked);
+}
+
+function submitBulkPrint() {
+    const checked = document.querySelectorAll('.mitra-checkbox:checked');
+    if (checked.length === 0) {
+        alert('Silakan pilih minimal 1 mitra yang akan dicetak secara massal.');
+        return;
+    }
+    const form = document.getElementById('bulkForm');
+    form.action = "{{ route('spk.cetak-massal') }}";
+    form.target = "_blank";
+    
+    // Remove temporary format inputs if any
+    const existingFormat = form.querySelector('input[name="format"]');
+    if (existingFormat) existingFormat.remove();
+    
+    form.submit();
+}
+
+function submitBulkZip(format = 'docx') {
+    const checked = document.querySelectorAll('.mitra-checkbox:checked');
+    if (checked.length === 0) {
+        alert('Silakan pilih minimal 1 mitra yang akan diunduh secara massal.');
+        return;
+    }
+    const form = document.getElementById('bulkForm');
+    form.action = "{{ route('spk.unduh-massal-zip') }}";
+    form.target = "_self";
+    
+    let formatInput = form.querySelector('input[name="format"]');
+    if (!formatInput) {
+        formatInput = document.createElement('input');
+        formatInput.type = 'hidden';
+        formatInput.name = 'format';
+        form.appendChild(formatInput);
+    }
+    formatInput.value = format;
+    
+    form.submit();
 }
 
 function cetakIndividu(mitraId, kegiatanId, bulanSpecific = '') {

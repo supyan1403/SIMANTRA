@@ -76,45 +76,78 @@
 
                     <div class="row">
                         <div class="col-md-4 mb-4">
-                            <label for="jumlah" class="form-label fw-bold">Jumlah (Volume)</label>
-                            <input type="number" class="form-control @error('jumlah') is-invalid @enderror" id="jumlah" name="jumlah" value="{{ old('jumlah', $kegiatan->jumlah ?? 0) }}" min="0" oninput="calculateTotal()">
+                            <label for="jumlah" class="form-label fw-bold">Target Volume Kegiatan <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="bi bi-stack text-primary"></i></span>
+                                <input type="number" step="any" class="form-control @error('jumlah') is-invalid @enderror" id="jumlah" name="jumlah" value="{{ old('jumlah', $kegiatan->jumlah ?? 0) }}" min="0" oninput="calculateTotal()" placeholder="Contoh: 100" required>
+                            </div>
+                            <div class="form-text">Total target volume seluruh kegiatan</div>
                             @error('jumlah') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-4 mb-4">
-                            <label for="satuan" class="form-label fw-bold">Satuan</label>
-                            <input type="text" class="form-control @error('satuan') is-invalid @enderror" id="satuan" name="satuan" value="{{ old('satuan', $kegiatan->satuan ?? '') }}" placeholder="Dokumen / OB / Sampel">
+                            <label for="satuan" class="form-label fw-bold">Satuan <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('satuan') is-invalid @enderror" id="satuan" name="satuan" list="satuan_kegiatan_list" value="{{ old('satuan', $kegiatan->satuan ?? 'Dokumen') }}" placeholder="Dokumen / OB / Sampel" required>
+                            <datalist id="satuan_kegiatan_list">
+                                <option value="Dokumen">
+                                <option value="Rumah Tangga">
+                                <option value="Responden">
+                                <option value="Sampel">
+                                <option value="Desa">
+                                <option value="OB">
+                                <option value="Blok Sensus">
+                            </datalist>
+                            <div class="form-text">Satuan beban penugasan mitra</div>
                             @error('satuan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-4 mb-4">
-                            <label for="harga" class="form-label fw-bold">Harga Satuan (Rp)</label>
-                            <input type="number" class="form-control @error('harga') is-invalid @enderror" id="harga" name="harga" value="{{ old('harga', $kegiatan->harga ?? 0) }}" min="0" oninput="calculateTotal()">
+                            <label for="harga" class="form-label fw-bold">Harga Satuan / Tarif Satuan (Rp) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light fw-bold text-primary">Rp</span>
+                                <input type="number" step="any" class="form-control @error('harga') is-invalid @enderror" id="harga" name="harga" value="{{ old('harga', $kegiatan->harga ?? 0) }}" min="0" oninput="calculateTotal()" placeholder="Contoh: 60000" required>
+                            </div>
+                            <div class="form-text">Tarif honor per 1 satuan volume mitra</div>
                             @error('harga') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-4 mb-4">
-                            <label for="total" class="form-label fw-bold">Total Pagu (Rp)</label>
-                            <input type="text" class="form-control bg-light" id="total_display" value="{{ number_format(old('total', $kegiatan->total ?? 0), 0, ',', '.') }}" readonly>
+                            <label for="total" class="form-label fw-bold">Total Pagu Anggaran (Rp) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light fw-bold text-success">Rp</span>
+                                <input type="number" step="any" min="0" class="form-control fw-bold text-success @error('total') is-invalid @enderror" id="total" name="total" value="{{ old('total', $kegiatan->total ?? 0) }}" placeholder="Contoh: 5760000" required>
+                            </div>
+                            <div class="form-text text-muted"><i class="bi bi-info-circle me-1"></i>Otomatis terisi: <code>Target &times; Tarif</code>, atau dapat diedit manual.</div>
+                            @error('total') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-4 mb-4">
                             <label for="tgl_mulai" class="form-label fw-bold">Tanggal Mulai</label>
-                            <input type="date" class="form-control @error('tgl_mulai') is-invalid @enderror" id="tgl_mulai" name="tgl_mulai" value="{{ old('tgl_mulai', $kegiatan->tgl_mulai ?? '') }}">
+                            <input type="date" class="form-control @error('tgl_mulai') is-invalid @enderror" id="tgl_mulai" name="tgl_mulai" value="{{ old('tgl_mulai', !empty($kegiatan->tgl_mulai) ? \Carbon\Carbon::parse($kegiatan->tgl_mulai)->format('Y-m-d') : '') }}">
                             @error('tgl_mulai') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-4 mb-4">
                             <label for="tgl_selesai" class="form-label fw-bold">Tanggal Selesai</label>
-                            <input type="date" class="form-control @error('tgl_selesai') is-invalid @enderror" id="tgl_selesai" name="tgl_selesai" value="{{ old('tgl_selesai', $kegiatan->tgl_selesai ?? '') }}">
+                            <input type="date" class="form-control @error('tgl_selesai') is-invalid @enderror" id="tgl_selesai" name="tgl_selesai" value="{{ old('tgl_selesai', !empty($kegiatan->tgl_selesai) ? \Carbon\Carbon::parse($kegiatan->tgl_selesai)->format('Y-m-d') : '') }}">
                             @error('tgl_selesai') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                     </div>
 
                     <script>
+                        let isTotalManuallyEdited = false;
+
+                        const totalInput = document.getElementById('total');
+                        if (totalInput) {
+                            totalInput.addEventListener('input', function() {
+                                isTotalManuallyEdited = true;
+                            });
+                        }
+
                         function calculateTotal() {
                             const jml = parseFloat(document.getElementById('jumlah').value) || 0;
                             const hrg = parseFloat(document.getElementById('harga').value) || 0;
-                            const tot = jml * hrg;
-                            document.getElementById('total_display').value = new Intl.NumberFormat('id-ID').format(tot);
+                            if (!isTotalManuallyEdited || !totalInput.value || totalInput.value == 0) {
+                                totalInput.value = jml * hrg;
+                            }
                         }
                     </script>
 

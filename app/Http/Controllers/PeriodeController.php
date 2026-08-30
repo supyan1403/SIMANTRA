@@ -11,16 +11,28 @@ class PeriodeController extends Controller
     {
         $search = $request->query('search');
         $tahun = $request->query('tahun');
+        $bulan = $request->query('bulan');
+
+        $bulanList = [
+            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+        ];
 
         $query = Periode::query();
 
-        if ($search) {
-            $query->where('bulan', 'like', "%{$search}%")
-                  ->orWhere('tahun', 'like', "%{$search}%");
+        if ($bulan && $bulan !== 'all') {
+            $query->where('bulan', $bulan);
         }
 
         if ($tahun && $tahun !== 'all') {
             $query->where('tahun', $tahun);
+        }
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('bulan', 'like', "%{$search}%")
+                  ->orWhere('tahun', 'like', "%{$search}%");
+            });
         }
 
         $periodes = $query->orderBy('tahun', 'desc')
@@ -30,7 +42,7 @@ class PeriodeController extends Controller
 
         $tahunList = Periode::select('tahun')->distinct()->orderBy('tahun', 'desc')->pluck('tahun');
 
-        return view('periode.index', compact('periodes', 'tahunList', 'search', 'tahun'));
+        return view('periode.index', compact('periodes', 'tahunList', 'bulanList', 'search', 'tahun', 'bulan'));
     }
 
     public function create()

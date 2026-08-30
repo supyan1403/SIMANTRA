@@ -26,7 +26,7 @@
 
                     <!-- 1. Live Searchable Mitra -->
                     <div class="mb-4 position-relative">
-                        <label for="mitra_search_input" class="form-label fw-bold">Pilih Mitra <span class="text-danger">*</span></label>
+                        <label for="mitra_search_input" class="form-label fw-bold">1. Pilih Mitra <span class="text-danger">*</span></label>
                         <input type="hidden" name="mitra_id" id="mitra_id" value="{{ old('mitra_id', $alokasi->mitra_id ?? '') }}" required>
                         
                         <div class="input-group">
@@ -46,11 +46,11 @@
                         </div>
                     </div>
 
-                    <!-- 2. Cascading Live Searchable Periode (Tahun -> Bulan) -->
+                    <!-- 2. Urutan: Pilih Tahun & Pilih Bidang -->
                     <div class="row g-3 mb-4">
                         <!-- 2a. Live Search Tahun -->
                         <div class="col-12 col-md-5 position-relative">
-                            <label for="tahun_search_input" class="form-label fw-bold">Pilih Tahun <span class="text-danger">*</span></label>
+                            <label for="tahun_search_input" class="form-label fw-bold">2. Pilih Tahun Anggaran <span class="text-danger">*</span></label>
                             <input type="hidden" id="tahun_selected_val" value="{{ old('tahun', $alokasi->periode->tahun ?? '') }}">
                             <div class="input-group">
                                 <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar3 text-primary"></i></span>
@@ -67,33 +67,9 @@
                             </div>
                         </div>
 
-                        <!-- 2b. Live Search Bulan (Tanpa Tahun) -->
+                        <!-- 2b. Live Search Bidang -->
                         <div class="col-12 col-md-7 position-relative">
-                            <label for="bulan_search_input" class="form-label fw-bold">Pilih Bulan Kerja <span class="text-danger">*</span></label>
-                            <input type="hidden" name="periode_id" id="periode_id" value="{{ old('periode_id', $alokasi->periode_id ?? '') }}" required>
-                            <div class="input-group">
-                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar-event text-primary"></i></span>
-                                <input type="text" id="bulan_search_input" class="form-control border-start-0 ps-0 @error('periode_id') is-invalid @enderror" 
-                                       placeholder="Pilih tahun dahulu..." 
-                                       value="{{ old('periode_name', isset($alokasi->periode) ? $alokasi->periode->bulan : '') }}" 
-                                       autocomplete="off" required disabled>
-                                <button type="button" class="btn btn-outline-secondary border d-none" id="clear_bulan_btn" title="Hapus Pilihan">
-                                    <i class="bi bi-x-lg"></i>
-                                </button>
-                            </div>
-                            @error('periode_id') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
-                            
-                            <div id="bulan_dropdown_list" class="list-group shadow-lg rounded-3 position-absolute w-100 mt-1 d-none" 
-                                 style="max-height: 220px; overflow-y: auto; z-index: 1050; background: #ffffff; border: 1px solid #cbd5e1;">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 3. Cascading Live Searchable Kegiatan (Bidang -> Kegiatan) -->
-                    <div class="row g-3 mb-4">
-                        <!-- 3a. Live Search Bidang -->
-                        <div class="col-12 col-md-5 position-relative">
-                            <label for="bidang_search_input" class="form-label fw-bold">Pilih Bidang / Tim Kerja <span class="text-danger">*</span></label>
+                            <label for="bidang_search_input" class="form-label fw-bold">3. Pilih Bidang / Tim Kerja <span class="text-danger">*</span></label>
                             <input type="hidden" id="bidang_selected_val" value="{{ old('bidang_id', $alokasi->kegiatan->bidang_id ?? '') }}">
                             <div class="input-group">
                                 <span class="input-group-text bg-white border-end-0"><i class="bi bi-building text-primary"></i></span>
@@ -109,17 +85,20 @@
                                  style="max-height: 200px; overflow-y: auto; z-index: 1050; background: #ffffff; border: 1px solid #cbd5e1;">
                             </div>
                         </div>
+                    </div>
 
-                        <!-- 3b. Live Search Kegiatan -->
+                    <!-- 3. Urutan: Pilih Kegiatan Statistik -> Lalu Pilih Bulan Kerja -->
+                    <div class="row g-3 mb-4">
+                        <!-- 3a. Live Search Kegiatan -->
                         <div class="col-12 col-md-7 position-relative">
-                            <label for="kegiatan_search_input" class="form-label fw-bold">Pilih Kegiatan Statistik <span class="text-danger">*</span></label>
+                            <label for="kegiatan_search_input" class="form-label fw-bold">4. Pilih Kegiatan Statistik <span class="text-danger">*</span></label>
                             <input type="hidden" name="kegiatan_id" id="kegiatan_id" value="{{ old('kegiatan_id', $alokasi->kegiatan_id ?? '') }}" required>
                             <div class="input-group">
                                 <span class="input-group-text bg-white border-end-0"><i class="bi bi-list-task text-primary"></i></span>
                                 <input type="text" id="kegiatan_search_input" class="form-control border-start-0 ps-0 @error('kegiatan_id') is-invalid @enderror" 
                                        placeholder="Pilih bidang dahulu..." 
                                        value="{{ old('kegiatan_name', isset($alokasi->kegiatan) ? $alokasi->kegiatan->nama : '') }}" 
-                                       autocomplete="off" required disabled>
+                                       autocomplete="off" required {{ isset($alokasi->kegiatan) ? '' : 'disabled' }}>
                                 <button type="button" class="btn btn-outline-secondary border d-none" id="clear_kegiatan_btn" title="Hapus Pilihan">
                                     <i class="bi bi-x-lg"></i>
                                 </button>
@@ -130,40 +109,78 @@
                                  style="max-height: 220px; overflow-y: auto; z-index: 1050; background: #ffffff; border: 1px solid #cbd5e1;">
                             </div>
                         </div>
+
+                        <!-- 3b. Live Search Bulan Kerja (Hanya bulan kegiatan aktif) -->
+                        <div class="col-12 col-md-5 position-relative">
+                            <label for="bulan_search_input" class="form-label fw-bold">5. Pilih Bulan Kerja <span class="text-danger">*</span></label>
+                            <input type="hidden" name="periode_id" id="periode_id" value="{{ old('periode_id', $alokasi->periode_id ?? '') }}" required>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar-event text-primary"></i></span>
+                                <input type="text" id="bulan_search_input" class="form-control border-start-0 ps-0 @error('periode_id') is-invalid @enderror" 
+                                       placeholder="Pilih kegiatan dahulu..." 
+                                       value="{{ old('periode_name', isset($alokasi->periode) ? $alokasi->periode->bulan : '') }}" 
+                                       autocomplete="off" required {{ isset($alokasi->periode) ? '' : 'disabled' }}>
+                                <button type="button" class="btn btn-outline-secondary border d-none" id="clear_bulan_btn" title="Hapus Pilihan">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                            @error('periode_id') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+                            
+                            <div id="bulan_dropdown_list" class="list-group shadow-lg rounded-3 position-absolute w-100 mt-1 d-none" 
+                                 style="max-height: 220px; overflow-y: auto; z-index: 1050; background: #ffffff; border: 1px solid #cbd5e1;">
+                            </div>
+                        </div>
                     </div>
 
                     <!-- 4. Beban Tugas: Volume & Satuan -->
-                    <div class="row g-3 mb-4">
+                    <div class="row g-3 mb-3">
                         <div class="col-12 col-md-6">
-                            <label for="volume" class="form-label fw-bold">Target Volume Tugas <span class="text-danger">*</span></label>
+                            <label for="volume" class="form-label fw-bold">Volume Dikerjakan Mitra (Beban Tugas) <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text bg-white"><i class="bi bi-stack text-primary"></i></span>
                                 <input type="number" step="any" min="0.01" class="form-control @error('volume') is-invalid @enderror" id="volume" name="volume" value="{{ old('volume', $alokasi->volume ?? 1) }}" placeholder="Contoh: 15 / 1" required>
                             </div>
+                            <div class="form-text">Jumlah volume beban tugas yang dikerjakan oleh mitra</div>
                             @error('volume') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-12 col-md-6">
                             <label for="satuan" class="form-label fw-bold">Satuan Pekerjaan <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('satuan') is-invalid @enderror" id="satuan" name="satuan" list="satuan_options" value="{{ old('satuan', $alokasi->satuan ?? 'dokumen') }}" placeholder="Contoh: dokumen / kegiatan / ruta" required>
+                            <input type="text" class="form-control @error('satuan') is-invalid @enderror" id="satuan" name="satuan" list="satuan_options" value="{{ old('satuan', $alokasi->satuan ?? ($alokasi->kegiatan->satuan ?? 'Dokumen')) }}" placeholder="Contoh: Dokumen / Rumah Tangga / Responden" required>
                             <datalist id="satuan_options">
-                                <option value="dokumen">
-                                <option value="kegiatan">
-                                <option value="rumah tangga">
-                                <option value="SLS">
-                                <option value="blok sensus">
-                                <option value="responden">
-                                <option value="bulan">
+                                <option value="Dokumen">
+                                <option value="Rumah Tangga">
+                                <option value="Responden">
+                                <option value="Sampel">
+                                <option value="Desa">
+                                <option value="OB">
+                                <option value="Blok Sensus">
                             </datalist>
+                            <div class="form-text">Satuan hasil pekerjaan</div>
                             @error('satuan') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
                         </div>
                     </div>
 
-                    <!-- 5. Nominal Honor -->
+                    <!-- Info Tarif Kegiatan Aktif -->
+                    <div id="kegiatan_tarif_info_box" class="alert alert-info py-2 px-3 mb-4 rounded-3 d-flex align-items-center justify-content-between {{ isset($alokasi->kegiatan) && $alokasi->kegiatan->harga > 0 ? '' : 'd-none' }}">
+                        <div class="small">
+                            <i class="bi bi-tag-fill text-primary me-1"></i>
+                            <span class="text-muted">Harga Satuan Kegiatan:</span>
+                            <strong class="text-dark ms-1" id="kegiatan_tarif_text">
+                                Rp {{ number_format($alokasi->kegiatan->harga ?? 0, 0, ',', '.') }} / {{ $alokasi->kegiatan->satuan ?? 'Dokumen' }}
+                            </strong>
+                        </div>
+                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 extra-small">Auto-Calculate Active</span>
+                    </div>
+
+                    <!-- 5. Nominal Honor (Otomatis: Volume Mitra x Harga Satuan) -->
                     <div class="mb-4">
                         <label for="nominal" class="form-label fw-bold">Total Nilai Perjanjian / Honor (Rp) <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text fw-bold bg-light text-primary">Rp</span>
-                            <input type="number" step="0.01" class="form-control @error('nominal') is-invalid @enderror" id="nominal" name="nominal" value="{{ old('nominal', $alokasi->nominal ?? '') }}" placeholder="Contoh: 1500000" required>
+                            <input type="number" step="0.01" class="form-control fw-bold fs-6 @error('nominal') is-invalid @enderror" id="nominal" name="nominal" value="{{ old('nominal', $alokasi->nominal ?? '') }}" placeholder="Contoh: 1500000" required>
+                        </div>
+                        <div class="form-text text-muted">
+                            <i class="bi bi-calculator me-1"></i>Otomatis terhitung: <strong>Volume Dikerjakan Mitra &times; Harga Satuan Kegiatan</strong>. Anda tetap dapat menyesuaikan secara manual jika diperlukan.
                         </div>
                         @error('nominal') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
                     </div>
@@ -330,12 +347,72 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    // 2. LIVE SEARCH TAHUN -> BULAN CASCADING
+    // 2. LIVE SEARCH TAHUN -> BIDANG -> KEGIATAN -> BULAN CASCADING
+    const tahunInput = document.getElementById('tahun_search_input');
+    const tahunHidden = document.getElementById('tahun_selected_val');
+    const clearTahunBtn = document.getElementById('clear_tahun_btn');
+
+    const bidangInput = document.getElementById('bidang_search_input');
+    const bidangHidden = document.getElementById('bidang_selected_val');
+    const clearBidangBtn = document.getElementById('clear_bidang_btn');
+
+    const kegiatanInput = document.getElementById('kegiatan_search_input');
+    const kegiatanHidden = document.getElementById('kegiatan_id');
+    const clearKegiatanBtn = document.getElementById('clear_kegiatan_btn');
+
     const bulanInput = document.getElementById('bulan_search_input');
     const periodeHidden = document.getElementById('periode_id');
     const clearBulanBtn = document.getElementById('clear_bulan_btn');
-    const tahunHidden = document.getElementById('tahun_selected_val');
 
+    const volumeInput = document.getElementById('volume');
+    const satuanInput = document.getElementById('satuan');
+    const nominalInput = document.getElementById('nominal');
+    const tarifInfoBox = document.getElementById('kegiatan_tarif_info_box');
+    const tarifTextEl = document.getElementById('kegiatan_tarif_text');
+
+    let selectedKegiatanObj = null;
+    @if(isset($alokasi->kegiatan))
+        selectedKegiatanObj = {!! json_encode($alokasi->kegiatan) !!};
+    @endif
+
+    function getAllowedMonths(kObj) {
+        if (!kObj) return null;
+        if (kObj.jadwal_bulan_list && Array.isArray(kObj.jadwal_bulan_list) && kObj.jadwal_bulan_list.length > 0) {
+            return kObj.jadwal_bulan_list.map(m => parseInt(m));
+        }
+        if (kObj.tgl_mulai && kObj.tgl_selesai) {
+            try {
+                const sM = parseInt(kObj.tgl_mulai.split('-')[1]);
+                const eM = parseInt(kObj.tgl_selesai.split('-')[1]);
+                if (!isNaN(sM) && !isNaN(eM) && sM <= eM) {
+                    const arr = [];
+                    for (let m = sM; m <= eM; m++) arr.push(m);
+                    return arr;
+                }
+            } catch(e) {}
+        }
+        return null;
+    }
+
+    function resetBulan() {
+        periodeHidden.value = '';
+        bulanInput.value = '';
+        if (clearBulanBtn) clearBulanBtn.classList.add('d-none');
+        bulanInput.disabled = true;
+        bulanInput.placeholder = 'Pilih kegiatan dahulu...';
+    }
+
+    function resetKegiatan() {
+        kegiatanHidden.value = '';
+        kegiatanInput.value = '';
+        selectedKegiatanObj = null;
+        currentKegiatanHarga = 0;
+        if (tarifInfoBox) tarifInfoBox.classList.add('d-none');
+        if (clearKegiatanBtn) clearKegiatanBtn.classList.add('d-none');
+        resetBulan();
+    }
+
+    // Step 2: PILIH TAHUN
     setupLiveSearchDropdown({
         inputId: 'tahun_search_input',
         hiddenId: 'tahun_selected_val',
@@ -350,50 +427,15 @@ document.addEventListener("DOMContentLoaded", function() {
             }));
         },
         onSelectCallback: function(selectedItem) {
-            periodeHidden.value = '';
-            bulanInput.value = '';
-            if (clearBulanBtn) clearBulanBtn.classList.add('d-none');
-
-            if (selectedItem && selectedItem.value) {
-                bulanInput.disabled = false;
-                bulanInput.placeholder = 'Ketik / pilih bulan kerja...';
-                bulanInput.focus();
-            } else {
-                bulanInput.disabled = true;
-                bulanInput.placeholder = 'Pilih tahun dahulu...';
+            resetKegiatan();
+            if (bidangHidden.value) {
+                kegiatanInput.disabled = false;
+                kegiatanInput.placeholder = 'Ketik nama kegiatan...';
             }
         }
     });
 
-    setupLiveSearchDropdown({
-        inputId: 'bulan_search_input',
-        hiddenId: 'periode_id',
-        listId: 'bulan_dropdown_list',
-        clearBtnId: 'clear_bulan_btn',
-        getItemsCallback: function(q) {
-            const currentTahun = tahunHidden.value;
-            if (!currentTahun) return [];
-            const query = q.toLowerCase().trim();
-            // Display ONLY Month Name (NO YEAR TEXT in Month list!)
-            return periodesData.filter(p => p.tahun == currentTahun && p.bulan.toLowerCase().includes(query)).map(p => ({
-                value: p.id,
-                label: p.bulan, // ONLY MONTH NAME!
-                html: `<div class="fw-bold text-dark py-1"><i class="bi bi-calendar-event text-primary me-2"></i>${p.bulan}</div>`
-            }));
-        }
-    });
-
-    if (tahunHidden.value) {
-        bulanInput.disabled = false;
-        bulanInput.placeholder = 'Ketik / pilih bulan kerja...';
-    }
-
-    // 3. LIVE SEARCH BIDANG -> KEGIATAN CASCADING
-    const kegiatanInput = document.getElementById('kegiatan_search_input');
-    const kegiatanHidden = document.getElementById('kegiatan_id');
-    const clearKegiatanBtn = document.getElementById('clear_kegiatan_btn');
-    const bidangHidden = document.getElementById('bidang_selected_val');
-
+    // Step 3: PILIH BIDANG
     setupLiveSearchDropdown({
         inputId: 'bidang_search_input',
         hiddenId: 'bidang_selected_val',
@@ -408,10 +450,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }));
         },
         onSelectCallback: function(selectedItem) {
-            kegiatanHidden.value = '';
-            kegiatanInput.value = '';
-            if (clearKegiatanBtn) clearKegiatanBtn.classList.add('d-none');
-
+            resetKegiatan();
             if (selectedItem && selectedItem.value) {
                 kegiatanInput.disabled = false;
                 kegiatanInput.placeholder = 'Ketik nama kegiatan...';
@@ -423,6 +462,21 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
+    let currentKegiatanHarga = {{ isset($alokasi->kegiatan) ? ((float)($alokasi->kegiatan->harga ?? 0)) : 0 }};
+    let currentKegiatanSatuan = "{{ isset($alokasi->kegiatan) ? ($alokasi->kegiatan->satuan ?? 'Dokumen') : 'Dokumen' }}";
+
+    function recalculateHonor() {
+        if (currentKegiatanHarga > 0) {
+            const vol = parseFloat(volumeInput.value) || 0;
+            nominalInput.value = Math.round(vol * currentKegiatanHarga);
+        }
+    }
+
+    if (volumeInput) {
+        volumeInput.addEventListener('input', recalculateHonor);
+    }
+
+    // Step 4: PILIH KEGIATAN
     setupLiveSearchDropdown({
         inputId: 'kegiatan_search_input',
         hiddenId: 'kegiatan_id',
@@ -435,13 +489,90 @@ document.addEventListener("DOMContentLoaded", function() {
             if (!bidangObj || !bidangObj.kegiatans) return [];
 
             const query = q.toLowerCase().trim();
-            return bidangObj.kegiatans.filter(k => 
-                k.nama.toLowerCase().includes(query) || 
-                (k.kode_mak && k.kode_mak.toLowerCase().includes(query))
-            ).map(k => ({
-                value: k.id,
-                label: k.nama,
-                html: `<div class="fw-bold text-dark mb-0">${k.nama}</div>${k.kode_mak ? '<span class="badge bg-light text-dark border mt-1">MAK: ' + k.kode_mak + '</span>' : ''}`
+            const currentTahun = tahunHidden.value;
+
+            return bidangObj.kegiatans.filter(k => {
+                if (currentTahun && k.tahun && k.tahun != currentTahun) return false;
+                return k.nama.toLowerCase().includes(query) || 
+                    (k.kode_mata_anggaran && k.kode_mata_anggaran.toLowerCase().includes(query)) ||
+                    (k.kode_mak && k.kode_mak.toLowerCase().includes(query));
+            }).map(k => {
+                const makText = k.kode_mata_anggaran || k.kode_mak || '';
+                const hrgText = k.harga > 0 ? 'Tarif: Rp ' + new Intl.NumberFormat('id-ID').format(k.harga) + '/' + (k.satuan || 'dok') : '';
+                return {
+                    value: k.id,
+                    label: k.nama,
+                    rawKegiatan: k,
+                    html: `<div class="fw-bold text-dark mb-0">${k.nama}</div><div class="d-flex gap-2 mt-1">${makText ? '<span class="badge bg-light text-dark border">MAK: ' + makText + '</span>' : ''}${hrgText ? '<span class="badge bg-primary-subtle text-primary border border-primary-subtle">' + hrgText + '</span>' : ''}</div>`
+                };
+            });
+        },
+        onSelectCallback: function(selectedItem) {
+            if (selectedItem && selectedItem.rawKegiatan) {
+                const kObj = selectedItem.rawKegiatan;
+                selectedKegiatanObj = kObj;
+                currentKegiatanHarga = parseFloat(kObj.harga) || 0;
+                currentKegiatanSatuan = kObj.satuan || 'Dokumen';
+                
+                if (satuanInput) {
+                    satuanInput.value = currentKegiatanSatuan;
+                }
+
+                // If year wasn't selected yet, auto-set from kegiatan
+                const kegTahun = kObj.tahun || '2024';
+                if (!tahunHidden.value) {
+                    tahunHidden.value = kegTahun;
+                    tahunInput.value = `Tahun ${kegTahun}`;
+                    if (clearTahunBtn) clearTahunBtn.classList.remove('d-none');
+                }
+
+                // Unlock Bulan Input & Focus
+                periodeHidden.value = '';
+                bulanInput.value = '';
+                if (clearBulanBtn) clearBulanBtn.classList.add('d-none');
+                bulanInput.disabled = false;
+                bulanInput.placeholder = kObj.jadwal_teks ? `Pilih bulan (${kObj.jadwal_teks})...` : 'Pilih bulan kerja...';
+                bulanInput.focus();
+
+                if (currentKegiatanHarga > 0) {
+                    if (tarifTextEl) {
+                        tarifTextEl.textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(currentKegiatanHarga) + ' / ' + currentKegiatanSatuan;
+                    }
+                    if (tarifInfoBox) {
+                        tarifInfoBox.classList.remove('d-none');
+                    }
+                    recalculateHonor();
+                } else {
+                    if (tarifInfoBox) {
+                        tarifInfoBox.classList.add('d-none');
+                    }
+                }
+            } else {
+                resetKegiatan();
+            }
+        }
+    });
+
+    // Step 5: PILIH BULAN KERJA (Menyesuaikan otomatis dengan Kegiatan)
+    setupLiveSearchDropdown({
+        inputId: 'bulan_search_input',
+        hiddenId: 'periode_id',
+        listId: 'bulan_dropdown_list',
+        clearBtnId: 'clear_bulan_btn',
+        getItemsCallback: function(q) {
+            const currentTahun = tahunHidden.value;
+            if (!currentTahun) return [];
+            const query = q.toLowerCase().trim();
+            const allowed = getAllowedMonths(selectedKegiatanObj);
+
+            return periodesData.filter(p => {
+                if (p.tahun != currentTahun) return false;
+                if (allowed && !allowed.includes(parseInt(p.bulan_angka))) return false;
+                return p.bulan.toLowerCase().includes(query);
+            }).map(p => ({
+                value: p.id,
+                label: p.bulan,
+                html: `<div class="fw-bold text-dark py-1"><i class="bi bi-calendar-event text-primary me-2"></i>${p.bulan}</div>`
             }));
         }
     });
@@ -449,6 +580,11 @@ document.addEventListener("DOMContentLoaded", function() {
     if (bidangHidden.value) {
         kegiatanInput.disabled = false;
         kegiatanInput.placeholder = 'Ketik nama kegiatan...';
+    }
+
+    if (selectedKegiatanObj && tahunHidden.value) {
+        bulanInput.disabled = false;
+        bulanInput.placeholder = selectedKegiatanObj.jadwal_teks ? `Pilih bulan (${selectedKegiatanObj.jadwal_teks})...` : 'Pilih bulan kerja...';
     }
 
     // 4. LIVE SBML THRESHOLD CHECK & RE-ALLOCATION MODAL INTERCEPT

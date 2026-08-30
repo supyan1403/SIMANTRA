@@ -1,27 +1,43 @@
-*.log
-.DS_Store
+# Environment & IDE
 .env
 .env.backup
 .env.production
 .phpactor.json
 .phpunit.result.cache
-/.fleet
-/.idea
-/.nova
 /.phpunit.cache
 /.vscode
+/.idea
+/.fleet
+/.nova
 /.zed
 /auth.json
+.DS_Store
+Thumbs.db
+*.log
+
+# Dependencies & Build
 /node_modules
+/vendor
 /public/build
 /public/hot
 /public/storage
+
+# Storage Temp & Backups (Database utama database/database.sqlite TETAP di-track)
+/storage/app/backups/*.sqlite
+/storage/app/imports/*
 /storage/*.key
 /storage/pail
-/vendor
 Homestead.json
 Homestead.yaml
-Thumbs.db
+
+# Temporary & Scratch Files
+~$*
+test_*.docx
+clean_test.docx
+scratch/
+scratch_*.php
+
+# Document & Spreadsheet Filters (Kecuali Template Master Utama)
 *.docx
 !File SPK (Sumber - 3 hasil edit).docx
 !File SPK (Sumber -2).docx
@@ -30,4 +46,3 @@ Thumbs.db
 *.xls
 *.pdf
 *.xml
-/scratch
