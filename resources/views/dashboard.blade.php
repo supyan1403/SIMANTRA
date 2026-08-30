@@ -855,7 +855,9 @@
                 <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Tutup</button>
             </div>
         </div>
-            @endforeach
+    </div>
+</div>
+@endforeach
 
             @endsection
             @push('scripts')
