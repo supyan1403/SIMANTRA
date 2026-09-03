@@ -874,11 +874,6 @@
                 <span class="nav-text">Monitoring Alokasi</span>
             </a>
 
-            <a href="{{ route('spk.penomoran.index') }}" class="sidebar-link {{ request()->routeIs('spk.penomoran.*') ? 'active' : '' }}" title="Penomoran SPK & BAST">
-                <i class="bi bi-hash"></i>
-                <span class="nav-text">Penomoran SPK & BAST</span>
-            </a>
-
             <a href="{{ route('spk.index') }}" class="sidebar-link {{ request()->routeIs('spk.index') || request()->routeIs('spk.cetak*') ? 'active' : '' }}" title="Cetak & Unduh Dokumen">
                 <i class="bi bi-printer-fill"></i>
                 <span class="nav-text">Cetak & Unduh Dokumen</span>

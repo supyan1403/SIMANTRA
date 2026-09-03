@@ -160,6 +160,7 @@
         <h2 class="page-title"><i class="bi bi-people-fill text-primary me-2"></i>Data Mitra</h2>
         <p class="page-subtitle">Daftar {{ number_format($mitras->total()) }} mitra statistik BPS terdaftar dalam sistem SIMANTRA</p>
     </div>
+    @if(auth()->user()?->role === 'admin')
     <div class="d-flex gap-2">
         <a href="{{ route('mitra.import.template') }}" class="btn btn-outline-success btn-sm shadow-none" title="Download Template Excel Mitra">
             <i class="bi bi-file-earmark-arrow-down"></i> Template Excel
@@ -171,6 +172,7 @@
             <i class="bi bi-plus-lg"></i> Tambah Mitra
         </a>
     </div>
+    @endif
 </div>
 
 <!-- Modern Filter Card -->
@@ -230,6 +232,7 @@
     </div>
 </div>
 
+@if(auth()->user()?->role === 'admin')
 <!-- Clean Integrated Bulk Action Bar (Appears right above table) -->
 <div id="bulkActionBar" class="d-none align-items-center justify-content-between bg-primary bg-opacity-10 border-start border-4 border-primary rounded-3 p-3 mb-3 shadow-sm">
     <div class="d-flex align-items-center gap-2.5">
@@ -248,6 +251,7 @@
         </button>
     </div>
 </div>
+@endif
 
 <!-- Clean Data Table Card with 5 Sticky Columns & Harmonized Sequence -->
 <div class="card border-0 shadow-sm">
@@ -256,9 +260,11 @@
             <table class="table table-hover table-compact-scroll table-sticky align-middle mb-0" style="min-width: 2150px;">
                 <thead>
                     <tr>
+                        @if(auth()->user()?->role === 'admin')
                         <th class="text-center px-2" style="width: 44px; min-width: 44px; max-width: 44px;">
                             <input type="checkbox" class="form-check-input my-0" id="checkAllMitra" style="cursor: pointer; width: 16px; height: 16px;" title="Pilih Semua di Halaman Ini">
                         </th>
+                        @endif
                         <th class="text-center px-1" style="width: 50px; min-width: 50px; max-width: 50px;">NO</th>
                         <th>ID SOBAT</th>
                         <th>NIK</th>
@@ -275,15 +281,19 @@
                         <th>NPWP</th>
                         <th>KONTAK / EMAIL</th>
                         <th class="text-center">PENGALAMAN BPS</th>
+                        @if(auth()->user()?->role === 'admin')
                         <th class="text-center pe-3" style="width: 130px;">AKSI</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($mitras as $i => $m)
                     <tr>
+                        @if(auth()->user()?->role === 'admin')
                         <td class="text-center px-2">
                             <input type="checkbox" class="form-check-input mitra-row-check my-0" value="{{ $m->id }}" data-nama="{{ $m->nama }}" style="cursor: pointer; width: 16px; height: 16px;">
                         </td>
+                        @endif
                         <td class="text-center px-1 text-muted fw-semibold">{{ $mitras->firstItem() + $i }}</td>
                         <td><span class="badge font-monospace fw-bold" style="font-size: 0.775rem; padding: 0.35rem 0.65rem; background-color: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; border-radius: 0.375rem;">{{ $m->id_sobat ?? '-' }}</span></td>
                         <td><span class="font-monospace text-slate-700 fw-semibold" style="font-size: 0.8rem;">{{ $m->nik ?? '-' }}</span></td>
@@ -365,6 +375,7 @@
                                 @endif
                             </div>
                         </td>
+                        @if(auth()->user()?->role === 'admin')
                         <td class="text-center pe-3">
                             <div class="d-inline-flex gap-1">
                                 <a href="{{ route('mitra.edit', $m) }}" class="btn-action btn-action-edit" title="Edit Data">
@@ -378,6 +389,7 @@
                                 </form>
                             </div>
                         </td>
+                        @endif
                     </tr>
                     @empty
                     <tr>

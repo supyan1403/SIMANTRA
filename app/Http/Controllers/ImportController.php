@@ -72,6 +72,37 @@ class ImportController extends Controller
 
         $isMitra = str_contains($firstSheetName, 'MITRA') || str_contains($firstSheetName, 'SOBAT') || str_contains($headerStr, 'SOBAT') || str_contains($headerStr, 'NIK') || str_contains($headerStr, 'NAMA LENGKAP');
         $isKegiatan = str_contains($firstSheetName, 'ANGGARAN') || str_contains($firstSheetName, 'KEGIATAN') || str_contains($headerStr, 'MAK') || str_contains($headerStr, 'AKUN') || str_contains($headerStr, 'KODE MATA ANGGARAN');
+        $isDipaPok = str_contains($firstSheetName, 'RKK_MULTIYEAR') || str_contains($firstSheetName, 'RINCIAN KERTAS KERJA');
+
+        // Deteksi MITRA KEPKA/SE (format kolom: Nama Lengkap, Posisi, Status Seleksi, SOBAT ID)
+        $isMitraKepkaSE = str_contains($headerStr, 'STATUS SELEKSI') || str_contains($headerStr, 'POSISI DAFTAR') || str_contains($headerStr, 'ALAMAT PROVINSI');
+
+        if ($isMitraKepkaSE) {
+            $parsed = $this->parseMitraKepkaSE($fullPath);
+
+            return view('import.mitra-kepka-preview', [
+                'rows' => $parsed['rows'],
+                'stats' => $parsed['stats'],
+                'path' => $filename,
+            ]);
+        }
+
+        if ($isDipaPok) {
+            $jenisDokumen = $request->jenis_dokumen ?? 'DIPA';
+            $revisiKe = $request->revisi_ke ?? 'DIPA Awal';
+            $tahun = $request->tahun ?? date('Y');
+
+            $parsed = \App\Support\DipaPokParser::parse($fullPath, $jenisDokumen, $revisiKe, $tahun);
+
+            return view('import.dipa-pok-preview', [
+                'rows' => $parsed['rows'],
+                'stats' => $parsed['stats'],
+                'path' => $filename,
+                'jenisDokumen' => $jenisDokumen,
+                'revisiKe' => $revisiKe,
+                'tahun' => $tahun,
+            ]);
+        }
 
         if ($isMitra && !$isKegiatan) {
             return app(\App\Http\Controllers\MitraController::class)->importPreviewFromPath($filename);
@@ -170,6 +201,10 @@ class ImportController extends Controller
         $spreadsheet = $reader->load($fullPath);
         $sheetNames = $spreadsheet->getSheetNames();
 
+        // Check if file is DIPA/POK (RKK_MULTIYEAR_SATKER sheet)
+        $firstSheetTitle = strtoupper(trim($spreadsheet->getSheet(0)->getTitle()));
+        $isDipaPok = str_contains($firstSheetTitle, 'RKK_MULTIYEAR') || str_contains($firstSheetTitle, 'RINCIAN KERTAS KERJA');
+
         // Check if file is Universal All-in-One Template
         $isUniversal = false;
         foreach ($sheetNames as $sName) {
@@ -182,6 +217,61 @@ class ImportController extends Controller
 
         DB::beginTransaction();
         try {
+            // Handle DIPA/POK Import
+            if ($isDipaPok) {
+                $jenisDokumen = $request->jenis_dokumen ?? 'DIPA';
+                $revisiKe = $request->revisi_ke ?? 'DIPA Awal';
+                $tahun = $request->tahun ?? date('Y');
+
+                $parsed = \App\Support\DipaPokParser::parse($fullPath, $jenisDokumen, $revisiKe, $tahun);
+                $rows = $parsed['rows'];
+
+                // Ensure bidangs exist
+                $bidangNames = array_unique(array_column($rows, 'bidang'));
+                $bidangModels = [];
+                foreach ($bidangNames as $bn) {
+                    $bidangModels[strtolower($bn)] = Bidang::firstOrCreate(['nama' => $bn]);
+                }
+
+                $count = 0;
+                foreach ($rows as $row) {
+                    $bidangKey = strtolower($row['bidang']);
+                    $bidangId = $bidangModels[$bidangKey]->id ?? null;
+
+                    Kegiatan::updateOrCreate(
+                        [
+                            'kode_mata_anggaran' => $row['kode_mata_anggaran'],
+                            'tahun' => $row['tahun'],
+                        ],
+                        [
+                            'nama' => $row['nama'],
+                            'bidang_id' => $bidangId,
+                            'jumlah' => $row['jumlah'],
+                            'satuan' => $row['satuan'],
+                            'harga' => $row['harga'],
+                            'total' => $row['total'],
+                            'source_file' => $row['source_file'],
+                            'revisi_ke' => $row['revisi_ke'],
+                            'jenis_dokumen' => $row['jenis_dokumen'],
+                        ]
+                    );
+                    $count++;
+                }
+
+                // Auto-create Periode for the year if not exists
+                $bulanNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+                for ($m = 1; $m <= 12; $m++) {
+                    Periode::firstOrCreate([
+                        'tahun' => (int) $tahun,
+                        'bulan' => $bulanNames[$m - 1],
+                        'bulan_angka' => $m,
+                    ]);
+                }
+
+                DB::commit();
+                return redirect()->route('import.index')->with('success', "Import {$jenisDokumen} ({$revisiKe}) berhasil! {$count} data kegiatan tersimpan.");
+            }
+
             if ($isUniversal) {
                 $mitraCount = 0;
                 $kegiatanCount = 0;
@@ -631,6 +721,141 @@ class ImportController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Error saat mengimpor data: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Parse file Mitra Baru menjadi array data mitra
+     */
+    private function parseMitraKepkaSE(string $filePath): array
+    {
+        ini_set('memory_limit', '512M');
+        $reader = IOFactory::createReader('Xlsx');
+        $reader->setReadDataOnly(true);
+        $spreadsheet = $reader->load($filePath);
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $data = $sheet->toArray(null, true, true, true);
+        $rows = [];
+
+        $existingSobat = \App\Models\Mitra::pluck('id_sobat')->filter()->map(fn($v) => strtoupper(trim($v)))->toArray();
+        $existingNama = \App\Models\Mitra::pluck('nama')->filter()->map(fn($v) => strtoupper(trim($v)))->toArray();
+
+        $seenSobat = [];
+        $seenNama = [];
+
+        for ($row = 2; $row <= count($data); $row++) {
+            $nama = trim((string)($data[$row]['A'] ?? ''));
+            if (empty($nama)) continue;
+
+            $namaLower = strtolower($nama);
+            if (str_starts_with($nama, '*')) continue;
+            if (str_contains($namaLower, 'keterangan')) continue;
+            if (str_contains($namaLower, 'umur dihitung')) continue;
+
+            $upperNama = strtoupper($nama);
+            $idSobat = trim((string)($data[$row]['U'] ?? ''));
+            $upperSobat = strtoupper($idSobat);
+
+            if (in_array($upperNama, $existingNama) || isset($seenNama[$upperNama])) continue;
+            if (!empty($idSobat) && (in_array($upperSobat, $existingSobat) || isset($seenSobat[$upperSobat]))) continue;
+
+            $seenNama[$upperNama] = true;
+            if (!empty($idSobat)) $seenSobat[$upperSobat] = true;
+
+            $ttl = trim((string)($data[$row]['J'] ?? ''));
+            $tanggalLahir = null;
+            $ttlParts = explode(',', $ttl);
+            if (count($ttlParts) >= 2) {
+                $dateStr = trim($ttlParts[count($ttlParts) - 1]);
+                $bulanMap = [
+                    'Januari' => '01', 'Februari' => '02', 'Maret' => '03', 'April' => '04',
+                    'Mei' => '05', 'Juni' => '06', 'Juli' => '07', 'Agustus' => '08',
+                    'September' => '09', 'Oktober' => '10', 'November' => '11', 'Desember' => '12',
+                ];
+                foreach ($bulanMap as $namaBulan => $angka) {
+                    $dateStr = str_replace($namaBulan, $angka, $dateStr);
+                }
+                $dateParts = explode(' ', trim($dateStr));
+                if (count($dateParts) == 3) {
+                    $tanggalLahir = $dateParts[2] . '-' . $dateParts[1] . '-' . str_pad($dateParts[0], 2, '0', STR_PAD_LEFT);
+                }
+            }
+
+            $jk = strtoupper(trim((string)($data[$row]['L'] ?? '')));
+            $jk = ($jk === 'LK' || $jk === 'L') ? 'L' : (($jk === 'PR' || $jk === 'P') ? 'P' : null);
+
+            $ynToBool = fn($val) => strtoupper(trim((string)$val)) === 'YA';
+
+            $rows[] = [
+                'nama' => $nama,
+                'posisi' => trim((string)($data[$row]['B'] ?? '')),
+                'status_seleksi' => trim((string)($data[$row]['C'] ?? '')),
+                'posisi_daftar' => trim((string)($data[$row]['D'] ?? '')),
+                'alamat_detail' => trim((string)($data[$row]['E'] ?? '')),
+                'kode_alamat' => trim((string)($data[$row]['F'] ?? '')),
+                'kabupaten_kota' => trim((string)($data[$row]['G'] ?? '')),
+                'kecamatan' => trim((string)($data[$row]['H'] ?? '')),
+                'desa' => trim((string)($data[$row]['I'] ?? '')),
+                'tanggal_lahir' => $tanggalLahir,
+                'jk' => $jk,
+                'status_perkawinan' => trim((string)($data[$row]['M'] ?? '')),
+                'pendidikan' => trim((string)($data[$row]['N'] ?? '')),
+                'pekerjaan' => trim((string)($data[$row]['O'] ?? '')),
+                'no_hp' => trim((string)($data[$row]['T'] ?? '')),
+                'id_sobat' => $idSobat,
+                'email' => trim((string)($data[$row]['V'] ?? '')),
+                'exp_sp' => $ynToBool($data[$row]['AG'] ?? '') ? 'Ya' : '',
+                'exp_st' => $ynToBool($data[$row]['AH'] ?? '') ? 'Ya' : '',
+                'exp_se' => $ynToBool($data[$row]['AI'] ?? '') ? 'Ya' : '',
+                'exp_susenas' => $ynToBool($data[$row]['AJ'] ?? '') ? 'Ya' : '',
+                'exp_sakernas' => $ynToBool($data[$row]['AK'] ?? '') ? 'Ya' : '',
+                'exp_sbh' => $ynToBool($data[$row]['AL'] ?? '') ? 'Ya' : '',
+            ];
+        }
+
+        $stats = [
+            'total_items' => count($rows),
+            'total_duplicate_skipped' => count($data) - 1 - count($rows),
+        ];
+
+        return ['rows' => $rows, 'stats' => $stats];
+    }
+
+    /**
+     * Process import Mitra Baru
+     */
+    public function processMitraKepkaSE(Request $request)
+    {
+        ini_set('memory_limit', '512M');
+        set_time_limit(0);
+        $request->validate(['path' => 'required|string']);
+
+        $filename = $request->path;
+        $fullPath = storage_path('app/imports/' . $filename);
+
+        if (!file_exists($fullPath)) {
+            return redirect()->route('import.index')->with('error', 'File tidak ditemukan. Upload ulang.');
+        }
+
+        $parsed = $this->parseMitraKepkaSE($fullPath);
+        $rows = $parsed['rows'];
+
+        DB::beginTransaction();
+        try {
+            $count = 0;
+            foreach ($rows as $row) {
+                if (Mitra::where('id_sobat', $row['id_sobat'])->exists() || Mitra::where('nama', $row['nama'])->exists()) {
+                    continue;
+                }
+                Mitra::create($row);
+                $count++;
+            }
+            DB::commit();
+            return redirect()->route('import.index')->with('success', 'Import Mitra Baru berhasil! ' . $count . ' mitra baru tersimpan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error saat import: ' . $e->getMessage());
         }
     }
 }

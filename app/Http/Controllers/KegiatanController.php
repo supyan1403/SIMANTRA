@@ -515,4 +515,17 @@ class KegiatanController extends Controller
             return redirect()->route('kegiatan.import.index')->with('error', 'Error: '.$e->getMessage());
         }
     }
+
+    public function storeBidangAjax(Request $request)
+    {
+        $request->validate([
+            'nama' => 'required|string|max:255|unique:bidangs,nama',
+        ]);
+
+        $bidang = Bidang::create([
+            'nama' => $request->nama,
+        ]);
+
+        return response()->json(['success' => true, 'bidang' => $bidang]);
+    }
 }

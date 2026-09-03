@@ -33,6 +33,7 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
     Route::post('/import-mitra/preview', [MitraController::class, 'importPreview'])->name('mitra.import.preview');
     Route::post('/import-mitra/process', [MitraController::class, 'importProcess'])->name('mitra.import.process');
     Route::get('/kegiatan/by-bidang/{bidangId}', [KegiatanController::class, 'byBidang'])->name('kegiatan.by-bidang');
+    Route::post('/bidang/ajax-store', [KegiatanController::class, 'storeBidangAjax'])->name('bidang.ajax-store');
     Route::get('/kegiatan/export', [KegiatanController::class, 'export'])->name('kegiatan.export');
     Route::resource('kegiatan', KegiatanController::class);
     Route::get('/import-kegiatan', [KegiatanController::class, 'importIndex'])->name('kegiatan.import.index');
@@ -41,21 +42,12 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
     Route::post('/import-kegiatan/process', [KegiatanController::class, 'importProcess'])->name('kegiatan.import.process');
     Route::resource('periode', PeriodeController::class);
     Route::get('/monitoring/check-limit', [MonitoringController::class, 'checkLimit'])->name('monitoring.check-limit');
-    Route::post('/monitoring/update-spk', [MonitoringController::class, 'updateSpkManual'])->name('monitoring.update-spk');
     Route::get('/monitoring/export', [MonitoringController::class, 'export'])->name('monitoring.export');
     Route::resource('monitoring', MonitoringController::class);
 
     Route::get('/rekap', [RekapController::class, 'index'])->name('rekap.index');
     Route::get('/rekap/export', [RekapController::class, 'export'])->name('rekap.export');
     Route::get('/rekap/export-mantra-matrix', [RekapController::class, 'exportMantraMatrix'])->name('rekap.export-mantra-matrix');
-
-    // Modul Penomoran SPK & BAST (Khusus Alokasi & Penetapan Nomor)
-    Route::get('/penomoran-spk', [\App\Http\Controllers\SpkController::class, 'penomoranIndex'])->name('spk.penomoran.index');
-    Route::post('/penomoran-spk/terapkan', [\App\Http\Controllers\SpkController::class, 'terapkanPenomoran'])->name('spk.penomoran.terapkan');
-    Route::post('/penomoran-spk/reset', [\App\Http\Controllers\SpkController::class, 'resetNomor'])->name('spk.penomoran.reset');
-    Route::get('/penomoran-spk/counter', [\App\Http\Controllers\SpkController::class, 'getCounter'])->name('spk.penomoran.counter');
-    Route::post('/penomoran-spk/update-format', [\App\Http\Controllers\SpkController::class, 'updateKegiatanFormat'])->name('spk.penomoran.update-format');
-    Route::post('/penomoran-spk/reset-all-format', [\App\Http\Controllers\SpkController::class, 'resetAllFormat'])->name('spk.penomoran.reset-all-format');
 
     // Modul Cetak & Unduh Dokumen SPK & BAST (Khusus Output / Print / Download)
     Route::get('/spk', [\App\Http\Controllers\SpkController::class, 'index'])->name('spk.index');
@@ -79,6 +71,7 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
     Route::get('/import/template-kegiatan', [ImportController::class, 'downloadKegiatanTemplate'])->name('import.template-kegiatan');
     Route::post('/import/preview', [ImportController::class, 'preview'])->name('import.preview');
     Route::post('/import/process', [ImportController::class, 'process'])->name('import.process');
+    Route::post('/import/mitra-kepka/process', [ImportController::class, 'processMitraKepkaSE'])->name('import.mitra-kepka.process');
 
     // Protected Admin-Only Routes
     Route::middleware(['admin'])->group(function () {

@@ -209,9 +209,13 @@ def generate_exact_spk_docx(input_docx_path, output_docx_path, data_json_path):
                 if old_text in elem.text:
                     elem.text = elem.text.replace(old_text, new_text)
 
-    # 4. ANNEX TABLE POPULATION (TARGET LAST TABLE IN DOCUMENT)
-    if len(doc.tables) >= 2:
-        t1 = doc.tables[-1] # The annex table is always the last table
+    # 4. ANNEX TABLE POPULATION (TARGET TABLE WITH 12 ROWS x 8 COLS)
+    t1 = None
+    for tbl in doc.tables:
+        if len(tbl.rows) >= 12 and len(tbl.columns) >= 8:
+            t1 = tbl
+            break
+    if t1 is not None:
 
         def format_cell(cell, text, font_size_pt=9.0, bold=False, italic=False, align=docx.enum.text.WD_ALIGN_PARAGRAPH.LEFT):
             cell.text = text
@@ -257,6 +261,13 @@ def generate_exact_spk_docx(input_docx_path, output_docx_path, data_json_path):
             if len(total_row.cells) >= 7:
                 format_cell(total_row.cells[0], f'Terbilang: {terbilang_honor}', font_size_pt=9.0, italic=True, align=docx.enum.text.WD_ALIGN_PARAGRAPH.LEFT)
                 format_cell(total_row.cells[6], f'{total_honor}, 00', font_size_pt=9.0, align=docx.enum.text.WD_ALIGN_PARAGRAPH.RIGHT)
+
+    # 5. ENFORCE LANDSCAPE ON LAST SECTION (LAMPIRAN PAGE)
+    from docx.enum.section import WD_ORIENT
+    last_section = doc.sections[-1]
+    if last_section.orientation != WD_ORIENT.LANDSCAPE:
+        last_section.orientation = WD_ORIENT.LANDSCAPE
+        last_section.page_width, last_section.page_height = last_section.page_height, last_section.page_width
 
     doc.save(output_docx_path)
 

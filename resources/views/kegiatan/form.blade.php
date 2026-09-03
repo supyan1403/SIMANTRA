@@ -3,7 +3,7 @@
 
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
-        <h2 class="page-title"><i class="bi bi-journal-plus text-primary me-2"></i>{{ isset($kegiatan) ? 'Edit Kegiatan' : 'Tambah Kegiatan Baru' }}</h2>
+        <h2 class="page-title"><i class="bi bi-journal-plus text-primary me-2"></i>{{ isset($kegiatan) ? 'Edit Kegiatan' : 'Tambah Kegiatan & Mata Anggaran Baru' }}</h2>
         <p class="page-subtitle">{{ isset($kegiatan) ? 'Perbarui rincian informasi kegiatan statistik' : 'Formulir pendaftaran kegiatan survei/sensus baru' }}</p>
     </div>
     <a href="{{ route('kegiatan.index') }}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
@@ -39,15 +39,20 @@
                         </div>
                         <div class="col-md-6 mb-4">
                             <label for="bidang_id" class="form-label fw-bold">Bidang / Tim Kerja <span class="text-danger">*</span></label>
-                            <select class="form-select @error('bidang_id') is-invalid @enderror" id="bidang_id" name="bidang_id" required>
-                                <option value="">-- Pilih Bidang --</option>
-                                @foreach($bidangs as $b)
-                                    <option value="{{ $b->id }}" {{ old('bidang_id', $kegiatan->bidang_id ?? '') == $b->id ? 'selected' : '' }}>
-                                        {{ $b->nama }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('bidang_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            <div class="input-group">
+                                <select class="form-select @error('bidang_id') is-invalid @enderror" id="bidang_id" name="bidang_id" required>
+                                    <option value="">-- Pilih Bidang --</option>
+                                    @foreach($bidangs as $b)
+                                        <option value="{{ $b->id }}" {{ old('bidang_id', $kegiatan->bidang_id ?? '') == $b->id ? 'selected' : '' }}>
+                                            {{ $b->nama }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTambahBidang" title="Tambah Bidang Baru">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
+                            @error('bidang_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                         </div>
                     </div>
 
@@ -149,6 +154,32 @@
                                 totalInput.value = jml * hrg;
                             }
                         }
+
+                        // Tambah Bidang AJAX
+                        document.getElementById('formTambahBidang').addEventListener('submit', function(e) {
+                            e.preventDefault();
+                            fetch("{{ route('bidang.ajax-store') }}", {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                    'Accept': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    nama: document.getElementById('bidang_nama').value
+                                })
+                            })
+                            .then(r => r.json())
+                            .then(data => {
+                                if (data.success) {
+                                    const select = document.getElementById('bidang_id');
+                                    const opt = new Option(data.bidang.nama, data.bidang.id, true, true);
+                                    select.add(opt);
+                                    bootstrap.Modal.getInstance(document.getElementById('modalTambahBidang')).hide();
+                                    document.getElementById('formTambahBidang').reset();
+                                }
+                            });
+                        });
                     </script>
 
                     <div class="d-flex justify-content-end gap-2 pt-3 border-top">
@@ -164,3 +195,31 @@
 </div>
 
 @endsection
+
+<!-- Modal Tambah Bidang Baru -->
+<div class="modal fade" id="modalTambahBidang" tabindex="-1" aria-labelledby="modalTambahBidangLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-primary text-white py-3">
+                <h5 class="modal-title fw-bold" id="modalTambahBidangLabel">
+                    <i class="bi bi-plus-circle me-2"></i>Tambah Bidang Baru
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formTambahBidang">
+                <div class="modal-body p-4">
+                    <div class="mb-0">
+                        <label class="form-label fw-bold">Nama Bidang <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="nama" id="bidang_nama" required placeholder="Contoh: Distribusi">
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm fw-bold px-3">
+                        <i class="bi bi-check-lg me-1"></i> Simpan Bidang
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

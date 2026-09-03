@@ -34,6 +34,8 @@ class RekapController extends Controller
         $periodes = Periode::where('tahun', $tahun)->orderBy('bulan_angka')->get();
 
         $rekap = [];
+        $paguPerBidang = [];
+        $totalPaguAll = 0;
         foreach ($bidangs as $bidang) {
             $row = ['bidang' => $bidang->nama];
             $total = 0;
@@ -46,6 +48,12 @@ class RekapController extends Controller
             }
             $row['total'] = (float) $total;
             $rekap[] = $row;
+
+            $pagu = (float) Kegiatan::where('bidang_id', $bidang->id)
+                ->where('tahun', $tahun)
+                ->sum('total');
+            $paguPerBidang[$bidang->id] = $pagu;
+            $totalPaguAll += $pagu;
         }
 
         $tahunList = Periode::select('tahun')->distinct()->orderBy('tahun')->pluck('tahun');
@@ -53,7 +61,7 @@ class RekapController extends Controller
             $tahunList = collect([$tahun]);
         }
 
-        return view('rekap.index', compact('rekap', 'periodes', 'tahun', 'tahunList', 'bidangs'));
+        return view('rekap.index', compact('rekap', 'periodes', 'tahun', 'tahunList', 'bidangs', 'paguPerBidang', 'totalPaguAll'));
     }
 
     public function export(Request $request)

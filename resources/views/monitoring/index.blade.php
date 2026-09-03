@@ -13,6 +13,36 @@
     </div>
 </div>
 
+<div class="row mb-3">
+<div class="col-md-3">
+<div class="card border-0 shadow-sm" style="background-color: #f0f9ff; border-left: 3px solid #0ea5e9;">
+    <div class="card-body py-2 px-2.5">
+        <div class="d-flex align-items-center justify-content-between mb-1">
+            <span class="fw-bold text-uppercase" style="font-size: 0.65rem; color: #0369a1;">Standar SBML / Bulan</span>
+            <div class="d-flex align-items-center gap-1">
+                <select class="form-select form-select-sm py-0" style="width: auto; font-size: 0.65rem; color: #0369a1; border-color: #bae6fd;" onchange="window.location.href='{{ route('monitoring.index') }}?sbml_tahun='+this.value+'&{{ http_build_query(request()->except('sbml_tahun')) }}'">
+                    @foreach($tahunList as $t)
+                        <option value="{{ $t }}" style="color: #000;" {{ $sbmlTahun == $t ? 'selected' : '' }}>{{ $t }}</option>
+                    @endforeach
+                </select>
+                <i class="bi bi-piggy-bank-fill" style="font-size: 0.9rem; color: #0ea5e9;"></i>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <div class="flex-fill rounded-2 py-1 px-1 text-center" style="background-color: #e0f2fe;">
+                <span class="fw-bold d-block" style="font-size: 0.6rem; color: #0369a1;">PENCACAHAN</span>
+                <span class="fw-bold" style="font-size: 0.8rem; color: #0c4a6e;">Rp {{ number_format($sbmlPencacahan, 0, ',', '.') }}</span>
+            </div>
+            <div class="flex-fill rounded-2 py-1 px-1 text-center" style="background-color: #e0f2fe;">
+                <span class="fw-bold d-block" style="font-size: 0.6rem; color: #0369a1;">PENGOLAHAN</span>
+                <span class="fw-bold" style="font-size: 0.8rem; color: #0c4a6e;">Rp {{ number_format($sbmlPengolahan, 0, ',', '.') }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
 <!-- Filter Panel -->
 <div class="card border-0 shadow-sm mb-3">
     <div class="card-body p-2.5">

@@ -61,9 +61,6 @@
         <p class="page-subtitle">Pusat pencetakan massal &amp; individual dokumen Surat Perintah Kerja (SPK), BAST, dan Lampiran Honor Mitra BPS</p>
     </div>
     <div class="d-flex align-items-center gap-2">
-        <a href="{{ route('spk.penomoran.index') }}" class="btn btn-outline-primary shadow-sm fw-bold">
-            <i class="bi bi-sort-numeric-down me-1"></i> Atur Penomoran Surat
-        </a>
         <a href="{{ route('spk.templates.index') }}" class="btn btn-outline-secondary shadow-sm fw-bold">
             <i class="bi bi-folder-symlink-fill me-1"></i> Kelola Template
         </a>
@@ -180,11 +177,10 @@
         <div class="row g-3 mb-3">
             <div class="col-6 {{ auth()->user()->role === 'admin' ? 'col-md-3' : 'col-md-4' }}">
                 <label class="form-label text-secondary fw-bold small mb-1.5">TAHUN ANGGARAN</label>
-                <select name="tahun" id="filterTahun" class="form-select border-primary-subtle fw-bold py-2" onchange="submitFilter()">
-                    @foreach($tahunList as $t)
-                        <option value="{{ $t }}" {{ $t == $tahun ? 'selected' : '' }}>{{ $t }}</option>
-                    @endforeach
-                </select>
+                <div class="input-group">
+                    <input type="number" name="tahun" id="filterTahun" class="form-control border-primary-subtle fw-bold py-2" value="{{ $tahun }}" min="2020" max="2099">
+                    <button type="button" onclick="submitFilter()" class="btn btn-primary"><i class="bi bi-arrow-right"></i></button>
+                </div>
             </div>
 
             <div class="col-6 {{ auth()->user()->role === 'admin' ? 'col-md-3' : 'col-md-4' }}">
@@ -364,8 +360,8 @@
                                         </a>
                                     </div>
                                 @else
-                                    <a href="{{ route('spk.penomoran.index', ['tahun' => $tahun, 'bulan_awal' => $bulanAwal, 'bulan_akhir' => $bulanAkhir, 'kegiatan_id' => $kegiatanId]) }}" class="btn btn-sm btn-outline-warning text-dark fw-bold px-2.5 py-1.5 rounded-2" title="Klik untuk atur penomoran terlebih dahulu">
-                                        <i class="bi bi-sort-numeric-down me-1"></i> Atur Nomor
+                                    <a href="{{ route('monitoring.index') }}" class="btn btn-sm btn-outline-warning text-dark fw-bold px-2.5 py-1.5 rounded-2" title="Input nomor SPK di Monitoring Alokasi">
+                                        <i class="bi bi-pencil-square me-1"></i> Input di Monitoring
                                     </a>
                                 @endif
                             </td>

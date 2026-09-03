@@ -14,7 +14,10 @@ class Kegiatan extends Model {
         'harga',
         'total',
         'tgl_mulai',
-        'tgl_selesai'
+        'tgl_selesai',
+        'source_file',
+        'revisi_ke',
+        'jenis_dokumen'
     ];
     protected $appends = ['jadwal_bulan_list', 'jadwal_teks', 'harga_satuan', 'target_volume'];
 

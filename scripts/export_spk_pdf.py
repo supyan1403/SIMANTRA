@@ -112,6 +112,13 @@ def generate_exact_spk_pdf(input_docx_path, output_pdf_path, data_json_path):
                 total_row.cells[6].text = f'{total_honor}, 00'
 
     # Save to temp docx
+    # ENFORCE LANDSCAPE ON LAST SECTION (LAMPIRAN PAGE)
+    from docx.enum.section import WD_ORIENT
+    last_section = doc.sections[-1]
+    if last_section.orientation != WD_ORIENT.LANDSCAPE:
+        last_section.orientation = WD_ORIENT.LANDSCAPE
+        last_section.page_width, last_section.page_height = last_section.page_height, last_section.page_width
+
     temp_docx = output_pdf_path.replace('.pdf', '_temp.docx')
     doc.save(temp_docx)
 

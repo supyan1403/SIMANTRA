@@ -188,13 +188,14 @@ class DashboardController extends Controller
                         ->when($mKegiatanId, fn($q) => $q->where('kegiatan_id', $mKegiatanId))
                         ->when($mBidangId && !$mKegiatanId, fn($q) => $q->whereHas('kegiatan', fn($qq) => $qq->where('bidang_id', $mBidangId)))
                         ->sum('nominal') : 0;
-                    $sbml = $pId ? SbmlHelper::limitFor($mitraId, $pId) : 0;
+                    $sbmlPencacahan = $pId ? SbmlHelper::limitFor($mitraId, $pId, 'Pencacahan') : 0;
+                    $sbmlPengolahan = $pId ? SbmlHelper::limitFor($mitraId, $pId, 'Pengolahan') : 0;
                     $workloadMonths->push((object)[
                         'bulan' => $this->bulanNama[$m],
                         'bulan_angka' => $m,
                         'honor' => $sum,
-                        'sbml' => $sbml,
-                        'sisa' => $sbml - $sum,
+                        'sbml_pencacahan' => $sbmlPencacahan,
+                        'sbml_pengolahan' => $sbmlPengolahan,
                     ]);
                 }
             }
@@ -302,13 +303,14 @@ class DashboardController extends Controller
                     ->when($sKegiatanId, fn($q) => $q->where('kegiatan_id', $sKegiatanId))
                     ->when($sBidangId && !$sKegiatanId, fn($q) => $q->whereHas('kegiatan', fn($qq) => $qq->where('bidang_id', $sBidangId)))
                     ->sum('nominal') : 0;
-                $sbml = $pId ? SbmlHelper::limitFor($m->id, $pId) : 0;
+                $sbmlPencacahan = $pId ? SbmlHelper::limitFor($m->id, $pId, 'Pencacahan') : 0;
+                $sbmlPengolahan = $pId ? SbmlHelper::limitFor($m->id, $pId, 'Pengolahan') : 0;
                 $mWorkloadMonths->push((object)[
                     'bulan' => $this->bulanNama[$b],
                     'bulan_angka' => $b,
                     'honor' => $sum,
-                    'sbml' => $sbml,
-                    'sisa' => $sbml - $sum,
+                    'sbml_pencacahan' => $sbmlPencacahan,
+                    'sbml_pengolahan' => $sbmlPengolahan,
                 ]);
             }
             $m->modal_workload_months = $mWorkloadMonths;

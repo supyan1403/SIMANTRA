@@ -10,11 +10,10 @@
     <div class="d-flex align-items-center gap-2 flex-wrap">
         <form method="GET" action="{{ route('rekap.index') }}" class="d-flex align-items-center gap-2">
             <label for="tahun" class="form-label text-muted small fw-bold mb-0 text-nowrap">Tahun:</label>
-            <select name="tahun" id="tahun" class="form-select form-select-sm shadow-sm" onchange="this.form.submit()" style="min-width: 135px; padding-right: 2.25rem !important;">
-                @foreach($tahunList as $t)
-                    <option value="{{ $t }}" {{ $tahun == $t ? 'selected' : '' }}>Tahun {{ $t }}</option>
-                @endforeach
-            </select>
+            <div class="input-group input-group-sm shadow-sm" style="width: 120px;">
+                <input type="number" name="tahun" id="tahun" class="form-control" value="{{ $tahun }}" min="2020" max="2099">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-right"></i></button>
+            </div>
         </form>
 
         <a href="{{ route('monitoring.create') }}" class="btn btn-sm btn-primary d-flex align-items-center gap-1 shadow-sm">
@@ -34,12 +33,22 @@
 <!-- Grand Total Hero Card -->
 <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff;">
     <div class="card-body p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-        <div>
+        <div class="flex-grow-1">
             <span class="badge bg-primary bg-opacity-20 text-info px-3 py-1.5 rounded-pill mb-2 fw-semibold">
-                <i class="bi bi-shield-check me-1"></i> Total Alokasi Honor Tahun {{ $tahun }}
+                <i class="bi bi-shield-check me-1"></i> Ringkasan Tahun {{ $tahun }}
             </span>
-            <h1 class="fw-extrabold text-white mb-1" style="font-size: 2.2rem;">Rp {{ number_format($grandTotalYear, 0, ',', '.') }}</h1>
-            <p class="text-slate-300 small mb-0">Total akumulasi honor teralokasi untuk seluruh 5 tim kerja BPS dalam 12 periode bulanan.</p>
+            <div class="d-flex gap-4 flex-wrap">
+                <div>
+                    <span class="text-white-50 small">Total Honor</span>
+                    <h1 class="fw-extrabold text-white mb-0" style="font-size: 2rem;">Rp {{ number_format($grandTotalYear, 0, ',', '.') }}</h1>
+                </div>
+                @if($totalPaguAll > 0)
+                <div class="border-start border-white border-opacity-25 ps-4">
+                    <span class="text-white-50 small">Total Pagu Anggaran</span>
+                    <h1 class="fw-extrabold text-warning mb-0" style="font-size: 2rem;">Rp {{ number_format($totalPaguAll, 0, ',', '.') }}</h1>
+                </div>
+                @endif
+            </div>
         </div>
         <div class="d-flex gap-2">
             <a href="#card-view" class="btn btn-light btn-sm fw-bold px-3 py-2 text-dark"><i class="bi bi-grid-fill me-1 text-primary"></i> Tampilan Kartu</a>
@@ -54,7 +63,11 @@
     @foreach($rekap as $row)
         @php
             $bidangObj = $bidangs->firstWhere('nama', $row['bidang']);
-            $percentage = $grandTotalYear > 0 ? round(($row['total'] / $grandTotalYear) * 100, 1) : 0;
+            $bidangId = $bidangObj?->id;
+            $pagu = $paguPerBidang[$bidangId] ?? 0;
+            $honor = $row['total'];
+            $persenPagu = $pagu > 0 ? round(($honor / $pagu) * 100, 1) : 0;
+            $sisa = $pagu - $honor;
             
             $iconMap = [
                 'Distribusi' => 'bi-truck',
@@ -85,17 +98,43 @@
                             </div>
                             <div>
                                 <h6 class="fw-bold text-dark mb-0">{{ $row['bidang'] }}</h6>
-                                <span class="text-muted small">Porsi: <strong>{{ $percentage }}%</strong> anggaran</span>
+                                @if($pagu > 0)
+                                    <span class="text-muted small">Porsi: <strong>{{ $persenPagu }}%</strong> anggaran</span>
+                                @else
+                                    <span class="text-muted small">Belum ada anggaran</span>
+                                @endif
                             </div>
                         </div>
-                        <span class="badge badge-soft-{{ $color }} fw-bold">{{ $percentage }}%</span>
+                        @if($pagu > 0)
+                            <span class="badge badge-soft-{{ $color }} fw-bold">{{ $persenPagu }}%</span>
+                        @endif
                     </div>
+
+                    @if($pagu > 0)
+                    <div class="bg-light rounded-3 p-2.5 mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="text-muted small fw-semibold">Pagu Anggaran</span>
+                            <span class="fw-bold text-dark">Rp {{ number_format($pagu, 0, ',', '.') }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="text-muted small fw-semibold">Realisasi Honor</span>
+                            <span class="fw-bold text-success">Rp {{ number_format($honor, 0, ',', '.') }}</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-{{ $color }}" role="progressbar" style="width: {{ $persenPagu }}%"></div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <span class="extra-small text-muted">Sisa Anggaran</span>
+                            <span class="extra-small fw-bold {{ $sisa >= 0 ? 'text-dark' : 'text-danger' }}">Rp {{ number_format($sisa, 0, ',', '.') }}</span>
+                        </div>
+                    </div>
+                    @endif
 
                     <div class="my-2">
                         <span class="text-muted small fw-semibold text-uppercase">Total Honor Bidang</span>
                         <h3 class="fw-extrabold text-dark mb-1">Rp {{ number_format($row['total'], 0, ',', '.') }}</h3>
                         <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-{{ $color }}" role="progressbar" style="width: {{ $percentage }}%"></div>
+                            <div class="progress-bar bg-{{ $color }}" role="progressbar" style="width: {{ $persenPagu }}%"></div>
                         </div>
                     </div>
 

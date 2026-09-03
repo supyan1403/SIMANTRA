@@ -185,6 +185,29 @@
                         @error('nominal') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
                     </div>
 
+                    <!-- 6. Nomor SPK, BAST & Tanggal -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-file-earmark-text text-primary me-2"></i>Dokumen SPK & BAST (Opsional)</h6>
+                        <div class="row g-3">
+                            <div class="col-12 col-md-4">
+                                <label for="nomor_spk" class="form-label fw-semibold small">Nomor SPK</label>
+                                <input type="text" class="form-control @error('nomor_spk') is-invalid @enderror" id="nomor_spk" name="nomor_spk" value="{{ old('nomor_spk', $alokasi->nomor_spk ?? '') }}" placeholder="Contoh: B-0001/BPS/3206/SPK/01/2026">
+                                @error('nomor_spk') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label for="nomor_bast" class="form-label fw-semibold small">Nomor BAST</label>
+                                <input type="text" class="form-control @error('nomor_bast') is-invalid @enderror" id="nomor_bast" name="nomor_bast" value="{{ old('nomor_bast', $alokasi->nomor_bast ?? '') }}" placeholder="Contoh: B-0002/BPS/3206/BAST/01/2026">
+                                @error('nomor_bast') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label for="tanggal_spk" class="form-label fw-semibold small">Tanggal SPK</label>
+                                <input type="date" class="form-control @error('tanggal_spk') is-invalid @enderror" id="tanggal_spk" name="tanggal_spk" value="{{ old('tanggal_spk', $alokasi->tanggal_spk ?? '') }}">
+                                @error('tanggal_spk') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+                            </div>
+                        </div>
+                        <div class="form-text text-muted"><i class="bi bi-info-circle me-1"></i>Isi nomor SPK/BAST jika sudah ada. Jika kosong, kolom akan tampil "Belum Bernomor" di monitoring.</div>
+                    </div>
+
                     <div class="d-flex justify-content-end gap-2 pt-3 border-top">
                         <a href="{{ route('monitoring.index') }}" class="btn btn-light border">Batal</a>
                         <button type="submit" id="btnSubmitForm" class="btn btn-primary px-4 shadow-sm">

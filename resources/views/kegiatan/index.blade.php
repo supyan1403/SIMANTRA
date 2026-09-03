@@ -3,21 +3,21 @@
 
 <div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
     <div>
-        <h2 class="page-title"><i class="bi bi-journal-bookmark-fill text-primary me-2"></i>Data Mata Anggaran</h2>
+        <h2 class="page-title"><i class="bi bi-journal-bookmark-fill text-primary me-2"></i>Data Kegiatan & Mata Anggaran</h2>
         <p class="page-subtitle">Kelola data mata anggaran kegiatan statistik, kode MAK, volume, harga satuan, dan pagu anggaran per tim kerja</p>
     </div>
     <div class="d-flex align-items-center gap-2 flex-shrink-0 text-nowrap flex-wrap">
         @if(auth()->user()?->role === 'admin' || auth()->user()?->role === 'operator')
-            <a href="{{ route('kegiatan.import.template') }}" class="btn btn-outline-success d-flex align-items-center gap-2 shadow-sm text-nowrap">
+            <a href="{{ route('kegiatan.import.template') }}" class="btn btn-outline-success btn-sm d-flex align-items-center gap-2 shadow-none text-nowrap">
                 <i class="bi bi-download"></i> Template Excel
             </a>
-            <a href="{{ route('kegiatan.import.index') }}" class="btn btn-success d-flex align-items-center gap-2 shadow-sm text-nowrap">
+            <a href="{{ route('kegiatan.import.index') }}" class="btn btn-success btn-sm d-flex align-items-center gap-2 shadow-none text-nowrap">
                 <i class="bi bi-cloud-arrow-up-fill"></i> Import Excel
             </a>
         @endif
         @if(auth()->user()?->role === 'admin')
-            <a href="{{ route('kegiatan.create') }}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm text-nowrap">
-                <i class="bi bi-plus-circle-fill"></i> Tambah Mata Anggaran
+            <a href="{{ route('kegiatan.create') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-2 shadow-sm text-nowrap">
+                <i class="bi bi-plus-circle-fill"></i> Tambah Kegiatan & Mata Anggaran
             </a>
         @endif
     </div>
@@ -114,8 +114,8 @@
 
     .sticky-keg-3 {
         left: 130px;
-        width: 380px;
-        min-width: 360px;
+        width: 320px;
+        min-width: 300px;
         box-shadow: 4px 0 6px -2px rgba(0, 0, 0, 0.08) !important;
         border-right: 1px solid #cbd5e1 !important;
     }
@@ -130,11 +130,12 @@
 <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
         <div class="table-kegiatan-scroll">
-            <table class="table table-hover table-sticky-freeze align-middle mb-0" style="min-width: 1550px;">
+            <table class="table table-hover table-sticky-freeze align-middle mb-0" style="min-width: 1700px;">
                 <thead>
                     <tr>
                         <th class="ps-3 text-center sticky-keg-1">NO</th>
                         <th class="text-center sticky-keg-2">TAHUN</th>
+                        <th style="width: 140px;">SUMBER</th>
                         <th class="sticky-keg-3">NAMA KEGIATAN</th>
                         <th style="width: 140px;">TIPE KEGIATAN</th>
                         <th style="min-width: 220px;">KODE MAK</th>
@@ -151,6 +152,15 @@
                         <td class="ps-3 text-center fw-bold text-muted sticky-keg-1">{{ $kegiatans->firstItem() + $index }}</td>
                         <td class="text-center sticky-keg-2">
                             <span class="badge bg-light text-dark border">{{ $kegiatan->tahun ?? '2024' }}</span>
+                        </td>
+                        <td>
+                            @if($kegiatan->revisi_ke)
+                                <span class="badge bg-info bg-opacity-10 text-info border border-info-subtle px-2 py-1 extra-small fw-semibold">
+                                    <i class="bi bi-file-earmark-text me-1"></i>{{ $kegiatan->revisi_ke }}
+                                </span>
+                            @else
+                                <span class="text-muted extra-small fst-italic">-</span>
+                            @endif
                         </td>
                         <td class="sticky-keg-3">
                             <div class="fw-bold text-dark fs-6" style="white-space: normal; word-break: break-word; line-height: 1.4;">{{ $kegiatan->nama }}</div>
@@ -241,7 +251,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="10" class="text-center py-5 text-muted">
+                        <td colspan="11" class="text-center py-5 text-muted">
                             <i class="bi bi-inbox fs-1 d-block mb-2 text-slate-300"></i>
                             Tidak ada data mata anggaran yang ditemukan.
                         </td>

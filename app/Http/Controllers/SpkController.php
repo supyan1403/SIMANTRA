@@ -835,8 +835,8 @@ class SpkController extends Controller
                         'periode' => $rentangBulan,
                         'volume' => $volume,
                         'satuan' => $satuan,
-                        'harga_satuan' => 'Rp. ' . number_format($hargaSatuan, 0, ',', '.') . ',00',
-                        'nilai_perjanjian' => 'Rp. ' . number_format($it->nominal, 0, ',', '.') . ', 00',
+                        'harga_satuan' => 'Rp ' . number_format($hargaSatuan, 0, ',', '.'),
+                        'nilai_perjanjian' => 'Rp ' . number_format($it->nominal, 0, ',', '.'),
                         'mak' => $it->kegiatan->kode_mata_anggaran ?: '-',
                     ];
                 }
@@ -846,7 +846,7 @@ class SpkController extends Controller
                     'pekerjaan_mitra' => $mitra->pekerjaan_clean,
                     'alamat_mitra' => $mitra->alamat_clean,
                     'periode_label' => $periodeLabel,
-                    'total_honor' => 'Rp. ' . number_format($totalHonor, 0, ',', '.'),
+                    'total_honor' => 'Rp ' . number_format($totalHonor, 0, ',', '.'),
                     'terbilang_honor' => $terbilangHonor,
                     'tahun' => $tahun,
                     'hari' => $tanggalInfo['hari'],
@@ -1271,8 +1271,8 @@ class SpkController extends Controller
                             'periode' => $rentangBulan,
                             'volume' => $volume,
                             'satuan' => $satuan,
-                            'harga_satuan' => 'Rp. ' . number_format($hargaSatuan, 0, ',', '.') . ',00',
-                            'nilai_perjanjian' => 'Rp. ' . number_format($it->nominal, 0, ',', '.') . ', 00',
+                            'harga_satuan' => 'Rp ' . number_format($hargaSatuan, 0, ',', '.'),
+                            'nilai_perjanjian' => 'Rp ' . number_format($it->nominal, 0, ',', '.'),
                             'mak' => $it->kegiatan->kode_mata_anggaran ?: '-',
                         ];
                     }
@@ -1282,7 +1282,7 @@ class SpkController extends Controller
                         'pekerjaan_mitra' => $mitra->pekerjaan_clean,
                         'alamat_mitra' => $mitra->alamat_clean,
                         'periode_label' => $periodeLabel,
-                        'total_honor' => 'Rp. ' . number_format($totalHonor, 0, ',', '.'),
+                        'total_honor' => 'Rp ' . number_format($totalHonor, 0, ',', '.'),
                         'terbilang_honor' => $terbilangHonor,
                         'tahun' => $tahun,
                         'hari' => $tanggalInfo['hari'],

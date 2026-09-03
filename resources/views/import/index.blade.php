@@ -198,4 +198,91 @@
     });
 </script>
 
+<!-- ========================================================================= -->
+<!-- BAGIAN 3: IMPORT DIPA & POK 2026                                           -->
+<!-- ========================================================================= -->
+@if(auth()->user()?->role === 'admin')
+<div class="mb-4">
+    <div class="d-flex align-items-center mb-3">
+        <span class="badge bg-danger bg-opacity-10 text-danger fw-bold me-2 px-2.5 py-1.5 rounded-pill">
+            <i class="bi bi-file-earmark-medical me-1"></i>PILAR 3: DIPA & POK 2026
+        </span>
+        <span class="text-uppercase small fw-bold text-muted">Import Anggaran Resmi dari File DIPA / POK BPS</span>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4" style="border-top: 4px solid #ef4444 !important;">
+        <div class="card-body p-4">
+            <form method="POST" action="{{ route('import.preview') }}" enctype="multipart/form-data">
+                @csrf
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold text-dark">Jenis Dokumen</label>
+                        <select name="jenis_dokumen" class="form-select" required>
+                            <option value="DIPA">DIPA</option>
+                            <option value="POK">POK</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold text-dark">Revisi Ke</label>
+                        <input type="text" name="revisi_ke" class="form-control" placeholder="Contoh: DIPA Awal, Revisi 1, POK Rev 7" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold text-dark">Tahun Anggaran</label>
+                        <input type="number" name="tahun" class="form-control" value="2026" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold text-dark">File xlsx</label>
+                        <input type="file" class="form-control" name="file" accept=".xlsx,.xls" required>
+                    </div>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-danger btn-lg fw-bold py-3 rounded-3">
+                        <i class="bi bi-cloud-arrow-up-fill me-1.5"></i> Upload &amp; Import DIPA/POK
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+
+<!-- ========================================================================= -->
+<!-- BAGIAN 4: IMPORT Mitra Baru                                          -->
+<!-- ========================================================================= -->
+@if(auth()->user()?->role === 'admin')
+<div class="mb-4">
+    <div class="d-flex align-items-center mb-3">
+        <span class="badge bg-success bg-opacity-10 text-success fw-bold me-2 px-2.5 py-1.5 rounded-pill">
+            <i class="bi bi-people-fill me-1"></i>PILAR 4: Mitra Baru
+        </span>
+        <span class="text-uppercase small fw-bold text-muted">Import Data Mitra dari File Excel</span>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4" style="border-top: 4px solid #10b981 !important;">
+        <div class="card-body p-4">
+            <form method="POST" action="{{ route('import.preview') }}" enctype="multipart/form-data">
+                @csrf
+                <input type="hidden" name="import_type" value="mitra_kepka_se">
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-9">
+                        <label class="form-label fw-bold text-dark">File xlsx File Excel Mitra</label>
+                        <input type="file" class="form-control" name="file" accept=".xlsx,.xls" required>
+                        <small class="text-muted">File akan otomatis dideteksi sebagai Mitra Baru jika memiliki kolom "Status Seleksi" atau "Posisi Daftar"</small>
+                    </div>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-success btn-lg fw-bold py-3 rounded-3">
+                        <i class="bi bi-cloud-arrow-up-fill me-1.5"></i> Upload &amp; Import Mitra Baru
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+
 @endsection
