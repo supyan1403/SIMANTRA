@@ -99,14 +99,19 @@
 
                             <div class="col-md-4">
                                 <label for="kecamatan" class="form-label fw-bold">Kecamatan</label>
-                                <select class="form-select @error('kecamatan') is-invalid @enderror" id="kecamatan" name="kecamatan">
-                                    <option value="">-- Pilih Kecamatan --</option>
-                                    @foreach($kecamatans as $kec)
-                                        <option value="{{ $kec->nama }}" {{ old('kecamatan', $mitra->kecamatan ?? '') == $kec->nama ? 'selected' : '' }}>
-                                            {{ $kec->nama }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <div class="input-group">
+                                    <select class="form-select @error('kecamatan') is-invalid @enderror" id="kecamatan" name="kecamatan">
+                                        <option value="">-- Pilih Kecamatan --</option>
+                                        @foreach($kecamatans as $kec)
+                                            <option value="{{ $kec->nama }}" {{ old('kecamatan', $mitra->kecamatan ?? '') == $kec->nama ? 'selected' : '' }}>
+                                                {{ $kec->nama }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTambahKecamatan" title="Tambah Kecamatan Baru">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+                                </div>
                                 @error('kecamatan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
 
@@ -573,3 +578,58 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 @endsection
+
+<!-- Modal Tambah Kecamatan Baru -->
+<div class="modal fade" id="modalTambahKecamatan" tabindex="-1" aria-labelledby="modalTambahKecamatanLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-primary text-white py-3">
+                <h5 class="modal-title fw-bold" id="modalTambahKecamatanLabel">
+                    <i class="bi bi-plus-circle me-2"></i>Tambah Kecamatan Baru
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formTambahKecamatan">
+                <div class="modal-body p-4">
+                    <div class="mb-0">
+                        <label class="form-label fw-bold">Nama Kecamatan <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="nama" id="kecamatan_nama" required placeholder="Contoh: CIPATUJAH">
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm fw-bold px-3">
+                        <i class="bi bi-check-lg me-1"></i> Simpan Kecamatan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('formTambahKecamatan').addEventListener('submit', function(e) {
+    e.preventDefault();
+    fetch("{{ route('kecamatan.ajax-store') }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            nama: document.getElementById('kecamatan_nama').value
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const select = document.getElementById('kecamatan');
+            const opt = new Option(data.kecamatan.nama, data.kecamatan.nama, true, true);
+            select.add(opt);
+            bootstrap.Modal.getInstance(document.getElementById('modalTambahKecamatan')).hide();
+            document.getElementById('formTambahKecamatan').reset();
+        }
+    });
+});
+</script>

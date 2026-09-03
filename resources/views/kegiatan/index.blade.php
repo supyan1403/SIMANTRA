@@ -28,12 +28,10 @@
     <div class="card-body p-3">
         <form method="GET" action="{{ route('kegiatan.index') }}" class="row g-2 align-items-center">
             <div class="col-6 col-md-2">
-                <select name="tahun" class="form-select" onchange="this.form.submit()">
-                    <option value="all">Semua Tahun</option>
-                    @foreach($tahunList as $t)
-                        <option value="{{ $t }}" {{ ($tahun == $t) ? 'selected' : '' }}>Tahun {{ $t }}</option>
-                    @endforeach
-                </select>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white">Tahun</span>
+                    <input type="number" name="tahun" class="form-control" value="{{ $tahun && $tahun !== 'all' ? $tahun : '' }}" placeholder="Semua" min="2020" max="2099" onchange="if(!this.value){this.value='';}this.form.submit()">
+                </div>
             </div>
             
             <div class="col-6 col-md-3">

@@ -201,7 +201,7 @@
 <!-- ========================================================================= -->
 <!-- BAGIAN 3: IMPORT DIPA & POK 2026                                           -->
 <!-- ========================================================================= -->
-@if(auth()->user()?->role === 'admin')
+@if(in_array(auth()->user()?->role, ['admin', 'operator']))
 <div class="mb-4">
     <div class="d-flex align-items-center mb-3">
         <span class="badge bg-danger bg-opacity-10 text-danger fw-bold me-2 px-2.5 py-1.5 rounded-pill">
@@ -251,7 +251,7 @@
 <!-- ========================================================================= -->
 <!-- BAGIAN 4: IMPORT Mitra Baru                                          -->
 <!-- ========================================================================= -->
-@if(auth()->user()?->role === 'admin')
+@if(in_array(auth()->user()?->role, ['admin', 'operator']))
 <div class="mb-4">
     <div class="d-flex align-items-center mb-3">
         <span class="badge bg-success bg-opacity-10 text-success fw-bold me-2 px-2.5 py-1.5 rounded-pill">

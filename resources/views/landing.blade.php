@@ -42,27 +42,27 @@
         }
 
         .hero-banner {
-            background: linear-gradient(135deg, #0b1329 0%, #1e293b 50%, #0f172a 100%);
+            background: linear-gradient(135deg, rgba(11, 19, 41, 0.92) 0%, rgba(30, 41, 59, 0.92) 50%, rgba(15, 23, 42, 0.92) 100%);
             color: #ffffff;
             border-radius: 16px;
             padding: 2.5rem 2.5rem;
             margin-top: 0.5rem;
             margin-bottom: 1.75rem;
             box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             position: relative;
             overflow: hidden;
         }
 
-        .hero-banner::before {
-            content: '';
+        .math-symbol {
             position: absolute;
-            top: -50%;
-            right: -10%;
-            width: 450px;
-            height: 450px;
-            background: radial-gradient(circle, rgba(37, 99, 235, 0.22) 0%, rgba(255, 255, 255, 0) 70%);
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.25);
             pointer-events: none;
+            z-index: 0;
+            user-select: none;
+            font-family: 'Times New Roman', 'Cambria Math', serif;
         }
 
         .metric-card {
@@ -125,6 +125,14 @@
             justify-content: center;
             font-size: 1.15rem;
         }
+        .running-text {
+            white-space: nowrap;
+            animation: scroll-text 20s linear infinite;
+        }
+        @keyframes scroll-text {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
     </style>
 </head>
 <body>
@@ -132,27 +140,44 @@
     <!-- MAIN CONTAINER -->
     <div class="container py-4" style="max-width: 1240px;">
 
-        <!-- HERO TITLE (CLEAN WITHOUT TOP LOGO/TEXT) -->
+        <!-- HERO TITLE -->
         <div class="hero-banner">
-            <h1 class="fw-extrabold text-white mb-2" style="letter-spacing: -0.5px; font-size: 2.35rem; line-height: 1.15;">
-                Selamat Datang di <span style="font-weight: 900 !important; color: #ffffff;">SIMANTRA</span>
-            </h1>
+            <!-- MATH SYMBOLS BACKGROUND (STATIC) -->
+            <span class="math-symbol" style="top: 8%; left: 3%; font-size: 1.6rem;">Σ</span>
+            <span class="math-symbol" style="top: 50%; left: 2%; font-size: 1.4rem;">±</span>
+            <span class="math-symbol" style="bottom: 35%; left: 8%; font-size: 2rem;">μ</span>
+            <span class="math-symbol" style="top: 15%; left: 18%; font-size: 1.5rem;">x̄</span>
+            <span class="math-symbol" style="bottom: 15%; left: 20%; font-size: 1.8rem;">Δ</span>
+            <span class="math-symbol" style="top: 55%; left: 28%; font-size: 1.6rem;">−</span>
+            <span class="math-symbol" style="bottom: 40%; left: 35%; font-size: 2.2rem;">+</span>
+            <span class="math-symbol" style="top: 20%; left: 45%; font-size: 1.5rem;">√</span>
+            <span class="math-symbol" style="bottom: 12%; left: 42%; font-size: 1.8rem;">%</span>
+            <span class="math-symbol" style="top: 45%; right: 5%; font-size: 2.8rem;">σ</span>
+            <span class="math-symbol" style="bottom: 35%; right: 12%; font-size: 2rem;">Σ</span>
+            <span class="math-symbol" style="top: 10%; right: 20%; font-size: 1.6rem;">μ</span>
+            <span class="math-symbol" style="bottom: 15%; right: 25%; font-size: 1.5rem;">x̄</span>
+            <span class="math-symbol" style="top: 55%; right: 30%; font-size: 1.8rem;">Δ</span>
+            <span class="math-symbol" style="bottom: 45%; right: 38%; font-size: 1.4rem;">±</span>
+            <span class="math-symbol" style="top: 8%; right: 42%; font-size: 2.2rem;">+</span>
 
-            <h5 class="fw-semibold mb-2" style="font-size: 1.05rem; color: #93c5fd !important;">
-                Sistem Informasi Monitoring Alokasi Pekerjaan dan Honor Mitra
-            </h5>
-            <p class="text-white-50 mb-3" style="font-size: 0.875rem; max-width: 860px; line-height: 1.6;">
-                Ringkasan eksekutif pagu kegiatan, realisasi pengeluaran honor mitra, serta visualisasi agregat statistik beban kerja per bidang Badan Pusat Statistik Kabupaten Tasikmalaya.
-            </p>
-
-            <!-- BADGES MOVED BELOW DESCRIPTION -->
-            <div class="d-flex align-items-center gap-2 pt-1 flex-wrap">
-                <span class="glass-pill d-inline-flex align-items-center">
-                    <i class="bi bi-shield-check text-info me-2 fs-6"></i><span>Portal Informasi Publik & Transparansi Anggaran</span>
-                </span>
-                <span class="glass-pill d-inline-flex align-items-center" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.35);">
-                    <i class="bi bi-broadcast text-success me-2 fs-6"></i><span>Database Resmi {{ number_format($totalMitra) }} Mitra Terdaftar</span>
-                </span>
+            <div style="position: relative; z-index: 1;">
+                <div class="d-flex align-items-center gap-3">
+                    <img src="{{ asset('images/logo_kendi_bg.png') }}" alt="Logo SIMANTRA" style="width: 80px; height: 80px; border-radius: 14px;">
+                    <div>
+                        <h1 class="fw-extrabold text-white mb-1" style="letter-spacing: -0.5px; font-size: 2.35rem; line-height: 1.15;">
+                            Selamat Datang di <span style="font-weight: 900 !important; color: #ffffff;">SIMANTRA</span>
+                        </h1>
+                        <h5 class="fw-semibold mb-0" style="font-size: 1.05rem; color: #93c5fd !important;">
+                            Sistem Informasi Monitoring Alokasi Pekerjaan dan Honor Mitra<br>
+                            <span style="font-size: 0.9rem; font-weight: 500; color: rgba(255,255,255,0.8);">Badan Pusat Statistik Kabupaten Tasikmalaya</span>
+                        </h5>
+                    </div>
+                </div>
+                <div class="mt-3 pt-2 border-top border-white border-opacity-10">
+                    <div class="running-text fw-semibold" style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">
+                        <i class="bi bi-geo-alt-fill me-2"></i>Jl. Garut - Tasikmalaya No.103a, Cintaraja, Kec. Singaparna, Kabupaten Tasikmalaya, Jawa Barat 46417
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -162,11 +187,9 @@
                 <form method="GET" action="{{ route('landing') }}" id="formFilterLanding" class="row g-2 align-items-end">
                     <div class="col-6 col-md-2">
                         <label class="form-label text-muted extra-small fw-bold mb-1">TAHUN</label>
-                        <select name="tahun" class="form-select form-select-sm" style="height: 38px;" onchange="submitLandingClean(this.form)">
-                            @foreach($tahunList as $t)
-                                <option value="{{ $t }}" {{ $t == $tahun ? 'selected' : '' }}>{{ $t }}</option>
-                            @endforeach
-                        </select>
+                        <div class="input-group input-group-sm">
+                            <input type="number" name="tahun" class="form-control" value="{{ $tahun }}" min="2020" max="2099" style="height: 38px;" onchange="submitLandingClean(this.form)">
+                        </div>
                     </div>
 
                     <!-- Filter Dropdown Checkbox Bulan Pencairan -->
@@ -275,13 +298,21 @@
             </div>
             <div class="col-12 col-sm-6 col-xl-3">
                 <div class="card metric-card metric-card-purple shadow-sm h-100">
-                    <div class="card-body d-flex align-items-center justify-content-between p-3.5">
-                        <div>
+                    <div class="card-body p-3.5">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                             <span class="text-white-50 small fw-bold text-uppercase" style="font-size: 0.7rem;">Standar SBML / Bulan</span>
-                            <h3 class="fw-extrabold text-white mt-1 mb-0 text-nowrap" style="font-size: 1.3rem;" data-counter-value="{{ $paguSBML }}" data-counter-prefix="Rp ">Rp {{ number_format($paguSBML, 0, ',', '.') }}</h3>
-                            <span class="text-white-50 extra-small" style="font-size: 0.68rem;">Cacah: Rp {{ number_format($sbmlPencacahan / 1000000, 1, ',', '.') }}jt • Olah: Rp {{ number_format($sbmlPengolahan / 1000000, 1, ',', '.') }}jt</span>
+                            <div class="metric-icon-bg"><i class="bi bi-piggy-bank-fill fs-3"></i></div>
                         </div>
-                        <div class="metric-icon-bg"><i class="bi bi-piggy-bank-fill fs-3"></i></div>
+                        <div class="d-flex gap-2">
+                            <div class="flex-fill rounded-3 p-2 text-center" style="background-color: rgba(255,255,255,0.15);">
+                                <span class="text-white-50 extra-small fw-bold d-block" style="font-size: 0.65rem;">PENCACAHAN</span>
+                                <h5 class="fw-extrabold text-white mb-0" style="font-size: 1rem;">Rp {{ number_format($sbmlPencacahan, 0, ',', '.') }}</h5>
+                            </div>
+                            <div class="flex-fill rounded-3 p-2 text-center" style="background-color: rgba(255,255,255,0.15);">
+                                <span class="text-white-50 extra-small fw-bold d-block" style="font-size: 0.65rem;">PENGOLAHAN</span>
+                                <h5 class="fw-extrabold text-white mb-0" style="font-size: 1rem;">Rp {{ number_format($sbmlPengolahan, 0, ',', '.') }}</h5>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

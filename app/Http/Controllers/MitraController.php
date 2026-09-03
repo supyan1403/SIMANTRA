@@ -715,4 +715,23 @@ class MitraController extends Controller
         }
         return null;
     }
+
+    public function ajaxStoreKecamatan(Request $request)
+    {
+        $request->validate([
+            'nama' => 'required|string|max:255',
+        ]);
+
+        $nama = strtoupper(trim($request->nama));
+
+        $kecamatan = Kecamatan::firstOrCreate(
+            ['nama' => $nama],
+            ['kode_kec' => strtoupper(substr(md5($nama), 0, 6))]
+        );
+
+        return response()->json([
+            'success' => true,
+            'kecamatan' => ['id' => $kecamatan->id, 'nama' => $kecamatan->nama],
+        ]);
+    }
 }
