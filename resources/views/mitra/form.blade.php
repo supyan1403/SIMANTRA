@@ -103,7 +103,7 @@
                                     <select class="form-select @error('kecamatan') is-invalid @enderror" id="kecamatan" name="kecamatan">
                                         <option value="">-- Pilih Kecamatan --</option>
                                         @foreach($kecamatans as $kec)
-                                            <option value="{{ $kec->nama }}" {{ old('kecamatan', $mitra->kecamatan ?? '') == $kec->nama ? 'selected' : '' }}>
+                                            <option value="{{ $kec->nama }}" data-id="{{ $kec->id }}" {{ old('kecamatan', $mitra->kecamatan ?? '') == $kec->nama ? 'selected' : '' }}>
                                                 {{ $kec->nama }}
                                             </option>
                                         @endforeach
@@ -111,15 +111,34 @@
                                     <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTambahKecamatan" title="Tambah Kecamatan Baru">
                                         <i class="bi bi-plus-lg"></i>
                                     </button>
+                                    <div class="dropdown">
+                                        <button type="button" class="btn btn-outline-warning dropdown-toggle" data-bs-toggle="dropdown" title="Kelola Kecamatan" onclick="renderKecamatanList()">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                        <div class="dropdown-menu dropdown-menu-end p-2" style="min-width: 250px; max-height: 300px; overflow-y: auto;" id="kecamatanDropdownList">
+                                        </div>
+                                    </div>
                                 </div>
                                 @error('kecamatan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
 
                             <div class="col-md-4">
                                 <label for="desa" class="form-label fw-bold">Desa / Kelurahan</label>
-                                <select class="form-select @error('desa') is-invalid @enderror" id="desa" name="desa">
-                                    <option value="">-- Pilih Desa / Kelurahan --</option>
-                                </select>
+                                <div class="input-group">
+                                    <select class="form-select @error('desa') is-invalid @enderror" id="desa" name="desa">
+                                        <option value="">-- Pilih Desa / Kelurahan --</option>
+                                    </select>
+                                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTambahDesa" title="Tambah Desa Baru">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+                                    <div class="dropdown">
+                                        <button type="button" class="btn btn-outline-warning dropdown-toggle" data-bs-toggle="dropdown" title="Kelola Desa" onclick="renderDesaList()">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                        <div class="dropdown-menu dropdown-menu-end p-2" style="min-width: 250px; max-height: 300px; overflow-y: auto;" id="desaDropdownList">
+                                        </div>
+                                    </div>
+                                </div>
                                 @error('desa') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                         </div>
@@ -319,8 +338,8 @@
 </div>
 
 <script>
+var kecamatansData = @json($kecamatans);
 document.addEventListener('DOMContentLoaded', function () {
-    const kecamatansData = @json($kecamatans);
     const kecamatanSelect = document.getElementById('kecamatan');
     const desaSelect = document.getElementById('desa');
     const kodeAlamatInput = document.getElementById('kode_alamat');
@@ -337,6 +356,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const opt = document.createElement('option');
                 opt.value = d.nama;
                 opt.textContent = d.nama;
+                opt.dataset.id = d.id;
                 opt.dataset.kodeFull = d.kode_full;
                 if (d.nama === selectedDesaName) {
                     opt.selected = true;
@@ -607,6 +627,69 @@ document.addEventListener('DOMContentLoaded', function () {
     </div>
 </div>
 
+<!-- Modal Tambah Desa Baru -->
+<div class="modal fade" id="modalTambahDesa" tabindex="-1" aria-labelledby="modalTambahDesaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-primary text-white py-3">
+                <h5 class="modal-title fw-bold" id="modalTambahDesaLabel">
+                    <i class="bi bi-plus-circle me-2"></i>Tambah Desa Baru
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formTambahDesa">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Kecamatan <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="desa_kecamatan_nama" readonly>
+                        <input type="hidden" id="desa_kecamatan_id">
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label fw-bold">Nama Desa / Kelurahan <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="nama" id="desa_nama" required placeholder="Contoh: NAGARAKEMBANG">
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm fw-bold px-3">
+                        <i class="bi bi-check-lg me-1"></i> Simpan Desa
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edit Nama (Reusable untuk Kecamatan & Desa) -->
+<div class="modal fade" id="modalEditNama" tabindex="-1" aria-labelledby="modalEditNamaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-warning text-dark py-3">
+                <h5 class="modal-title fw-bold" id="modalEditNamaLabel">
+                    <i class="bi bi-pencil-square me-2"></i>Edit Nama
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formEditNama">
+                <input type="hidden" id="editType">
+                <input type="hidden" id="editId">
+                <div class="modal-body p-4">
+                    <div class="mb-0">
+                        <label class="form-label fw-bold">Nama Baru <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="editNamaBaru" required>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning btn-sm fw-bold px-3">
+                        <i class="bi bi-check-lg me-1"></i> Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 document.getElementById('formTambahKecamatan').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -626,9 +709,152 @@ document.getElementById('formTambahKecamatan').addEventListener('submit', functi
         if (data.success) {
             const select = document.getElementById('kecamatan');
             const opt = new Option(data.kecamatan.nama, data.kecamatan.nama, true, true);
+            opt.dataset.id = data.kecamatan.id;
             select.add(opt);
+            kecamatansData.push({ id: data.kecamatan.id, nama: data.kecamatan.nama, desas: [] });
             bootstrap.Modal.getInstance(document.getElementById('modalTambahKecamatan')).hide();
             document.getElementById('formTambahKecamatan').reset();
+        }
+    });
+});
+
+document.getElementById('modalTambahDesa').addEventListener('show.bs.modal', function() {
+    const kecSelect = document.getElementById('kecamatan');
+    const kecName = kecSelect.value;
+    const selectedOpt = kecSelect.options[kecSelect.selectedIndex];
+    document.getElementById('desa_kecamatan_nama').value = kecName || '';
+    document.getElementById('desa_kecamatan_id').value = (selectedOpt && selectedOpt.dataset.id) ? selectedOpt.dataset.id : '';
+});
+
+document.getElementById('formTambahDesa').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const kecId = document.getElementById('desa_kecamatan_id').value;
+    if (!kecId) { alert('Pilih kecamatan terlebih dahulu!'); return; }
+    fetch("{{ route('desa.ajax-store') }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            nama: document.getElementById('desa_nama').value,
+            kecamatan_id: kecId
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const select = document.getElementById('desa');
+            const opt = new Option(data.desa.nama, data.desa.nama, true, true);
+            opt.dataset.id = data.desa.id;
+            select.add(opt);
+            const kecSelect = document.getElementById('kecamatan');
+            const kecOpt = kecSelect.options[kecSelect.selectedIndex];
+            if (kecOpt && kecOpt.dataset.id) {
+                const kecData = kecamatansData.find(k => k.id == kecOpt.dataset.id);
+                if (kecData) {
+                    if (!kecData.desas) kecData.desas = [];
+                    kecData.desas.push({ id: data.desa.id, nama: data.desa.nama, kode_full: '' });
+                }
+            }
+            bootstrap.Modal.getInstance(document.getElementById('modalTambahDesa')).hide();
+            document.getElementById('formTambahDesa').reset();
+        }
+    });
+});
+
+function renderKecamatanList() {
+    const container = document.getElementById('kecamatanDropdownList');
+    container.innerHTML = '';
+    const kecSelect = document.getElementById('kecamatan');
+    Array.from(kecSelect.options).forEach(opt => {
+        if (!opt.value) return;
+        const item = document.createElement('div');
+        item.className = 'd-flex align-items-center justify-content-between px-2 py-1 rounded mb-1';
+        item.style.cursor = 'pointer';
+        item.innerHTML = '<span class="fw-semibold" style="font-size: 0.85rem;">' + opt.text + '</span>' +
+            '<button type="button" class="btn btn-sm btn-outline-warning py-0 px-1" title="Edit" onclick="event.stopPropagation(); openEditFromList(\'kecamatan\', ' + (opt.dataset.id || 0) + ', \'' + opt.value.replace(/'/g, "\\'") + '\')"><i class="bi bi-pencil-square" style="font-size: 0.7rem;"></i></button>';
+        item.addEventListener('mouseenter', function() { this.style.backgroundColor = '#f0f4ff'; });
+        item.addEventListener('mouseleave', function() { this.style.backgroundColor = ''; });
+        container.appendChild(item);
+    });
+}
+
+function renderDesaList() {
+    const container = document.getElementById('desaDropdownList');
+    container.innerHTML = '';
+    const desaSelect = document.getElementById('desa');
+    Array.from(desaSelect.options).forEach(opt => {
+        if (!opt.value) return;
+        const item = document.createElement('div');
+        item.className = 'd-flex align-items-center justify-content-between px-2 py-1 rounded mb-1';
+        item.style.cursor = 'pointer';
+        item.innerHTML = '<span class="fw-semibold" style="font-size: 0.85rem;">' + opt.text + '</span>' +
+            '<button type="button" class="btn btn-sm btn-outline-warning py-0 px-1" title="Edit" onclick="event.stopPropagation(); openEditFromList(\'desa\', ' + (opt.dataset.id || 0) + ', \'' + opt.value.replace(/'/g, "\\'") + '\')"><i class="bi bi-pencil-square" style="font-size: 0.7rem;"></i></button>';
+        item.addEventListener('mouseenter', function() { this.style.backgroundColor = '#f0f4ff'; });
+        item.addEventListener('mouseleave', function() { this.style.backgroundColor = ''; });
+        container.appendChild(item);
+    });
+}
+
+function openEditFromList(type, id, currentName) {
+    document.getElementById('editType').value = type;
+    document.getElementById('editId').value = id;
+    document.getElementById('editNamaBaru').value = currentName;
+    document.getElementById('modalEditNamaLabel').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Edit ' + (type === 'kecamatan' ? 'Kecamatan' : 'Desa');
+    var editModal = new bootstrap.Modal(document.getElementById('modalEditNama'));
+    editModal.show();
+}
+
+document.getElementById('formEditNama').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const type = document.getElementById('editType').value;
+    const id = document.getElementById('editId').value;
+    const newName = document.getElementById('editNamaBaru').value.toUpperCase().trim();
+
+    if (!id) { alert('Data tidak ditemukan!'); return; }
+
+    const route = (type === 'kecamatan')
+        ? '/kecamatan/ajax-update/' + id
+        : '/desa/ajax-update/' + id;
+
+    fetch(route, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ nama: newName })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const select = document.getElementById(type === 'kecamatan' ? 'kecamatan' : 'desa');
+            Array.from(select.options).forEach(opt => {
+                if (opt.dataset.id == id) {
+                    opt.text = newName;
+                    opt.value = newName;
+                }
+            });
+            if (type === 'kecamatan') {
+                const kecData = kecamatansData.find(k => k.id == id);
+                if (kecData) kecData.nama = newName;
+                renderKecamatanList();
+            } else {
+                const kecSelect = document.getElementById('kecamatan');
+                const kecOpt = kecSelect.options[kecSelect.selectedIndex];
+                if (kecOpt && kecOpt.dataset.id) {
+                    const kecData = kecamatansData.find(k => k.id == kecOpt.dataset.id);
+                    if (kecData && kecData.desas) {
+                        const desaData = kecData.desas.find(d => d.id == id);
+                        if (desaData) desaData.nama = newName;
+                    }
+                }
+                renderDesaList();
+            }
+            bootstrap.Modal.getInstance(document.getElementById('modalEditNama')).hide();
         }
     });
 });

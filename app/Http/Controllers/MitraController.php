@@ -734,4 +734,54 @@ class MitraController extends Controller
             'kecamatan' => ['id' => $kecamatan->id, 'nama' => $kecamatan->nama],
         ]);
     }
+
+    public function ajaxStoreDesa(Request $request)
+    {
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            'kecamatan_id' => 'required|exists:kecamatans,id',
+        ]);
+
+        $nama = strtoupper(trim($request->nama));
+
+        $desa = Desa::firstOrCreate(
+            ['nama' => $nama, 'kecamatan_id' => $request->kecamatan_id],
+            ['kode_desa' => strtoupper(substr(md5($nama), 0, 6)), 'kode_full' => '']
+        );
+
+        return response()->json([
+            'success' => true,
+            'desa' => ['id' => $desa->id, 'nama' => $desa->nama],
+        ]);
+    }
+
+    public function ajaxUpdateKecamatan(Request $request, $id)
+    {
+        $request->validate([
+            'nama' => 'required|string|max:255',
+        ]);
+
+        $kecamatan = Kecamatan::findOrFail($id);
+        $kecamatan->update(['nama' => strtoupper(trim($request->nama))]);
+
+        return response()->json([
+            'success' => true,
+            'kecamatan' => ['id' => $kecamatan->id, 'nama' => $kecamatan->nama],
+        ]);
+    }
+
+    public function ajaxUpdateDesa(Request $request, $id)
+    {
+        $request->validate([
+            'nama' => 'required|string|max:255',
+        ]);
+
+        $desa = Desa::findOrFail($id);
+        $desa->update(['nama' => strtoupper(trim($request->nama))]);
+
+        return response()->json([
+            'success' => true,
+            'desa' => ['id' => $desa->id, 'nama' => $desa->nama],
+        ]);
+    }
 }

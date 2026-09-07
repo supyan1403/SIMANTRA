@@ -70,7 +70,7 @@ class ImportMantraCommand extends Command
         $bidangNeraca = Bidang::firstOrCreate(['nama' => 'Neraca']);
         $bidangProduksi = Bidang::firstOrCreate(['nama' => 'Produksi']);
         $bidangSosial = Bidang::firstOrCreate(['nama' => 'Sosial']);
-        $bidangCadangan = Bidang::firstOrCreate(['nama' => 'Cadangan']);
+        $bidangIPDS = Bidang::firstOrCreate(['nama' => 'IPDS']);
 
         $sheets = [];
         foreach ($spreadsheet->getSheetNames() as $name) {
@@ -240,7 +240,7 @@ class ImportMantraCommand extends Command
                         if ($honorL > 0) $targetBidang = $bidangNeraca;
                         elseif ($honorM > 0) $targetBidang = $bidangProduksi;
                         elseif ($honorN > 0) $targetBidang = $bidangSosial;
-                        elseif ($honorO > 0) $targetBidang = $bidangCadangan;
+                        elseif ($honorO > 0) $targetBidang = $bidangIPDS;
                         else {
                             $lowerName = strtolower($namaKegiatan);
                             if (str_contains($lowerName, 'sosial') || str_contains($lowerName, 'sakernas') || str_contains($lowerName, 'susenas') || str_contains($lowerName, 'podes')) {

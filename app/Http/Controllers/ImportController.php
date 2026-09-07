@@ -242,6 +242,8 @@ class ImportController extends Controller
                         [
                             'kode_mata_anggaran' => $row['kode_mata_anggaran'],
                             'tahun' => $row['tahun'],
+                            'revisi_ke' => $row['revisi_ke'],
+                            'nama' => $row['nama'],
                         ],
                         [
                             'nama' => $row['nama'],

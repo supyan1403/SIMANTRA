@@ -19,6 +19,8 @@ class KegiatanController extends Controller
         $search = $request->query('search');
         $bidangId = $request->query('bidang_id');
         $tahun = $request->query('tahun');
+        $sumber = $request->query('sumber');
+        $sumberDetail = $request->query('sumber_detail');
 
         $tahunList = Kegiatan::select('tahun')->distinct()->whereNotNull('tahun')->orderBy('tahun', 'desc')->pluck('tahun');
         if ($tahunList->isEmpty()) {
@@ -52,9 +54,17 @@ class KegiatanController extends Controller
             });
         }
 
+        if ($sumber && $sumber !== 'all') {
+            $query->where('jenis_dokumen', $sumber);
+        }
+
+        if ($sumberDetail) {
+            $query->where('revisi_ke', 'like', "%{$sumberDetail}%");
+        }
+
         $kegiatans = $query->latest()->paginate(15)->withQueryString();
 
-        return view('kegiatan.index', compact('kegiatans', 'bidangs', 'search', 'bidangId', 'tahunList', 'tahun'));
+        return view('kegiatan.index', compact('kegiatans', 'bidangs', 'search', 'bidangId', 'tahunList', 'tahun', 'sumber', 'sumberDetail'));
     }
 
     public function create()
@@ -300,7 +310,7 @@ class KegiatanController extends Controller
         \App\Support\ExcelStyler::applyAlignCenter($sheet, 'H2:H2');
         \App\Support\ExcelStyler::applyCurrencyFormat($sheet, 'I2:J2');
         \App\Support\ExcelStyler::applyDropdownValidation($sheet, 'D2:D500', ['Pencacahan', 'Pengolahan'], 'Tipe Kegiatan', 'Pilih tipe kegiatan');
-        \App\Support\ExcelStyler::applyDropdownValidation($sheet, 'F2:F500', ['Distribusi', 'Neraca', 'Produksi', 'Sosial', 'IPDS', 'Cadangan', 'Bagian Umum'], 'Bidang Kerja', 'Pilih tim kerja BPS');
+        \App\Support\ExcelStyler::applyDropdownValidation($sheet, 'F2:F500', ['Distribusi', 'Neraca', 'Produksi', 'Sosial', 'IPDS', 'Bagian Umum'], 'Bidang Kerja', 'Pilih tim kerja BPS');
         \App\Support\ExcelStyler::applyAutoWidth($sheet, 1, 22);
         \App\Support\ExcelStyler::freezeHeader($sheet, 'A2');
 

@@ -34,7 +34,7 @@
                 </div>
             </div>
             
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-2">
                 <select name="bidang_id" class="form-select" onchange="this.form.submit()" {{ auth()->user()->role === 'operator' && auth()->user()->bidang_id ? 'disabled' : '' }}>
                     @if(!auth()->user()->bidang_id || auth()->user()->role !== 'operator')
                         <option value="all">Semua Bidang / Tim Kerja</option>
@@ -45,18 +45,30 @@
                 </select>
             </div>
 
-            <div class="col-12 col-md-4">
+            <div class="col-6 col-md-2">
+                <select name="sumber" class="form-select" onchange="this.form.submit()">
+                    <option value="all">Semua Sumber</option>
+                    <option value="DIPA" {{ ($sumber ?? '') == 'DIPA' ? 'selected' : '' }}>DIPA</option>
+                    <option value="POK" {{ ($sumber ?? '') == 'POK' ? 'selected' : '' }}>POK</option>
+                </select>
+            </div>
+
+            <div class="col-6 col-md-2">
+                <input type="text" name="sumber_detail" class="form-control form-control-sm" placeholder="Data Awal / Revisi X..." value="{{ $sumberDetail ?? '' }}">
+            </div>
+
+            <div class="col-12 col-md-2">
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
                     <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Cari nama kegiatan atau kode MAK..." value="{{ $search }}">
                 </div>
             </div>
 
-            <div class="col-12 col-md-3 d-flex gap-2">
+            <div class="col-12 col-md-2 d-flex gap-2">
                 <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-1.5 fw-semibold">
                     <i class="bi bi-search"></i> Cari
                 </button>
-                @if($search || ($bidangId && $bidangId !== 'all') || ($tahun && $tahun !== 'all'))
+                @if($search || ($bidangId && $bidangId !== 'all') || ($tahun && $tahun !== 'all') || (($sumber ?? '') && $sumber !== 'all') || ($sumberDetail ?? ''))
                     <a href="{{ route('kegiatan.index') }}" class="btn btn-outline-secondary d-flex align-items-center justify-content-center" title="Reset Filter">
                         <i class="bi bi-arrow-counterclockwise"></i>
                     </a>
@@ -133,6 +145,7 @@
                     <tr>
                         <th class="ps-3 text-center sticky-keg-1">NO</th>
                         <th class="text-center sticky-keg-2">TAHUN</th>
+                        <th style="width: 90px;">DOKUMEN</th>
                         <th style="width: 140px;">SUMBER</th>
                         <th class="sticky-keg-3">NAMA KEGIATAN</th>
                         <th style="width: 140px;">TIPE KEGIATAN</th>
@@ -150,6 +163,19 @@
                         <td class="ps-3 text-center fw-bold text-muted sticky-keg-1">{{ $kegiatans->firstItem() + $index }}</td>
                         <td class="text-center sticky-keg-2">
                             <span class="badge bg-light text-dark border">{{ $kegiatan->tahun ?? '2024' }}</span>
+                        </td>
+                        <td>
+                            @if(($kegiatan->jenis_dokumen ?? '') === 'POK')
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle px-2 py-1 extra-small fw-semibold">
+                                    <i class="bi bi-file-earmark-medical me-1"></i>POK
+                                </span>
+                            @elseif(($kegiatan->jenis_dokumen ?? '') === 'DIPA')
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle px-2 py-1 extra-small fw-semibold">
+                                    <i class="bi bi-file-earmark-richtext me-1"></i>DIPA
+                                </span>
+                            @else
+                                <span class="text-muted extra-small fst-italic">-</span>
+                            @endif
                         </td>
                         <td>
                             @if($kegiatan->revisi_ke)

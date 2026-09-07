@@ -35,6 +35,9 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
     Route::get('/kegiatan/by-bidang/{bidangId}', [KegiatanController::class, 'byBidang'])->name('kegiatan.by-bidang');
     Route::post('/bidang/ajax-store', [KegiatanController::class, 'storeBidangAjax'])->name('bidang.ajax-store');
     Route::post('/kecamatan/ajax-store', [MitraController::class, 'ajaxStoreKecamatan'])->name('kecamatan.ajax-store');
+    Route::put('/kecamatan/ajax-update/{id}', [MitraController::class, 'ajaxUpdateKecamatan'])->name('kecamatan.ajax-update');
+    Route::post('/desa/ajax-store', [MitraController::class, 'ajaxStoreDesa'])->name('desa.ajax-store');
+    Route::put('/desa/ajax-update/{id}', [MitraController::class, 'ajaxUpdateDesa'])->name('desa.ajax-update');
     Route::get('/kegiatan/export', [KegiatanController::class, 'export'])->name('kegiatan.export');
     Route::resource('kegiatan', KegiatanController::class);
     Route::get('/import-kegiatan', [KegiatanController::class, 'importIndex'])->name('kegiatan.import.index');

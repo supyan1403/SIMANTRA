@@ -136,9 +136,9 @@
         <div class="card metric-card metric-card-primary shadow-sm h-100">
             <div class="card-body d-flex align-items-center justify-content-between p-3.5">
                 <div>
-                    <span class="text-white-50 small fw-bold text-uppercase" style="font-size: 0.7rem;">Pagu Mata Anggaran</span>
-                    <h3 class="fw-extrabold text-white mt-1 mb-0 text-nowrap" style="font-size: 1.3rem;" data-counter-value="{{ $paguMataAnggaran }}" data-counter-prefix="Rp ">Rp {{ $paguTxt }}</h3>
-                    <span class="text-white-50 extra-small">Total pagu kegiatan ({{ $tahun }})</span>
+                    <span class="text-white-50 small fw-bold text-uppercase" style="font-size: 0.9rem;">Pagu Mata Anggaran</span>
+                    <h3 class="fw-extrabold text-white mt-1 mb-0 text-nowrap" style="font-size: 1.6rem;" data-counter-value="{{ $paguMataAnggaran }}" data-counter-prefix="Rp ">Rp {{ $paguTxt }}</h3>
+                    <span class="text-white-50" style="font-size: 0.85rem;">Total pagu kegiatan ({{ $tahun }})</span>
                 </div>
                 <div class="metric-icon-bg"><i class="bi bi-journal-bookmark-fill fs-3"></i></div>
             </div>
@@ -148,9 +148,9 @@
         <div class="card metric-card metric-card-success shadow-sm h-100">
             <div class="card-body d-flex align-items-center justify-content-between p-3.5">
                 <div>
-                    <span class="text-white-50 small fw-bold text-uppercase" style="font-size: 0.7rem;">Realisasi Honor</span>
-                    <h3 class="fw-extrabold text-white mt-1 mb-0 text-nowrap" style="font-size: 1.3rem;" data-counter-value="{{ $realisasiHonor }}" data-counter-prefix="Rp ">Rp {{ $realTxt }}</h3>
-                    <span class="text-white-50 extra-small">{{ $bulanAwal == $bulanAkhir ? $monthOptions[$bulanAwal] : $monthOptions[$bulanAwal] . ' - ' . $monthOptions[$bulanAkhir] }} {{ $tahun }}</span>
+                    <span class="text-white-50 small fw-bold text-uppercase" style="font-size: 0.9rem;">Realisasi Honor</span>
+                    <h3 class="fw-extrabold text-white mt-1 mb-0 text-nowrap" style="font-size: 1.6rem;" data-counter-value="{{ $realisasiHonor }}" data-counter-prefix="Rp ">Rp {{ $realTxt }}</h3>
+                    <span class="text-white-50" style="font-size: 0.85rem;">{{ $bulanAwal == $bulanAkhir ? $monthOptions[$bulanAwal] : $monthOptions[$bulanAwal] . ' - ' . $monthOptions[$bulanAkhir] }} {{ $tahun }}</span>
                 </div>
                 <div class="metric-icon-bg"><i class="bi bi-wallet2 fs-3"></i></div>
             </div>
@@ -160,9 +160,9 @@
         <div class="card metric-card {{ $sisaAnggaran < 0 ? 'metric-card-danger' : 'metric-card-warning' }} shadow-sm h-100">
             <div class="card-body d-flex align-items-center justify-content-between p-3.5">
                 <div>
-                    <span class="text-white-50 small fw-bold text-uppercase" style="font-size: 0.7rem;">Sisa Anggaran</span>
-                    <h3 class="fw-extrabold text-white mt-1 mb-0 text-nowrap" style="font-size: 1.3rem;" data-counter-value="{{ $sisaAnggaran }}" data-counter-prefix="Rp ">Rp {{ $sisaTxt }}</h3>
-                    <span class="text-white-50 extra-small">Pagu − Realisasi ({{ $sisaPct }}% terpakai)</span>
+                    <span class="text-white-50 small fw-bold text-uppercase" style="font-size: 0.9rem;">Sisa Anggaran</span>
+                    <h3 class="fw-extrabold text-white mt-1 mb-0 text-nowrap" style="font-size: 1.6rem;" data-counter-value="{{ $sisaAnggaran }}" data-counter-prefix="Rp ">Rp {{ $sisaTxt }}</h3>
+                    <span class="text-white-50" style="font-size: 0.85rem;">Pagu − Realisasi ({{ $sisaPct }}% terpakai)</span>
                 </div>
                 <div class="metric-icon-bg"><i class="bi bi-graph-down-arrow fs-3"></i></div>
             </div>
@@ -172,17 +172,17 @@
         <div class="card metric-card metric-card-purple shadow-sm h-100">
             <div class="card-body p-3.5">
                 <div class="d-flex align-items-center justify-content-between mb-3">
-                    <span class="text-white-50 small fw-bold text-uppercase" style="font-size: 0.7rem;">Standar SBML / Bulan</span>
+                    <span class="text-white-50 small fw-bold text-uppercase" style="font-size: 0.9rem;">Standar SBML / Bulan</span>
                     <div class="metric-icon-bg"><i class="bi bi-piggy-bank-fill fs-3"></i></div>
                 </div>
                 <div class="d-flex gap-2">
                     <div class="flex-fill rounded-3 p-2 text-center" style="background-color: rgba(255,255,255,0.15);">
-                        <span class="text-white-50 extra-small fw-bold d-block" style="font-size: 0.65rem;">PENCACAHAN</span>
-                        <h5 class="fw-extrabold text-white mb-0" style="font-size: 1rem;">Rp {{ number_format($sbmlPencacahan, 0, ',', '.') }}</h5>
+                        <span class="text-white-50 extra-small fw-bold d-block" style="font-size: 0.75rem;">PENCACAHAN</span>
+                        <h5 class="fw-extrabold text-white mb-0" style="font-size: 1.2rem;">Rp {{ number_format($sbmlPencacahan, 0, ',', '.') }}</h5>
                     </div>
                     <div class="flex-fill rounded-3 p-2 text-center" style="background-color: rgba(255,255,255,0.15);">
-                        <span class="text-white-50 extra-small fw-bold d-block" style="font-size: 0.65rem;">PENGOLAHAN</span>
-                        <h5 class="fw-extrabold text-white mb-0" style="font-size: 1rem;">Rp {{ number_format($sbmlPengolahan, 0, ',', '.') }}</h5>
+                        <span class="text-white-50 extra-small fw-bold d-block" style="font-size: 0.75rem;">PENGOLAHAN</span>
+                        <h5 class="fw-extrabold text-white mb-0" style="font-size: 1.2rem;">Rp {{ number_format($sbmlPengolahan, 0, ',', '.') }}</h5>
                     </div>
                 </div>
             </div>

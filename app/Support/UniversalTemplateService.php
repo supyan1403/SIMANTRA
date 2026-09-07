@@ -127,7 +127,7 @@ class UniversalTemplateService
         ExcelStyler::applyTextFormat($sheet2, 'D2:D10000');
         ExcelStyler::applyCurrencyFormat($sheet2, 'G2:G5');
         ExcelStyler::applyNumberFormat($sheet2, 'H2:H5');
-        ExcelStyler::applyDropdownValidation($sheet2, 'B2:B500', ['Distribusi', 'Neraca', 'Produksi', 'Sosial', 'IPDS', 'Cadangan'], 'Bidang Kerja', 'Pilih tim kerja BPS');
+        ExcelStyler::applyDropdownValidation($sheet2, 'B2:B500', ['Distribusi', 'Neraca', 'Produksi', 'Sosial', 'IPDS'], 'Bidang Kerja', 'Pilih tim kerja BPS');
         ExcelStyler::freezeHeader($sheet2, 'A2');
         ExcelStyler::applyAutoWidth($sheet2, 1, 8);
 

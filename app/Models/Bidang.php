@@ -15,6 +15,6 @@ class Bidang extends Model
 
     public static function getNamaBidang()
     {
-        return ['Distribusi', 'Neraca', 'Produksi', 'Sosial', 'Cadangan'];
+        return ['Distribusi', 'Neraca', 'Produksi', 'Sosial'];
     }
 }

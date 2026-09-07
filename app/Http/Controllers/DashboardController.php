@@ -92,7 +92,15 @@ class DashboardController extends Controller
         $realisasiHonor = (float) $honorQuery()->sum('nominal');
         $totalTransaksi = $honorQuery()->count();
 
+        $latestRevisi = Kegiatan::where('tahun', $tahun)
+            ->select('revisi_ke', DB::raw('MAX(id) as max_id'))
+            ->whereNotNull('revisi_ke')
+            ->groupBy('revisi_ke')
+            ->orderByDesc('max_id')
+            ->value('revisi_ke');
+
         $paguQuery = fn() => Kegiatan::where('tahun', $tahun)
+            ->when($latestRevisi, fn($q) => $q->where('revisi_ke', $latestRevisi))
             ->when($bidangId, fn($q) => $q->where('bidang_id', $bidangId))
             ->when($kegiatanId, fn($q) => $q->where('id', $kegiatanId));
         $paguMataAnggaran = (float) $paguQuery()->sum('total');

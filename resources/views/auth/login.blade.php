@@ -510,31 +510,46 @@
                 <div class="my-auto py-3">
                     <div class="feature-item">
                         <div class="feature-icon-box icon-box-blue">
-                            <i class="bi bi-shield-check"></i>
+                            <i class="bi bi-calendar-check"></i>
                         </div>
                         <div>
-                            <div class="fw-bold text-white mb-0.5" style="font-size: 0.95rem;">Monitoring Realisasi & SBML</div>
-                            <div class="text-white-50 extra-small" style="line-height: 1.4;">Validasi otomatis batas honor per mitra untuk mencegah over-alokasi anggaran.</div>
+                            <div class="fw-bold text-white mb-0.5" style="font-size: 0.95rem;">Mengetahui Alokasi Pekerjaan Per Mitra Per Bulan</div>
                         </div>
                     </div>
 
                     <div class="feature-item">
                         <div class="feature-icon-box icon-box-green">
-                            <i class="bi bi-file-earmark-check-fill"></i>
+                            <i class="bi bi-cash-stack"></i>
                         </div>
                         <div>
-                            <div class="fw-bold text-white mb-0.5" style="font-size: 0.95rem;">Otomatisasi Dokumen SPK & BAST</div>
-                            <div class="text-white-50 extra-small" style="line-height: 1.4;">Pencetakan massal Surat Perintah Kerja dan BAST kegiatan statistik dalam hitungan detik.</div>
+                            <div class="fw-bold text-white mb-0.5" style="font-size: 0.95rem;">Mengetahui Estimasi Pendapatan Honor Mitra Per Bulan (Sesuai SBML)</div>
                         </div>
                     </div>
 
                     <div class="feature-item">
                         <div class="feature-icon-box icon-box-amber">
-                            <i class="bi bi-people-fill"></i>
+                            <i class="bi bi-wallet2"></i>
                         </div>
                         <div>
-                            <div class="fw-bold text-white mb-0.5" style="font-size: 0.95rem;">Database Mitra Statistik Terpusat</div>
-                            <div class="text-white-50 extra-small" style="line-height: 1.4;">Pengelolaan riwayat penugasan mitra per bidang secara transparan dan akurat.</div>
+                            <div class="fw-bold text-white mb-0.5" style="font-size: 0.95rem;">Mengetahui Estimasi Seluruh Biaya Anggaran Honor Mitra Per Bulan</div>
+                        </div>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon-box icon-box-blue">
+                            <i class="bi bi-receipt"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-white mb-0.5" style="font-size: 0.95rem;">Mengetahui Estimasi Biaya Honor Per Kegiatan Untuk SPJ</div>
+                        </div>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon-box icon-box-green">
+                            <i class="bi bi-three-dots"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-white mb-0.5" style="font-size: 0.95rem;">Dll</div>
                         </div>
                     </div>
                 </div>

@@ -10,6 +10,7 @@ use App\Models\Bidang;
 use App\Models\Kegiatan;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
 class LandingController extends Controller
@@ -92,7 +93,15 @@ class LandingController extends Controller
         $realisasiHonor = (float) $honorQuery()->sum('nominal');
         $totalTransaksi = $honorQuery()->count();
 
+        $latestRevisi = Kegiatan::where('tahun', $tahun)
+            ->select('revisi_ke', DB::raw('MAX(id) as max_id'))
+            ->whereNotNull('revisi_ke')
+            ->groupBy('revisi_ke')
+            ->orderByDesc('max_id')
+            ->value('revisi_ke');
+
         $paguQuery = fn() => Kegiatan::where('tahun', $tahun)
+            ->when($latestRevisi, fn($q) => $q->where('revisi_ke', $latestRevisi))
             ->when($bidangId, fn($q) => $q->where('bidang_id', $bidangId))
             ->when($kegiatanId, fn($q) => $q->where('id', $kegiatanId));
         $paguMataAnggaran = (float) $paguQuery()->sum('total');
