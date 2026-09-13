@@ -8,6 +8,7 @@ use App\Models\Kegiatan;
 use App\Models\AlokasiHonor;
 use App\Traits\HasBidangScope;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -33,6 +34,13 @@ class RekapController extends Controller
         }
         $periodes = Periode::where('tahun', $tahun)->orderBy('bulan_angka')->get();
 
+        $latestRevisi = Kegiatan::where('tahun', $tahun)
+            ->select('revisi_ke', DB::raw('MAX(id) as max_id'))
+            ->whereNotNull('revisi_ke')
+            ->groupBy('revisi_ke')
+            ->orderByDesc('max_id')
+            ->value('revisi_ke');
+
         $rekap = [];
         $paguPerBidang = [];
         $totalPaguAll = 0;
@@ -51,6 +59,7 @@ class RekapController extends Controller
 
             $pagu = (float) Kegiatan::where('bidang_id', $bidang->id)
                 ->where('tahun', $tahun)
+                ->when($latestRevisi, fn($q) => $q->where('revisi_ke', $latestRevisi))
                 ->sum('total');
             $paguPerBidang[$bidang->id] = $pagu;
             $totalPaguAll += $pagu;
