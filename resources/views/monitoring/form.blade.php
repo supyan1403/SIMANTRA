@@ -185,6 +185,17 @@
                         @error('nominal') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
                     </div>
 
+                    <!-- 5b. Pajak (Opsional) -->
+                    <div class="mb-4">
+                        <label for="pajak" class="form-label fw-bold">Pajak (Rp)</label>
+                        <div class="input-group">
+                            <span class="input-group-text fw-bold bg-light text-warning">Rp</span>
+                            <input type="number" step="0.01" class="form-control @error('pajak') is-invalid @enderror" id="pajak" name="pajak" value="{{ old('pajak', $alokasi->pajak ?? 0) }}" placeholder="0">
+                        </div>
+                        <div class="form-text text-muted"><i class="bi bi-info-circle me-1"></i>Isi pajak jika ada. Netto = Bruto - Pajak.</div>
+                        @error('pajak') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+                    </div>
+
                     <!-- 6. Nomor SPK, BAST & Tanggal -->
                     <div class="mb-4">
                         <h6 class="fw-bold text-dark mb-3"><i class="bi bi-file-earmark-text text-primary me-2"></i>Dokumen SPK & BAST (Opsional)</h6>

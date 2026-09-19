@@ -7,6 +7,9 @@
         <p class="page-subtitle">Kelola alokasi honor mitra, pantau kepatuhan batas SBML, dan kelola alokasi kegiatan</p>
     </div>
     <div class="d-flex align-items-center gap-2 flex-wrap">
+        <a href="{{ route('spj.import') }}" class="btn btn-info d-flex align-items-center gap-2 shadow-sm fw-semibold text-white">
+            <i class="bi bi-cloud-upload"></i> Import SPJ
+        </a>
         <a href="{{ route('monitoring.create') }}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm fw-semibold">
             <i class="bi bi-plus-lg"></i> Tambah Alokasi Honor
         </a>
@@ -58,12 +61,10 @@
             </div>
             <div class="col-md-2">
                 <label class="form-label text-muted small fw-bold mb-1">BIDANG / TIM</label>
-                <select name="bidang_id" class="form-select" onchange="this.form.submit()" {{ auth()->user()->role === 'operator' && auth()->user()->bidang_id ? 'disabled' : '' }}>
-                    @if(!auth()->user()->bidang_id || auth()->user()->role !== 'operator')
-                        <option value="">Semua Bidang</option>
-                    @endif
+                <select name="bidang_id" class="form-select" onchange="this.form.submit()">
+                    <option value="">Semua Bidang</option>
                     @foreach($bidangs as $b)
-                        <option value="{{ $b->id }}" {{ (request('bidang_id') == $b->id || (auth()->user()->role === 'operator' && auth()->user()->bidang_id == $b->id)) ? 'selected' : '' }}>{{ $b->nama }}</option>
+                        <option value="{{ $b->id }}" {{ request('bidang_id') == $b->id ? 'selected' : '' }}>{{ $b->nama }}</option>
                     @endforeach
                 </select>
             </div>

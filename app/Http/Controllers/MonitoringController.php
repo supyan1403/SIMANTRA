@@ -20,16 +20,9 @@ class MonitoringController extends Controller
         $tahunList = Periode::select('tahun')->distinct()->orderBy('tahun', 'desc')->pluck('tahun');
         $query = AlokasiHonor::with(['mitra', 'periode', 'kegiatan.bidang']);
 
-        // Scope Bidang untuk Operator (Bab 3.2 & Bab 4)
-        $user = auth()->user();
-        if ($user && $user->role === 'operator' && $user->bidang_id) {
-            $query->whereHas('kegiatan', fn ($q) => $q->where('bidang_id', $user->bidang_id));
-            $bidangs = Bidang::where('id', $user->bidang_id)->get();
-        } else {
-            if ($request->bidang_id) {
-                $query->whereHas('kegiatan', fn ($q) => $q->where('bidang_id', $request->bidang_id));
-            }
-            $bidangs = Bidang::all();
+        $bidangs = Bidang::all();
+        if ($request->bidang_id) {
+            $query->whereHas('kegiatan', fn ($q) => $q->where('bidang_id', $request->bidang_id));
         }
 
         if ($request->periode_id) {
@@ -61,11 +54,7 @@ class MonitoringController extends Controller
             }
         }
 
-        $kegiatansQuery = Kegiatan::query();
-        if ($user && $user->role === 'operator' && $user->bidang_id) {
-            $kegiatansQuery->where('bidang_id', $user->bidang_id);
-        }
-        $kegiatans = $kegiatansQuery->orderBy('nama')->get();
+        $kegiatans = Kegiatan::orderBy('nama')->get();
 
         $sbmlTahun = $request->sbml_tahun ?? ($tahunList->first() ?? date('Y'));
         $sbmlMaster = \App\Models\SbmlMaster::where('tahun', $sbmlTahun)->first();
@@ -79,13 +68,8 @@ class MonitoringController extends Controller
     {
         $query = AlokasiHonor::with(['mitra', 'periode', 'kegiatan.bidang']);
 
-        $user = auth()->user();
-        if ($user && $user->role === 'operator' && $user->bidang_id) {
-            $query->whereHas('kegiatan', fn ($q) => $q->where('bidang_id', $user->bidang_id));
-        } else {
-            if ($request->bidang_id && $request->bidang_id !== 'all') {
-                $query->whereHas('kegiatan', fn ($q) => $q->where('bidang_id', $request->bidang_id));
-            }
+        if ($request->bidang_id && $request->bidang_id !== 'all') {
+            $query->whereHas('kegiatan', fn ($q) => $q->where('bidang_id', $request->bidang_id));
         }
 
         if ($request->periode_id) {
@@ -181,16 +165,11 @@ class MonitoringController extends Controller
 
     public function create()
     {
-        $user = auth()->user();
         $mitras = Mitra::orderBy('nama')->get();
         $periodes = Periode::orderBy('tahun', 'desc')->orderBy('bulan_angka')->get();
         $tahunList = Periode::select('tahun')->distinct()->orderBy('tahun', 'desc')->pluck('tahun');
 
-        if ($user && $user->role === 'operator' && $user->bidang_id) {
-            $bidangs = Bidang::where('id', $user->bidang_id)->with(['kegiatans' => fn($q) => $q->orderBy('nama')])->get();
-        } else {
-            $bidangs = Bidang::with(['kegiatans' => fn($q) => $q->orderBy('nama')])->get();
-        }
+        $bidangs = Bidang::with(['kegiatans' => fn($q) => $q->orderBy('nama')])->get();
 
         return view('monitoring.form', compact('mitras', 'periodes', 'tahunList', 'bidangs'));
     }
@@ -202,6 +181,7 @@ class MonitoringController extends Controller
             'periode_id' => 'required|exists:periodes,id',
             'kegiatan_id' => 'required|exists:kegiatans,id',
             'nominal' => 'required|numeric|min:0',
+            'pajak' => 'nullable|numeric|min:0',
             'volume' => 'nullable|numeric|min:0',
             'satuan' => 'nullable|string|max:50',
             'tarif_satuan' => 'nullable|numeric|min:0',
@@ -212,6 +192,7 @@ class MonitoringController extends Controller
 
         $validated['volume'] = $validated['volume'] ?? 1;
         $validated['satuan'] = $validated['satuan'] ?? 'dokumen';
+        $validated['pajak'] = $validated['pajak'] ?? 0;
 
         $kegiatan = Kegiatan::find($validated['kegiatan_id']);
         if (empty($validated['tarif_satuan']) && $kegiatan) {
@@ -241,17 +222,12 @@ class MonitoringController extends Controller
 
     public function edit(AlokasiHonor $monitoring)
     {
-        $user = auth()->user();
         $alokasi = $monitoring;
         $mitras = Mitra::orderBy('nama')->get();
         $periodes = Periode::orderBy('tahun', 'desc')->orderBy('bulan_angka')->get();
         $tahunList = Periode::select('tahun')->distinct()->orderBy('tahun', 'desc')->pluck('tahun');
 
-        if ($user && $user->role === 'operator' && $user->bidang_id) {
-            $bidangs = Bidang::where('id', $user->bidang_id)->with(['kegiatans' => fn($q) => $q->orderBy('nama')])->get();
-        } else {
-            $bidangs = Bidang::with(['kegiatans' => fn($q) => $q->orderBy('nama')])->get();
-        }
+        $bidangs = Bidang::with(['kegiatans' => fn($q) => $q->orderBy('nama')])->get();
 
         $alokasi->load(['periode', 'kegiatan.bidang']);
 
@@ -266,6 +242,7 @@ class MonitoringController extends Controller
             'periode_id' => 'required|exists:periodes,id',
             'kegiatan_id' => 'required|exists:kegiatans,id',
             'nominal' => 'required|numeric|min:0',
+            'pajak' => 'nullable|numeric|min:0',
             'volume' => 'nullable|numeric|min:0',
             'satuan' => 'nullable|string|max:50',
             'tarif_satuan' => 'nullable|numeric|min:0',
@@ -276,6 +253,7 @@ class MonitoringController extends Controller
 
         $validated['volume'] = $validated['volume'] ?? 1;
         $validated['satuan'] = $validated['satuan'] ?? 'dokumen';
+        $validated['pajak'] = $validated['pajak'] ?? 0;
 
         $kegiatan = Kegiatan::find($validated['kegiatan_id']);
         if (empty($validated['tarif_satuan']) && $kegiatan) {
@@ -341,14 +319,9 @@ class MonitoringController extends Controller
         $sbmlLimit = SbmlHelper::limitFor($mitraId, $periodeId);
         $exceeded = $newTotal > $sbmlLimit;
 
-        $availableMitras = [];
+            $availableMitras = [];
         if ($exceeded) {
-            $user = auth()->user();
-            $allMitras = Mitra::where('id', '!=', $mitraId)->orderBy('nama');
-            if ($user && $user->role === 'operator' && $user->bidang_id) {
-                $allMitras->whereHas('alokasiHonors.kegiatan', fn($q) => $q->where('bidang_id', $user->bidang_id));
-            }
-            $allMitras = $allMitras->get();
+            $allMitras = Mitra::where('id', '!=', $mitraId)->orderBy('nama')->get();
             foreach ($allMitras as $m) {
                 $mTotal = floatval(AlokasiHonor::where('mitra_id', $m->id)->where('periode_id', $periodeId)->sum('nominal'));
                 $mLimit = SbmlHelper::limitFor($m->id, $periodeId);

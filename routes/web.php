@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SpjController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\KegiatanController;
 use App\Http\Controllers\LandingController;
@@ -67,6 +68,11 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
     Route::get('/spk-templates/{id}/download', [\App\Http\Controllers\SpkController::class, 'templateDownload'])->name('spk.templates.download');
     Route::put('/spk-templates/{id}', [\App\Http\Controllers\SpkController::class, 'templateUpdate'])->name('spk.templates.update');
     Route::delete('/spk-templates/{id}', [\App\Http\Controllers\SpkController::class, 'templateDestroy'])->name('spk.templates.destroy');
+
+    // Modul SPJ (Import)
+    Route::get('/spj/import', [SpjController::class, 'import'])->name('spj.import');
+    Route::post('/spj/import/preview', [SpjController::class, 'importPreview'])->name('spj.import.preview');
+    Route::post('/spj/import/process', [SpjController::class, 'importProcess'])->name('spj.import.process');
 
     Route::get('/import', [ImportController::class, 'index'])->name('import.index');
     Route::get('/import/template-universal', [ImportController::class, 'downloadUniversalTemplate'])->name('import.template-universal');
